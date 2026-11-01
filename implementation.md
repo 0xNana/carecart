@@ -1,6 +1,6 @@
 # CareCart implementation spec
 
-**Status:** Setup completed; this defines the CareCart work still to implement.
+**Status:** Setup and CC-01 through CC-04 are implemented. The locked workspace tests, including the local Sandbox payment lifecycle, pass; both contract Wasm builds succeed. No testnet/mainnet deployment or transaction signing has occurred.
 
 **Date:** 2026-11-01 (UTC)
 **Selected hackathon track:** Real-World Money (`realworld`).
@@ -20,6 +20,8 @@ The problem is routine procurement work: teams manually notice low stock, gather
 - NEAR Intents has no testnet deployment. Cross-chain behavior on testnet will use a mock adapter. An optional 1Click quote preview may use `dry: true`; that response has no deposit address and does not initiate a swap. Actual Intents settlement is out of the first testnet scope.
 - No TEE or privacy claim is part of this track or the first prototype. The design's attestation screens and claims remain out of scope unless separately implemented and verified.
 - Account IDs, test token IDs, vault IDs, API keys, and model names must come from the human or verified deployment/API output. Do not invent placeholders as if they were live values.
+- The PO commitment boundary is defined: the vault admin grants a dedicated committer role; that role stores each PO ID with its supplier account, token contract, and smallest-unit amount exactly once. Future payment requests accept only the ID and resolve details from the vault. The agent receives no PO-commit permission and cannot rebind a committed ID.
+- `per_order_cap` limits automatic payment per PO, `daily_cap` limits automatic payment per UTC day, and `balance_cap` is the cumulative spending budget for the configured token. Exceeding a cap routes an otherwise valid, funded request to human approval. A pause, missing PO, disallowed supplier, duplicate request ID, invalid PO, or insufficient token balance is blocked.
 
 ## Product behavior
 
@@ -35,7 +37,7 @@ The problem is routine procurement work: teams manually notice low stock, gather
 
 | Path | Responsibility |
 | --- | --- |
-| `contracts/Cargo.toml` | Cargo workspace for the vault and planned test token contract, with a shared lockfile and build output |
+| `contracts/Cargo.toml` | Cargo workspace for the vault and test token contract, with a shared lockfile and build output |
 | `contracts/carecart-vault/` | Rust NEAR policy vault and contract unit tests |
 | `contracts/test-ft/` | Test-only fungible token fixture; never used as a production token |
 | `backend/` | TypeScript/Node API, SQLite persistence, synthetic supplier simulator, forecast and agent tools |
@@ -44,11 +46,13 @@ The problem is routine procurement work: teams manually notice low stock, gather
 | `scripts/` | Local setup, seed, build, and deployment helpers; deployment commands default to testnet |
 | `README.md` | Judge-facing product explanation and numbered, reproducible “do X, see Y” steps |
 
-The repository currently contains setup scaffolds, not CareCart behavior: the web app is the generated Next.js starter, the backend has dependencies but no API implementation, and the vault crate still contains the generated auction example. Replace that sample contract before implementing CareCart policy logic. No contract is deployed.
+The web app is still the generated Next.js starter and the backend has dependencies but no API implementation. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
+
+For the on-chain boundary, an administrator grants the PO committer role to a dedicated backend account. `commit_purchase_order` records the PO ID, allowlisted supplier, configured token, and integer amount exactly once. Future payment calls accept the ID only. Keep the committer key separate from the agent's future function-call key; the latter should be scoped to `request_payment`.
 
 ### Workspace decision
 
-- Use a Cargo workspace under `contracts/`: the vault and the planned test-only NEP-141 token are separate Rust crates and should share one lockfile and target directory.
+- Use a Cargo workspace under `contracts/`: the vault and test-only NEP-141 token are separate Rust crates and share one lockfile and target directory.
 - Keep `backend/` and `web/` as separate npm projects with independent lockfiles. They do not currently share TypeScript code, so a root npm workspace would add coordination without a shared package.
 - NEAR skills are installed in the project workspace under `.agents/skills/` and pinned by `skills-lock.json`.
 
@@ -116,7 +120,7 @@ The pinned toolchain and target are already installed. For a fresh checkout, res
 cargo fetch --manifest-path contracts/Cargo.toml --locked
 ```
 
-The contract SDK, standards package, sandbox crate, and CLI build dependency are pinned in the workspace lockfile. Rust and NEAR CLI installation is only needed on a different machine that does not already have those tools.
+The contract SDK, standards package, sandbox crate, and CLI build dependency are pinned in the workspace lockfile. Rust and NEAR CLI installation is only needed on a different machine that does not already have those tools. The first Sandbox run downloads the pinned `near-sandbox` node binary (2.13.3) if it is not already cached.
 
 ### JavaScript packages
 
@@ -133,7 +137,7 @@ The dependency installation blocked install scripts for `better-sqlite3` and `es
 
 The web dependency install reported 16 moderate advisories. The detailed `npm audit` registry request stalled, so those findings are not yet triaged; rerun `npm audit --prefix web` before release. No forced dependency upgrades were applied.
 
-Local setup checks completed: locked Rust crates fetched; the workspace passed `cargo check --target wasm32-unknown-unknown --workspace --locked` and `cargo near build non-reproducible-wasm --manifest-path contracts/carecart-vault/Cargo.toml --locked`. Both npm dependency trees resolved and the web starter passed `npm run build -- --webpack`. The default Turbopack build is blocked in this execution environment because it cannot bind its internal local socket; this is an environment limitation. No tests or transactions were run.
+Setup checks completed: locked Rust crates fetched; the workspace passed `cargo check --target wasm32-unknown-unknown --workspace --locked` and `cargo near build non-reproducible-wasm --manifest-path contracts/carecart-vault/Cargo.toml --locked`. The focused CC-01 policy suite now passes, and the wasm workspace check passes after CC-02. Both npm dependency trees resolved and the web starter passed `npm run build -- --webpack`. The default Turbopack build is blocked in this execution environment because it cannot bind its internal local socket. No transaction or deployment was run.
 
 ## Configuration and key handling
 
@@ -168,10 +172,10 @@ The admin and deployer full-access keys remain in the user's wallet or CLI keych
 
 ## Verification strategy
 
-No CareCart tests have been written or run during setup; the generated NEAR auction example contains scaffold tests. During implementation, the intended verification is:
+The auction tests have been replaced with focused policy and payment tests. CC-01 through CC-04 verification passes with synthetic accounts and smallest-unit integer amounts. The workspace test suite includes the Sandbox integration test using the test-only NEP-141 token for deposit/balance, auto-pay, pending approval, blocked supplier/funds, duplicate requests, failed transfers, and callback privacy. `cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked` and `cargo near build non-reproducible-wasm` for both contracts pass. Sandbox tests need permission to bind local loopback RPC sockets in restricted environments.
 
-- Rust unit tests for allowlists, limits, idempotency, pause, role checks, callbacks, and failed transfers.
-- NEAR Sandbox integration tests using a mock NEP-141 token for deposits, auto-pay, pending approval, blocked supplier, and transfer-failure outcomes.
+Remaining prototype verification includes:
+
 - Backend tests for deterministic forecasts, quote-to-PO amount derivation, untrusted supplier text, and strict tool arguments.
 - A judge-flow check from a fresh clone using the final README commands and testnet-only configuration.
 - Secret review confirming `.env` is ignored and no key appears in tracked files.

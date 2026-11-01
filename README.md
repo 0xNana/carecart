@@ -12,20 +12,23 @@ All initial data is synthetic. This repository does not contain patient, hospita
 
 ## Current state
 
-Setup scaffold only. `web/` is the generated Next.js starter, `backend/` has its dependencies but no API, and `contracts/carecart-vault/` is the generated NEAR auction example. None of those implements CareCart yet. There is no deployed contract or testnet payment flow. The implementation spec sets testnet as the first NEAR target. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
+The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. No contract is deployed. `backend/` has dependencies but no API, and `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
 
 ## Track
 
 Real-World Money (`realworld`).
 
-## Try this repository today
+## Try the contract
 
-1. Run `npm ls --prefix backend --depth=0`; see the pinned backend dependencies.
-2. Run `npm ls --prefix web --depth=0`; see the pinned Next.js and NEAR wallet dependencies.
-3. Run `npm run dev --prefix web`, then open `http://localhost:3000`; see the generated Next.js starter page. This is not the CareCart product flow.
-4. Run `cat implementation.md`; see the intended testnet-first product behavior, workspace layout, verified endpoints, and setup state.
+From the repository root:
 
-These steps inspect the setup and starter screen. They do not demonstrate CareCart behavior.
+1. Run `cargo test --manifest-path contracts/Cargo.toml -p carecart-vault --test policy --locked`; see the policy and access-control cases pass.
+2. Run `cargo test --manifest-path contracts/Cargo.toml -p carecart-vault --test payment --locked`; see ID-only request, idempotency, reservation, approval, and callback cases pass.
+3. Run `cargo test --manifest-path contracts/Cargo.toml -p carecart-vault --test sandbox --locked`; see the test token deposit/balance and full payment lifecycle run in local Sandbox. On first run this downloads the pinned Sandbox node binary, so network access is required. In restricted environments, the test also needs permission to bind local loopback RPC sockets.
+4. Run `cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked`; see both contracts compile for WASM.
+5. Run `cargo near build non-reproducible-wasm --manifest-path contracts/carecart-vault/Cargo.toml --locked`; see the vault Wasm artifact build.
+
+The Sandbox setup uses synthetic accounts and a local test token only. These commands do not interact with testnet or mainnet. The backend/web procurement flow remains unimplemented; opening `web/` shows the generated starter page, not the CareCart dashboard.
 
 ## Planned judge flow
 

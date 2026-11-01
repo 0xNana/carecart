@@ -1,5 +1,5 @@
 [workspace]
-members = ["carecart-vault"]
+members = ["carecart-vault", "test-ft"]
 resolver = "3"
 
 [profile.release]

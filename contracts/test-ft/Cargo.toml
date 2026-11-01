@@ -1,0 +1,17 @@
+[package]
+name = "carecart-test-ft"
+description = "Test-only NEP-141 token fixture for local CareCart Sandbox tests"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-contract-standards = "=5.29.1"
+near-sdk = "=5.29.1"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ['cfg(near)']
