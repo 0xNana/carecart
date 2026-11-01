@@ -12,7 +12,7 @@ All initial data is synthetic. This repository does not contain patient, hospita
 
 ## Current state
 
-The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. The backend has typed domain records, SQLite migrations, deterministic synthetic seed data, inventory and forecast reads, simulated supplier quotes, and purchase order creation from persisted quotes. No contract is deployed. `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
+The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. The backend has typed domain records, inventory and forecast reads, simulated supplier quotes, purchase-order creation from persisted quotes, and a deterministic agent task service. CC-00 provider selection is pending, so no live model is configured or called. No contract is deployed. `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
 
 ## Track
 
@@ -28,7 +28,7 @@ From the repository root:
 4. Run `cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked`; see both contracts compile for WASM.
 5. Run `cargo near build non-reproducible-wasm --manifest-path contracts/carecart-vault/Cargo.toml --locked`; see the vault Wasm artifact build.
 
-The Sandbox setup uses synthetic accounts and a local test token only. These commands do not interact with testnet or mainnet. Purchase-order, payment, agent, and dashboard flows are still unimplemented; opening `web/` shows the generated starter page.
+The Sandbox setup uses synthetic accounts and a local test token only. These commands do not interact with testnet or mainnet. Payment integration and dashboard flows are still unimplemented; opening `web/` shows the generated starter page.
 
 ## Try the backend inventory and quote API
 
@@ -38,14 +38,15 @@ The Sandbox setup uses synthetic accounts and a local test token only. These com
 4. Run `curl -s -X POST http://127.0.0.1:3001/api/supplier-quotes -H 'content-type: application/json' -d '{"itemId":"item-000001"}'`; see two simulated quotes with registered supplier IDs and atomic prices. Copy a `quoteId` from this response.
 5. Send `curl -s -X POST http://127.0.0.1:3001/api/purchase-orders -H 'content-type: application/json' -d '{"requestId":"judge-po-request-0001","itemId":"item-000001","quoteId":"quote-000003"}'`, replacing `quote-000003` with the copied ID; see a draft purchase order whose supplier, quantity, and amount come from the stored quote.
 6. Repeat the same purchase-order request with the same `requestId`; see the same PO ID returned with `replayed: true`, without another PO or audit event.
-7. Run `npm test --prefix backend`; see migration, forecast, quote, purchase-order, idempotency, validation, and synthetic seed cases pass.
-8. Run `npm run typecheck --prefix backend`; see the strict backend TypeScript check pass.
+7. Run `curl -s -X POST http://127.0.0.1:3001/api/agent/tasks -H 'content-type: application/json' -d '{"itemId":"item-000001"}'`; see a deterministic forecast summary without a provider call. Add an unused `quoteId` from step 4 to the body to draft a PO through the registered tool.
+8. Run `npm test --prefix backend`; see migration, forecast, quote, purchase-order, strict tool schema, adversarial supplier message, deterministic no-provider, and synthetic seed cases pass.
+9. Run `npm run typecheck --prefix backend`; see the strict backend TypeScript check pass.
 
-The quote route accepts only a registered item ID. The purchase-order route accepts only a request ID, registered item ID, and quote ID; caller-supplied destination, token, route, amount, or quantity fields are rejected. Supplier and payment data come from the stored quote. The seed has no supplier account addresses and records the sample payment as `not_requested`. The default SQLite file is Git-ignored. The API binds to loopback and does not submit blockchain transactions.
+The quote route accepts only a registered item ID. The purchase-order route accepts only a request ID, registered item ID, and quote ID; caller-supplied destination, token, route, amount, or quantity fields are rejected. The agent task route accepts registered item and optional quote IDs. Supplier messages remain tagged as untrusted data, separate from fixed instructions and tool arguments. Provider credentials and models remain server-side and disabled until the human resolves CC-00. The seed has no supplier account addresses and records the sample payment as `not_requested`. The default SQLite file is Git-ignored. The API binds to loopback and does not submit blockchain transactions.
 
 ## Planned judge flow
 
-The inventory → forecast → simulated quote portion is runnable through the API above. The remaining flow becomes runnable after implementation:
+The inventory → forecast → simulated quote → draft purchase order flow is runnable through the API above. Payment and dashboard flows remain to be implemented:
 
 1. Open the inventory with a low-stock item; see its deterministic forecast, supplier quotes, and drafted purchase order.
 2. Request a payment for an allowlisted test supplier; see the vault mark it `Paid`, `Pending`, or `Blocked` according to policy.

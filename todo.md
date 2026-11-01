@@ -182,15 +182,15 @@ Work in dependency order. Keep each task small, verify it before moving on, and 
 **Description:** Let an agent summarize forecasts and draft purchase orders using narrow, schema-validated tools backed by the records above.
 
 **Acceptance criteria:**
-- [ ] Tool arguments contain registered IDs only; the model cannot select a payee or payment amount.
-- [ ] Supplier messages are treated as untrusted data and cannot change policy or tool permissions.
-- [ ] Provider/model configuration is gated on CC-00 and stays server-side.
+- [x] Tool definitions accept only registered item/quote IDs, validate them against the registry, and expose no payee, destination, token, route, or amount argument.
+- [x] Supplier message context is size-limited, checked against the registered supplier identity, and tagged as untrusted data outside instructions and tool arguments.
+- [x] Provider selection remains disabled while CC-00 is pending; environment values cannot enable a live provider, and approved credentials/model settings are read only by backend configuration.
 
-**Verification:** Test strict argument validation, adversarial supplier text, and no-provider deterministic behavior.
+**Verification:** `npm test --prefix backend` passes 31 cases; tests cover strict tool schemas, adversarial supplier content, deterministic forecast summaries and PO drafting without a provider, and the CC-00 configuration gate. `npm run typecheck --prefix backend` passes.
 
 **Dependencies:** CC-07; CC-00 for live LLM configuration.
 
-**Files likely touched:** `backend/src/agent/tools.ts`, `backend/src/agent/service.ts`, `backend/src/config.ts`.
+**Files touched:** `backend/src/agent/tools.ts`, `backend/src/agent/service.ts`, `backend/src/config.ts`, `backend/src/routes/agent.ts`, server registration, and backend tests/docs.
 
 **Estimated scope:** Medium.
 

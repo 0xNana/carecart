@@ -4,7 +4,7 @@
 
 Build a reproducible, testnet-first procurement prototype for the NEAR Hackathon `realworld` track. Synthetic inventory flows through a deterministic forecast, supplier quotes, purchase order, and a policy-checked payment request. The NEAR vault—not the agent or backend—enforces payment policy.
 
-The web app is still a Next.js starter. The backend now has typed domain records, versioned SQLite migrations, registry-based IDs, deterministic synthetic fixtures, inventory and forecast reads, persisted simulated supplier quotes, and idempotent purchase-order creation from stored quotes. Purchase-order requests accept only registered item/quote IDs and an idempotency key; supplier, quantity, and amount come from the persisted quote and each created order gets an audit event. The vault has policy configuration, supplier/committer/requester roles, immutable PO commitments, guarded payment requests, capacity reservations, private settlement callbacks, and payment views. The test-only token, Sandbox lifecycle test, workspace tests, WASM check, both contract artifact builds, and CC-05 through CC-07 backend tests pass. `todo.md` is the ordered task list for the remaining work.
+The web app is still a Next.js starter. The backend now has typed domain records, versioned SQLite migrations, registry-based IDs, deterministic synthetic fixtures, inventory and forecast reads, simulated quotes, idempotent purchase-order creation, and a deterministic agent task service. Agent tools accept strict registered-ID arguments and cannot set supplier, amount, payment, or policy fields. Supplier messages remain separate untrusted data. Provider settings are server-side and disabled while CC-00 is pending. The vault has policy configuration, supplier/committer/requester roles, immutable PO commitments, guarded payment requests, capacity reservations, private settlement callbacks, and payment views. The test-only token, Sandbox lifecycle test, workspace tests, WASM check, both contract artifact builds, and CC-05 through CC-08 backend tests pass. `todo.md` is the ordered task list for the remaining work.
 
 ## Architecture decisions
 
@@ -14,6 +14,7 @@ The web app is still a Next.js starter. The backend now has typed domain records
 - NEAR testnet is the first deployment target. The test token address must come from a verified deployment/metadata result.
 - NEAR Intents has no testnet deployment; use a mock adapter and optionally `dry: true` 1Click quote previews. Do not imply or initiate cross-chain settlement.
 - Agent tools accept registered IDs and schema-validated arguments. The backend resolves payment amount/payee from stored purchase-order data; the vault independently enforces policy.
+- Supplier messages are kept as untrusted data and cannot alter the fixed tool registry or instructions. Live provider use requires the unresolved CC-00 human choice and selected model.
 - PO commitment boundary (resolved in CC-00A): the admin grants a dedicated committer role. That role writes `po_id -> supplier_id/token_id/amount` once; a payment request accepts only the ID. The agent cannot commit or rebind the record. Keep the backend committer key separate from the request-only function-call key.
 - Policy decision semantics: valid, funded requests inside per-order, UTC-day, and cumulative token spending caps are eligible for automatic payment. Cap excess routes to human approval. Paused, missing, unlisted, invalid, and insufficient-fund requests are blocked. Request state is keyed by the immutable PO ID, which also provides idempotency. Capacity is reserved before transfer and settled/released in a private callback.
 - Do not claim TEE/privacy properties unless implemented and verified. They are outside the first scope.
@@ -40,7 +41,7 @@ The backend's deterministic local flow can proceed while human deployment detail
 ## Checkpoints
 
 1. **Vault:** policy/payment tests, the NEP-141 Sandbox flow, workspace WASM check, and both contract artifact builds pass.
-2. **Procurement:** CC-05 domain/storage/seed, CC-06 inventory/forecast/quote API, and CC-07 quote-to-PO flow are implemented and tested. The constrained agent slice remains.
+2. **Procurement:** CC-05 domain/storage/seed through CC-08 deterministic tools and agent service are implemented and tested. CC-00 still blocks live LLM configuration.
 3. **Judge flow:** README steps work from a fresh clone; payment statuses are visible; cross-chain display is preview-only.
 4. **Release:** dependency advisories are triaged, secrets are absent, and testnet actions have human approval before signing.
 

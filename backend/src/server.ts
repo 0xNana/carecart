@@ -10,6 +10,7 @@ import {
   type DatabaseHandle,
 } from './db';
 import { seedSyntheticData } from './seed';
+import { registerAgentRoutes } from './routes/agent';
 import { registerInventoryRoutes } from './routes/inventory';
 import { registerPurchaseOrderRoutes } from './routes/purchase-orders';
 
@@ -22,6 +23,7 @@ export interface CreateServerOptions {
 
 export function createServer({ database, clock = () => new Date() }: CreateServerOptions) {
   const app = Fastify({ logger: false });
+  registerAgentRoutes(app, database, clock);
   registerInventoryRoutes(app, database, clock);
   registerPurchaseOrderRoutes(app, database, clock);
   return app;

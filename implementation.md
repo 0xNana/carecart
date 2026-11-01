@@ -1,6 +1,6 @@
 # CareCart implementation spec
 
-**Status:** Setup and CC-01 through CC-07 are implemented. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and backend endpoint, forecast, and purchase order tests pass. No testnet/mainnet deployment or transaction signing has occurred.
+**Status:** Setup and CC-01 through CC-08 are implemented. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and backend endpoint, procurement, and deterministic agent tests pass. CC-00 provider selection remains pending; no live LLM call, testnet/mainnet deployment, or transaction signing has occurred.
 
 **Date:** 2026-11-01 (UTC)
 **Selected hackathon track:** Real-World Money (`realworld`).
@@ -29,9 +29,10 @@ The problem is routine procurement work: teams manually notice low stock, gather
 2. A deterministic forecaster proposes a quantity using synthetic usage and supplier lead time.
 3. The CC-06 supplier simulator returns catalog-backed synthetic quotes. If a later integration accepts free-form supplier messages, keep their contents as untrusted data and do not let them alter system instructions or registered identities.
 4. The backend accepts an idempotency key, item ID, and quote ID, then creates a draft purchase order from the stored quote. The request cannot supply an amount or destination.
-5. The payment adapter checks the PO and submits only its ID to the vault. The vault enforces the supplier allowlist, pause state, per-order limit, daily cap, balance cap, and idempotency.
-6. In-policy same-chain payments may proceed automatically on the test token. Over-policy requests become `Pending`; invalid suppliers, paused payments, invalid amounts, and insufficient funds become `Blocked`. A human wallet controls approval and policy changes.
-7. The UI shows the inventory, forecast, quote, PO, payment status, policy, pause state, and audit events. Cross-chain testnet requests are visibly marked as simulated/preview only.
+5. The deterministic agent service summarizes forecasts and can call only the registered forecast and draft-PO tools. Tool arguments contain item and quote IDs; the backend resolves all other PO fields.
+6. The payment adapter checks the PO and submits only its ID to the vault. The vault enforces the supplier allowlist, pause state, per-order limit, daily cap, balance cap, and idempotency.
+7. In-policy same-chain payments may proceed automatically on the test token. Over-policy requests become `Pending`; invalid suppliers, paused payments, invalid amounts, and insufficient funds become `Blocked`. A human wallet controls approval and policy changes.
+8. The UI shows the inventory, forecast, quote, PO, payment status, policy, pause state, and audit events. Cross-chain testnet requests are visibly marked as simulated/preview only.
 
 ## Architecture and project structure
 
@@ -46,13 +47,16 @@ The problem is routine procurement work: teams manually notice low stock, gather
 | `backend/src/procurement/forecast.ts` | Integer-only stock demand and supplier lead-time forecasts |
 | `backend/src/procurement/suppliers.ts` | Persisted simulated quotes from the trusted synthetic supplier catalog |
 | `backend/src/procurement/purchase-orders.ts` | Purchase-order creation from persisted quotes with replay protection and audit events |
-| `backend/src/routes/inventory.ts`, `backend/src/routes/purchase-orders.ts`, `backend/src/server.ts` | Loopback API for inventory, forecasts, quotes, and purchase orders |
+| `backend/src/agent/tools.ts` | Fixed tool definitions and strict registered-ID argument validation |
+| `backend/src/agent/service.ts` | Deterministic forecast summary, PO drafting, and separately tagged supplier message data |
+| `backend/src/config.ts` | Server-side provider settings disabled until CC-00 is resolved |
+| `backend/src/routes/` and `backend/src/server.ts` | Loopback API for inventory, forecasts, quotes, purchase orders, and deterministic agent tasks |
 | `web/` | Next.js admin and judge UI with NEAR Connect on testnet |
 | `data/` | Deterministic synthetic items, suppliers, and usage history |
 | `scripts/` | Local setup, seed, build, and deployment helpers; deployment commands default to testnet |
 | `README.md` | Judge-facing product explanation and numbered, reproducible “do X, see Y” steps |
 
-The web app is still the generated Next.js starter. The backend exposes inventory and forecast reads, persisted simulated quotes, and idempotent draft purchase-order creation. Forecast and quote values use fixed synthetic usage and a trusted supplier catalog; purchase orders derive supplier, quantity, and amount from stored quote fields and create an audit event. The strict request rejects caller-supplied destination, token, route, amount, and quantity fields. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
+The web app is still the generated Next.js starter. The backend exposes inventory and forecast reads, persisted simulated quotes, idempotent draft purchase-order creation, and a deterministic agent task endpoint. The agent tool set contains only forecast lookup and draft-PO creation; strict schemas accept registered IDs and reject extra fields. Supplier messages are tagged separately and are not included in tool arguments or dynamic instructions. Provider configuration stays server-side and environment values cannot enable a provider while CC-00 is pending. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
 
 For the on-chain boundary, an administrator grants the PO committer role to a dedicated backend account. `commit_purchase_order` records the PO ID, allowlisted supplier, configured token, and integer amount exactly once. Future payment calls accept the ID only. Keep the committer key separate from the agent's future function-call key; the latter should be scoped to `request_payment`.
 
@@ -173,7 +177,8 @@ The admin and deployer full-access keys remain in the user's wallet or CLI keych
 - Rust methods validate authorization and policy inside the contract. Reserve funds before cross-contract transfers and settle state in a private callback.
 - Amounts use integer smallest units at external boundaries. The backend uses `bigint` and stores canonical base-10 integer text in SQLite, avoiding JavaScript floating-point rounding and SQLite's signed 64-bit integer limit.
 - IDs and supplier destinations come from persisted registries, not model-generated strings.
-- Supplier messages are untrusted input. Store the original message for audit, but do not treat instructions inside it as agent or policy instructions.
+- Supplier messages are untrusted input. Keep them in a separately tagged data field; do not place them in fixed instructions, tool arguments, policy, or permission configuration.
+- Live provider and model configuration remains disabled until the human resolves CC-00. Credentials and the chosen model stay in backend environment configuration.
 - Synthetic data is deterministic from a fixed seed. Do not import real patient or hospital records.
 
 ## Verification strategy
@@ -182,7 +187,6 @@ The auction tests have been replaced with focused policy and payment tests. CC-0
 
 Remaining prototype verification includes:
 
-- Constrained agent tool and untrusted supplier message handling tests (CC-08).
 - A judge-flow check from a fresh clone using the final README commands and testnet-only configuration.
 - Secret review confirming `.env` is ignored and no key appears in tracked files.
 
