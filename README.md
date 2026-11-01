@@ -12,7 +12,7 @@ All initial data is synthetic. This repository does not contain patient, hospita
 
 ## Current state
 
-The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. No contract is deployed. `backend/` has dependencies but no API, and `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
+The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. The backend has typed domain records, SQLite migrations, and deterministic synthetic seed data, but no API endpoints yet. No contract is deployed. `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
 
 ## Track
 
@@ -28,7 +28,14 @@ From the repository root:
 4. Run `cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked`; see both contracts compile for WASM.
 5. Run `cargo near build non-reproducible-wasm --manifest-path contracts/carecart-vault/Cargo.toml --locked`; see the vault Wasm artifact build.
 
-The Sandbox setup uses synthetic accounts and a local test token only. These commands do not interact with testnet or mainnet. The backend/web procurement flow remains unimplemented; opening `web/` shows the generated starter page, not the CareCart dashboard.
+The Sandbox setup uses synthetic accounts and a local test token only. These commands do not interact with testnet or mainnet. Procurement endpoints and the dashboard are still unimplemented; opening `web/` shows the generated starter page.
+
+## Try the backend data foundation
+
+1. Run `npm test --prefix backend`; see the fresh SQLite migration, trusted ID registry, deterministic synthetic seed, and exact smallest-unit amount cases pass.
+2. Run `npm run typecheck --prefix backend`; see the strict backend TypeScript check pass.
+
+The seed uses synthetic items and supplier labels, has no supplier account addresses, and records the sample payment as `not_requested`. The default SQLite file is `backend/data/carecart.sqlite`, which Git ignores.
 
 ## Planned judge flow
 

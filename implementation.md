@@ -1,6 +1,6 @@
 # CareCart implementation spec
 
-**Status:** Setup and CC-01 through CC-04 are implemented. The locked workspace tests, including the local Sandbox payment lifecycle, pass; both contract Wasm builds succeed. No testnet/mainnet deployment or transaction signing has occurred.
+**Status:** Setup and CC-01 through CC-05 are implemented. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and focused backend tests pass. No testnet/mainnet deployment or transaction signing has occurred.
 
 **Date:** 2026-11-01 (UTC)
 **Selected hackathon track:** Real-World Money (`realworld`).
@@ -40,13 +40,16 @@ The problem is routine procurement work: teams manually notice low stock, gather
 | `contracts/Cargo.toml` | Cargo workspace for the vault and test token contract, with a shared lockfile and build output |
 | `contracts/carecart-vault/` | Rust NEAR policy vault and contract unit tests |
 | `contracts/test-ft/` | Test-only fungible token fixture; never used as a production token |
-| `backend/` | TypeScript/Node API, SQLite persistence, synthetic supplier simulator, forecast and agent tools |
+| `backend/src/domain.ts` | Typed procurement records and branded, registry-issued identifiers |
+| `backend/src/db.ts` | SQLite migrations, exact amount persistence, ID allocation, and typed record reads; default file is ignored `backend/data/carecart.sqlite` |
+| `backend/src/seed.ts` | Deterministic synthetic inventory, suppliers, usage, quotes, PO, payment, and audit records |
+| `backend/` | Planned TypeScript/Node API, with the local SQLite domain and seed foundation implemented |
 | `web/` | Next.js admin and judge UI with NEAR Connect on testnet |
 | `data/` | Deterministic synthetic items, suppliers, and usage history |
 | `scripts/` | Local setup, seed, build, and deployment helpers; deployment commands default to testnet |
 | `README.md` | Judge-facing product explanation and numbered, reproducible “do X, see Y” steps |
 
-The web app is still the generated Next.js starter and the backend has dependencies but no API implementation. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
+The web app is still the generated Next.js starter. The backend has typed records, an SQLite schema/migration, registry-based ID allocation, and a one-time synthetic seed, but no API implementation. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
 
 For the on-chain boundary, an administrator grants the PO committer role to a dedicated backend account. `commit_purchase_order` records the PO ID, allowlisted supplier, configured token, and integer amount exactly once. Future payment calls accept the ID only. Keep the committer key separate from the agent's future function-call key; the latter should be scoped to `request_payment`.
 
@@ -165,7 +168,7 @@ The admin and deployer full-access keys remain in the user's wallet or CLI keych
 
 - TypeScript uses strict types, explicit input validation at API boundaries, and named domain types for item, supplier, quote, purchase order, and payment status.
 - Rust methods validate authorization and policy inside the contract. Reserve funds before cross-contract transfers and settle state in a private callback.
-- Amounts use integer smallest units at external boundaries; the UI formats display values using token metadata rather than floating-point arithmetic.
+- Amounts use integer smallest units at external boundaries. The backend uses `bigint` and stores canonical base-10 integer text in SQLite, avoiding JavaScript floating-point rounding and SQLite's signed 64-bit integer limit.
 - IDs and supplier destinations come from persisted registries, not model-generated strings.
 - Supplier messages are untrusted input. Store the original message for audit, but do not treat instructions inside it as agent or policy instructions.
 - Synthetic data is deterministic from a fixed seed. Do not import real patient or hospital records.
@@ -176,7 +179,7 @@ The auction tests have been replaced with focused policy and payment tests. CC-0
 
 Remaining prototype verification includes:
 
-- Backend tests for deterministic forecasts, quote-to-PO amount derivation, untrusted supplier text, and strict tool arguments.
+- Backend forecast, quote-to-PO, untrusted supplier text, and constrained agent tool tests (CC-06 through CC-08).
 - A judge-flow check from a fresh clone using the final README commands and testnet-only configuration.
 - Secret review confirming `.env` is ignored and no key appears in tracked files.
 

@@ -4,13 +4,13 @@
 
 Build a reproducible, testnet-first procurement prototype for the NEAR Hackathon `realworld` track. Synthetic inventory flows through a deterministic forecast, supplier quotes, purchase order, and a policy-checked payment request. The NEAR vault—not the agent or backend—enforces payment policy.
 
-The web app is still a Next.js starter and the backend has dependencies but no API. The vault now has policy configuration, supplier/committer/requester roles, immutable PO commitments, guarded payment requests, capacity reservations, private settlement callbacks, and payment views. The test-only token, Sandbox lifecycle test, workspace tests, WASM check, and both contract artifact builds pass. `todo.md` is the ordered task list for the remaining work.
+The web app is still a Next.js starter. The backend has typed domain records, a versioned SQLite schema, registry-based IDs, and deterministic synthetic seed data, but no API yet. The vault has policy configuration, supplier/committer/requester roles, immutable PO commitments, guarded payment requests, capacity reservations, private settlement callbacks, and payment views. The test-only token, Sandbox lifecycle test, workspace tests, WASM check, both contract artifact builds, and CC-05 backend tests pass. `todo.md` is the ordered task list for the remaining work.
 
 ## Architecture decisions
 
 - Rust contracts share the `contracts/` Cargo workspace and lockfile. The test-only NEP-141 token is a separate member crate.
 - `backend/` and `web/` remain separate npm projects because they do not share TypeScript packages.
-- Inventory, suppliers, quotes, and patient-adjacent examples use deterministic synthetic data only.
+- Inventory, suppliers, quotes, and usage data use deterministic synthetic fixtures only. Atomic amounts are `bigint` in the domain and canonical decimal text in SQLite; never convert them to floating-point values.
 - NEAR testnet is the first deployment target. The test token address must come from a verified deployment/metadata result.
 - NEAR Intents has no testnet deployment; use a mock adapter and optionally `dry: true` 1Click quote previews. Do not imply or initiate cross-chain settlement.
 - Agent tools accept registered IDs and schema-validated arguments. The backend resolves payment amount/payee from stored purchase-order data; the vault independently enforces policy.
@@ -40,7 +40,7 @@ The backend's deterministic local flow can proceed while human deployment detail
 ## Checkpoints
 
 1. **Vault:** policy/payment tests, the NEP-141 Sandbox flow, workspace WASM check, and both contract artifact builds pass.
-2. **Procurement:** low stock produces a forecast, persisted quotes, and a PO with stored amount/payee; invalid suppliers and altered instructions are rejected.
+2. **Procurement:** CC-05 domain/storage/seed is implemented and tested. The later endpoint, forecast, quote, and PO slices remain to be built and verified.
 3. **Judge flow:** README steps work from a fresh clone; payment statuses are visible; cross-chain display is preview-only.
 4. **Release:** dependency advisories are triaged, secrets are absent, and testnet actions have human approval before signing.
 

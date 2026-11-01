@@ -131,15 +131,15 @@ Work in dependency order. Keep each task small, verify it before moving on, and 
 **Description:** Add typed inventory, supplier, usage, quote, purchase-order, payment, and audit records with deterministic synthetic seed data.
 
 **Acceptance criteria:**
-- [ ] Seed data is deterministic and contains no patient, hospital, or real supplier records.
-- [ ] Amounts are stored as integer smallest units; identifiers are generated from trusted registries.
-- [ ] Database schema and migrations can initialize an empty local database.
+- [x] Seed data is deterministic and contains no patient, hospital, or real supplier records.
+- [x] Amounts are represented as bigint smallest units and persisted as canonical decimal integer text; IDs are allocated from a backend-owned registry.
+- [x] Database schema and migrations initialize an empty local SQLite database.
 
-**Verification:** Run focused backend tests for schema initialization and deterministic seeding.
+**Verification:** `npm test --prefix backend` passes 7 focused cases for fresh-database migration, repeat migration, registry ID allocation, deterministic/idempotent synthetic seeding, and exact large integer amount round-trips. `npm run typecheck --prefix backend` passes.
 
 **Dependencies:** None; can proceed alongside Phase 1.
 
-**Files likely touched:** `backend/src/domain.ts`, `backend/src/db.ts`, `backend/src/seed.ts`.
+**Files likely touched:** `backend/src/domain.ts`, `backend/src/db.ts`, `backend/src/seed.ts`, backend tests, package scripts, and TypeScript config.
 
 **Estimated scope:** Medium.
 

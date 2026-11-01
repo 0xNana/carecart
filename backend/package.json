@@ -5,6 +5,10 @@
   "description": "CareCart backend API",
   "keywords": [],
   "type": "commonjs",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
   "devDependencies": {
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "24.19.2",
