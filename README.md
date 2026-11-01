@@ -12,7 +12,7 @@ All initial data is synthetic. This repository does not contain patient, hospita
 
 ## Current state
 
-The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. The backend has typed domain records, SQLite migrations, deterministic synthetic seed data, inventory and forecast reads, and a simulated supplier quote endpoint. No contract is deployed. `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
+The Rust vault implements policy and role controls, immutable purchase-order commitments, ID-only payment requests, capacity reservations, and private NEP-141 settlement callbacks. The locked workspace suite passes, including a local Sandbox test using a separate test-only NEP-141 token. Both contracts build to Wasm. The backend has typed domain records, SQLite migrations, deterministic synthetic seed data, inventory and forecast reads, simulated supplier quotes, and purchase order creation from persisted quotes. No contract is deployed. `web/` is still the generated Next.js starter. NEAR Intents has no testnet deployment, so cross-chain settlement is not part of the first testnet demo.
 
 ## Track
 
@@ -35,11 +35,13 @@ The Sandbox setup uses synthetic accounts and a local test token only. These com
 1. Run `npm run dev --prefix backend`; see the API listen on `http://127.0.0.1:3001` and initialize the ignored local database at `backend/data/carecart.sqlite`.
 2. Run `curl -s http://127.0.0.1:3001/api/inventory`; see both synthetic items with `onHand`, `reorderPoint`, and `isLowStock` fields.
 3. Run `curl -s http://127.0.0.1:3001/api/inventory/item-000001/forecast`; see the 30-day synthetic usage total and integer reorder recommendations for registered suppliers Alpha and Beta.
-4. Run `curl -s -X POST http://127.0.0.1:3001/api/supplier-quotes -H 'content-type: application/json' -d '{"itemId":"item-000001"}'`; see two simulated quotes with registered supplier IDs and atomic prices. Run the request again to see new quote records persisted in SQLite.
-5. Run `npm test --prefix backend`; see fresh and upgraded SQLite migrations, deterministic forecast, quote persistence, rejected caller-supplied supplier fields, and synthetic seed cases pass.
-6. Run `npm run typecheck --prefix backend`; see the strict backend TypeScript check pass.
+4. Run `curl -s -X POST http://127.0.0.1:3001/api/supplier-quotes -H 'content-type: application/json' -d '{"itemId":"item-000001"}'`; see two simulated quotes with registered supplier IDs and atomic prices. Copy a `quoteId` from this response.
+5. Send `curl -s -X POST http://127.0.0.1:3001/api/purchase-orders -H 'content-type: application/json' -d '{"requestId":"judge-po-request-0001","itemId":"item-000001","quoteId":"quote-000003"}'`, replacing `quote-000003` with the copied ID; see a draft purchase order whose supplier, quantity, and amount come from the stored quote.
+6. Repeat the same purchase-order request with the same `requestId`; see the same PO ID returned with `replayed: true`, without another PO or audit event.
+7. Run `npm test --prefix backend`; see migration, forecast, quote, purchase-order, idempotency, validation, and synthetic seed cases pass.
+8. Run `npm run typecheck --prefix backend`; see the strict backend TypeScript check pass.
 
-The quote route accepts only a registered item ID. It reads supplier identities, lead times, and prices from the synthetic catalog; caller-supplied supplier text, identities, and prices are rejected. The seed has no supplier account addresses and records the sample payment as `not_requested`. The default SQLite file is Git-ignored. The API binds to loopback and does not submit blockchain transactions.
+The quote route accepts only a registered item ID. The purchase-order route accepts only a request ID, registered item ID, and quote ID; caller-supplied destination, token, route, amount, or quantity fields are rejected. Supplier and payment data come from the stored quote. The seed has no supplier account addresses and records the sample payment as `not_requested`. The default SQLite file is Git-ignored. The API binds to loopback and does not submit blockchain transactions.
 
 ## Planned judge flow
 

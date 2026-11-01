@@ -113,6 +113,7 @@ export interface PurchaseOrder {
   amountAtomic: AtomicAmount;
   assetCode: string;
   status: PurchaseOrderStatus;
+  requestId: string | null;
   createdAt: string;
 }
 

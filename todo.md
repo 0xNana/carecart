@@ -165,15 +165,15 @@ Work in dependency order. Keep each task small, verify it before moving on, and 
 **Description:** Add purchase-order creation that accepts trusted item/quote IDs and derives quantity, amount, and supplier destination from stored records.
 
 **Acceptance criteria:**
-- [ ] Requests cannot supply an arbitrary destination account, token, route, or total.
-- [ ] Duplicate requests are idempotent and produce an auditable purchase order.
-- [ ] Invalid or stale quote IDs are rejected with a structured error.
+- [x] Requests accept only a request ID, registered item ID, and quote ID; destination, token, route, amount, and quantity fields are rejected.
+- [x] Duplicate request IDs replay the same purchase order, and creation writes one audit event.
+- [x] Unknown, mismatched, expired, and already-used quote IDs return structured errors.
 
-**Verification:** Test amount derivation, supplier selection, invalid IDs, and duplicate requests.
+**Verification:** `npm test --prefix backend` passes 20 focused cases; purchase-order endpoint cases verify quote-derived quantity/amount/supplier, request replay, audit-once behavior, strict input validation, and structured invalid, mismatched, expired, and used quote errors. `npm run typecheck --prefix backend` passes.
 
 **Dependencies:** CC-06.
 
-**Files likely touched:** `backend/src/routes/purchase-orders.ts`, `backend/src/procurement/purchase-orders.ts`, `backend/src/db.ts`.
+**Files touched:** `backend/src/routes/purchase-orders.ts`, `backend/src/procurement/purchase-orders.ts`, `backend/src/db.ts`, `backend/src/domain.ts`, `backend/src/server.ts`, and backend tests/docs.
 
 **Estimated scope:** Medium.
 

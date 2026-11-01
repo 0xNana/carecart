@@ -4,7 +4,7 @@
 
 Build a reproducible, testnet-first procurement prototype for the NEAR Hackathon `realworld` track. Synthetic inventory flows through a deterministic forecast, supplier quotes, purchase order, and a policy-checked payment request. The NEAR vault—not the agent or backend—enforces payment policy.
 
-The web app is still a Next.js starter. The backend now has typed domain records, a versioned SQLite schema, registry-based IDs, deterministic synthetic fixtures, inventory and forecast reads, and persisted simulated supplier quotes. The quote API accepts only registered item IDs and sources supplier identities and prices from the trusted synthetic catalog. The vault has policy configuration, supplier/committer/requester roles, immutable PO commitments, guarded payment requests, capacity reservations, private settlement callbacks, and payment views. The test-only token, Sandbox lifecycle test, workspace tests, WASM check, both contract artifact builds, and CC-05/CC-06 backend tests pass. `todo.md` is the ordered task list for the remaining work.
+The web app is still a Next.js starter. The backend now has typed domain records, versioned SQLite migrations, registry-based IDs, deterministic synthetic fixtures, inventory and forecast reads, persisted simulated supplier quotes, and idempotent purchase-order creation from stored quotes. Purchase-order requests accept only registered item/quote IDs and an idempotency key; supplier, quantity, and amount come from the persisted quote and each created order gets an audit event. The vault has policy configuration, supplier/committer/requester roles, immutable PO commitments, guarded payment requests, capacity reservations, private settlement callbacks, and payment views. The test-only token, Sandbox lifecycle test, workspace tests, WASM check, both contract artifact builds, and CC-05 through CC-07 backend tests pass. `todo.md` is the ordered task list for the remaining work.
 
 ## Architecture decisions
 
@@ -40,7 +40,7 @@ The backend's deterministic local flow can proceed while human deployment detail
 ## Checkpoints
 
 1. **Vault:** policy/payment tests, the NEP-141 Sandbox flow, workspace WASM check, and both contract artifact builds pass.
-2. **Procurement:** CC-05 domain/storage/seed and CC-06 inventory/forecast/quote API are implemented and tested. Quote-to-PO and agent slices remain.
+2. **Procurement:** CC-05 domain/storage/seed, CC-06 inventory/forecast/quote API, and CC-07 quote-to-PO flow are implemented and tested. The constrained agent slice remains.
 3. **Judge flow:** README steps work from a fresh clone; payment statuses are visible; cross-chain display is preview-only.
 4. **Release:** dependency advisories are triaged, secrets are absent, and testnet actions have human approval before signing.
 

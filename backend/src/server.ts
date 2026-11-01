@@ -11,6 +11,7 @@ import {
 } from './db';
 import { seedSyntheticData } from './seed';
 import { registerInventoryRoutes } from './routes/inventory';
+import { registerPurchaseOrderRoutes } from './routes/purchase-orders';
 
 loadEnv({ path: resolve(__dirname, '../../.env') });
 
@@ -22,6 +23,7 @@ export interface CreateServerOptions {
 export function createServer({ database, clock = () => new Date() }: CreateServerOptions) {
   const app = Fastify({ logger: false });
   registerInventoryRoutes(app, database, clock);
+  registerPurchaseOrderRoutes(app, database, clock);
   return app;
 }
 

@@ -164,6 +164,15 @@ const MIGRATIONS = [
       );
     `,
   },
+  {
+    version: 3,
+    sql: `
+      ALTER TABLE purchase_orders ADD COLUMN request_id TEXT;
+      CREATE UNIQUE INDEX purchase_orders_request_id_unique
+        ON purchase_orders(request_id) WHERE request_id IS NOT NULL;
+      CREATE UNIQUE INDEX purchase_orders_quote_unique ON purchase_orders(quote_id);
+    `,
+  },
 ] as const;
 
 export type DatabaseHandle = Database.Database;
@@ -319,7 +328,8 @@ export function loadDomainRecords(database: DatabaseHandle): DomainRecords {
   }>;
   const purchaseOrders = database
     .prepare(
-      `SELECT id, quote_id, supplier_id, item_id, quantity, amount_atomic, asset_code, status, created_at
+      `SELECT id, quote_id, supplier_id, item_id, quantity, amount_atomic, asset_code, status,
+              request_id, created_at
        FROM purchase_orders ORDER BY id`,
     )
     .all() as Array<{
@@ -331,6 +341,7 @@ export function loadDomainRecords(database: DatabaseHandle): DomainRecords {
     amount_atomic: string;
     asset_code: string;
     status: PurchaseOrderStatus;
+    request_id: string | null;
     created_at: string;
   }>;
   const payments = database
@@ -409,6 +420,7 @@ export function loadDomainRecords(database: DatabaseHandle): DomainRecords {
       amountAtomic: parseAtomicAmount(row.amount_atomic),
       assetCode: row.asset_code,
       status: row.status,
+      requestId: row.request_id,
       createdAt: row.created_at,
     })),
     payments: payments.map((row) => ({
