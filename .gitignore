@@ -1,0 +1,24 @@
+# Secrets and local configuration
+.env
+.env.*
+!/.env.example
+
+# JavaScript dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Rust build output
+target/
+
+# Local databases and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Local machine files
+*.pem
+.DS_Store
