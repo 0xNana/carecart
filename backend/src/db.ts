@@ -18,6 +18,7 @@ import {
   type Quote,
   type RegistryId,
   type Supplier,
+  type SupplierCatalogEntry,
   type UsageRecord,
 } from './domain';
 
@@ -143,6 +144,26 @@ const MIGRATIONS = [
       );
     `,
   },
+  {
+    version: 2,
+    sql: `
+      CREATE TABLE supplier_catalog (
+        supplier_id TEXT NOT NULL REFERENCES suppliers(id),
+        item_id TEXT NOT NULL REFERENCES inventory_items(id),
+        lead_time_days INTEGER NOT NULL CHECK (lead_time_days > 0),
+        unit_price_atomic TEXT NOT NULL CHECK (
+          length(unit_price_atomic) > 0 AND
+          length(unit_price_atomic) <= 39 AND
+          unit_price_atomic NOT GLOB '*[^0-9]*' AND
+          unit_price_atomic <> '0' AND
+          substr(unit_price_atomic, 1, 1) BETWEEN '1' AND '9' AND
+          (length(unit_price_atomic) < 39 OR unit_price_atomic <= '${MAX_ATOMIC_AMOUNT}')
+        ),
+        asset_code TEXT NOT NULL CHECK (length(trim(asset_code)) > 0),
+        PRIMARY KEY (supplier_id, item_id)
+      );
+    `,
+  },
 ] as const;
 
 export type DatabaseHandle = Database.Database;
@@ -236,6 +257,7 @@ export function allocateId<Kind extends IdKind>(
 export interface DomainRecords {
   inventoryItems: InventoryItem[];
   suppliers: Supplier[];
+  supplierCatalogEntries: SupplierCatalogEntry[];
   usageRecords: UsageRecord[];
   quotes: Quote[];
   purchaseOrders: PurchaseOrder[];
@@ -262,6 +284,18 @@ export function loadDomainRecords(database: DatabaseHandle): DomainRecords {
     display_name: string;
     near_account_id: string | null;
     data_origin: 'synthetic';
+  }>;
+  const supplierCatalogEntries = database
+    .prepare(
+      `SELECT supplier_id, item_id, lead_time_days, unit_price_atomic, asset_code
+       FROM supplier_catalog ORDER BY supplier_id, item_id`,
+    )
+    .all() as Array<{
+    supplier_id: string;
+    item_id: string;
+    lead_time_days: number;
+    unit_price_atomic: string;
+    asset_code: string;
   }>;
   const usageRecords = database
     .prepare('SELECT id, item_id, quantity, occurred_at FROM usage_records ORDER BY id')
@@ -341,6 +375,13 @@ export function loadDomainRecords(database: DatabaseHandle): DomainRecords {
       displayName: row.display_name,
       nearAccountId: row.near_account_id,
       dataOrigin: row.data_origin,
+    })),
+    supplierCatalogEntries: supplierCatalogEntries.map((row) => ({
+      supplierId: row.supplier_id as SupplierCatalogEntry['supplierId'],
+      itemId: row.item_id as SupplierCatalogEntry['itemId'],
+      leadTimeDays: row.lead_time_days,
+      unitPriceAtomic: parseAtomicAmount(row.unit_price_atomic),
+      assetCode: row.asset_code,
     })),
     usageRecords: usageRecords.map((row) => ({
       id: row.id as UsageRecord['id'],

@@ -6,6 +6,8 @@
   "keywords": [],
   "type": "commonjs",
   "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

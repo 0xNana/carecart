@@ -148,15 +148,15 @@ Work in dependency order. Keep each task small, verify it before moving on, and 
 **Description:** Build the first backend vertical slice from low stock through a deterministic forecast and simulated supplier quotes.
 
 **Acceptance criteria:**
-- [ ] Inventory reads show which items are at/below reorder points.
-- [ ] Forecast quantities are deterministic from synthetic usage and supplier lead time.
-- [ ] Supplier quotes are persisted and untrusted supplier text cannot alter system instructions or registered identities.
+- [x] Inventory reads show which items are at/below reorder points.
+- [x] Forecast quantities use integer arithmetic over the fixed synthetic usage window and registered supplier lead times.
+- [x] Quotes persist from trusted catalog identities/prices; the strict quote request rejects caller-supplied supplier text, IDs, and prices without changing records.
 
-**Verification:** Run endpoint and forecast tests using a fixed synthetic dataset.
+**Verification:** `npm test --prefix backend` and `npm run typecheck --prefix backend` pass. Endpoint tests use the fixed synthetic seed and clock; tests cover inventory flags, forecast quantities, quote persistence, rejected injected fields, and no-reorder requests.
 
 **Dependencies:** CC-05.
 
-**Files likely touched:** `backend/src/server.ts`, `backend/src/routes/inventory.ts`, `backend/src/procurement/forecast.ts`, `backend/src/procurement/suppliers.ts`.
+**Files touched:** `backend/src/server.ts`, `backend/src/routes/inventory.ts`, `backend/src/procurement/forecast.ts`, `backend/src/procurement/suppliers.ts`, `backend/src/domain.ts`, `backend/src/db.ts`, `backend/src/seed.ts`, and backend tests/docs.
 
 **Estimated scope:** Medium.
 

@@ -37,15 +37,16 @@ describe('backend database setup', () => {
       'quotes',
       'schema_migrations',
       'seed_runs',
+      'supplier_catalog',
       'suppliers',
       'usage_records',
     ]);
     expect(database.pragma('foreign_keys', { simple: true })).toBe(1);
-    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1]);
+    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1, 2]);
 
     closeDatabase(database);
     database = openDatabase(databasePath);
-    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1]);
+    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1, 2]);
   });
 
   it('allocates unique typed identifiers from the database registry', () => {

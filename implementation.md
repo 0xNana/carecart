@@ -1,6 +1,6 @@
 # CareCart implementation spec
 
-**Status:** Setup and CC-01 through CC-05 are implemented. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and focused backend tests pass. No testnet/mainnet deployment or transaction signing has occurred.
+**Status:** Setup and CC-01 through CC-06 are implemented. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and backend endpoint/forecast tests pass. No testnet/mainnet deployment or transaction signing has occurred.
 
 **Date:** 2026-11-01 (UTC)
 **Selected hackathon track:** Real-World Money (`realworld`).
@@ -27,7 +27,7 @@ The problem is routine procurement work: teams manually notice low stock, gather
 
 1. A deterministic stock monitor finds items at or below their reorder point.
 2. A deterministic forecaster proposes a quantity using synthetic usage and supplier lead time.
-3. A supplier simulator returns quotes. Quote messages are untrusted input.
+3. The CC-06 supplier simulator returns catalog-backed synthetic quotes. If a later integration accepts free-form supplier messages, keep their contents as untrusted data and do not let them alter system instructions or registered identities.
 4. The agent may draft a purchase order from known item, quote, and supplier IDs. The backend looks up the amount and payee; model text cannot supply them.
 5. The payment adapter checks the PO and submits only its ID to the vault. The vault enforces the supplier allowlist, pause state, per-order limit, daily cap, balance cap, and idempotency.
 6. In-policy same-chain payments may proceed automatically on the test token. Over-policy requests become `Pending`; invalid suppliers, paused payments, invalid amounts, and insufficient funds become `Blocked`. A human wallet controls approval and policy changes.
@@ -41,15 +41,17 @@ The problem is routine procurement work: teams manually notice low stock, gather
 | `contracts/carecart-vault/` | Rust NEAR policy vault and contract unit tests |
 | `contracts/test-ft/` | Test-only fungible token fixture; never used as a production token |
 | `backend/src/domain.ts` | Typed procurement records and branded, registry-issued identifiers |
-| `backend/src/db.ts` | SQLite migrations, exact amount persistence, ID allocation, and typed record reads; default file is ignored `backend/data/carecart.sqlite` |
-| `backend/src/seed.ts` | Deterministic synthetic inventory, suppliers, usage, quotes, PO, payment, and audit records |
-| `backend/` | Planned TypeScript/Node API, with the local SQLite domain and seed foundation implemented |
+| `backend/src/db.ts` | Versioned SQLite migrations, exact amount persistence, ID allocation, and typed record reads; default file is ignored `backend/data/carecart.sqlite` |
+| `backend/src/seed.ts` | Deterministic synthetic inventory, suppliers, lead times, catalog prices, usage, quotes, PO, payment, and audit records |
+| `backend/src/procurement/forecast.ts` | Integer-only stock demand and supplier lead-time forecasts |
+| `backend/src/procurement/suppliers.ts` | Persisted simulated quotes from the trusted synthetic supplier catalog |
+| `backend/src/routes/inventory.ts`, `backend/src/server.ts` | Loopback API for inventory, forecasts, and supplier quotes |
 | `web/` | Next.js admin and judge UI with NEAR Connect on testnet |
 | `data/` | Deterministic synthetic items, suppliers, and usage history |
 | `scripts/` | Local setup, seed, build, and deployment helpers; deployment commands default to testnet |
 | `README.md` | Judge-facing product explanation and numbered, reproducible “do X, see Y” steps |
 
-The web app is still the generated Next.js starter. The backend has typed records, an SQLite schema/migration, registry-based ID allocation, and a one-time synthetic seed, but no API implementation. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
+The web app is still the generated Next.js starter. The backend exposes inventory and forecast reads plus persisted simulated quotes. Forecast and quote values use fixed synthetic usage and a trusted supplier catalog; the quote route rejects caller-supplied supplier text, IDs, and prices. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
 
 For the on-chain boundary, an administrator grants the PO committer role to a dedicated backend account. `commit_purchase_order` records the PO ID, allowlisted supplier, configured token, and integer amount exactly once. Future payment calls accept the ID only. Keep the committer key separate from the agent's future function-call key; the latter should be scoped to `request_payment`.
 
@@ -179,7 +181,7 @@ The auction tests have been replaced with focused policy and payment tests. CC-0
 
 Remaining prototype verification includes:
 
-- Backend forecast, quote-to-PO, untrusted supplier text, and constrained agent tool tests (CC-06 through CC-08).
+- Quote-to-PO, constrained agent tool, and untrusted supplier message handling tests (CC-07 and CC-08).
 - A judge-flow check from a fresh clone using the final README commands and testnet-only configuration.
 - Secret review confirming `.env` is ignored and no key appears in tracked files.
 

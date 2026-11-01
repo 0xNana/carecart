@@ -76,6 +76,15 @@ export interface Supplier {
   dataOrigin: DataOrigin;
 }
 
+/** Trusted synthetic pricing and lead-time data used by the quote simulator. */
+export interface SupplierCatalogEntry {
+  supplierId: SupplierId;
+  itemId: InventoryItemId;
+  leadTimeDays: number;
+  unitPriceAtomic: AtomicAmount;
+  assetCode: string;
+}
+
 export interface UsageRecord {
   id: UsageRecordId;
   itemId: InventoryItemId;

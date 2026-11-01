@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { allocateId, closeDatabase, loadDomainRecords, openDatabase } from './db';
+import { allocateId, closeDatabase, loadDomainRecords, migrateDatabase, openDatabase } from './db';
 import { formatAtomicAmount, parseAtomicAmount } from './domain';
 import { seedSyntheticData } from './seed';
 
@@ -30,6 +30,7 @@ describe('synthetic backend seed', () => {
       suppliers: database.prepare('SELECT * FROM suppliers ORDER BY id').all(),
       usage: database.prepare('SELECT * FROM usage_records ORDER BY id').all(),
       quotes: database.prepare('SELECT * FROM quotes ORDER BY id').all(),
+      supplierCatalog: database.prepare('SELECT * FROM supplier_catalog ORDER BY supplier_id, item_id').all(),
       purchaseOrders: database.prepare('SELECT * FROM purchase_orders ORDER BY id').all(),
       payments: database.prepare('SELECT * FROM payments ORDER BY id').all(),
       audit: database.prepare('SELECT * FROM audit_events ORDER BY id').all(),
@@ -46,6 +47,7 @@ describe('synthetic backend seed', () => {
       count: 4,
     });
     expect(first.prepare('SELECT count(*) AS count FROM quotes').get()).toEqual({ count: 2 });
+    expect(first.prepare('SELECT count(*) AS count FROM supplier_catalog').get()).toEqual({ count: 4 });
     expect(first.prepare('SELECT count(*) AS count FROM purchase_orders').get()).toEqual({
       count: 1,
     });
@@ -71,6 +73,7 @@ describe('synthetic backend seed', () => {
       seedKey: 'carecart-synthetic-v1',
       status: 'draft',
     });
+    expect(records.supplierCatalogEntries).toHaveLength(4);
   });
 
   it('is idempotent and leaves generated IDs stable on repeated seed calls', () => {
@@ -85,6 +88,30 @@ describe('synthetic backend seed', () => {
     expect(database.prepare('SELECT id FROM purchase_orders ORDER BY id').pluck().all()).toEqual(
       idsBefore,
     );
+  });
+
+  it('adds the trusted catalog to an existing CC-05 database without reseeding domain records', () => {
+    const database = createMemoryDatabase();
+    seedSyntheticData(database);
+    const originalQuoteIds = database.prepare('SELECT id FROM quotes ORDER BY id').pluck().all();
+    const originalItemIds = database
+      .prepare('SELECT id FROM inventory_items ORDER BY id')
+      .pluck()
+      .all();
+
+    database.exec('DROP TABLE supplier_catalog');
+    database.prepare('DELETE FROM seed_runs WHERE seed_key = ?').run('carecart-supplier-catalog-v1');
+    database.prepare('DELETE FROM schema_migrations WHERE version = 2').run();
+    migrateDatabase(database);
+
+    expect(seedSyntheticData(database)).toBe(false);
+    expect(database.prepare('SELECT id FROM quotes ORDER BY id').pluck().all()).toEqual(
+      originalQuoteIds,
+    );
+    expect(database.prepare('SELECT id FROM inventory_items ORDER BY id').pluck().all()).toEqual(
+      originalItemIds,
+    );
+    expect(loadDomainRecords(database).supplierCatalogEntries).toHaveLength(4);
   });
 
   it('does not shift deterministic fixture IDs when the registry was already used', () => {
