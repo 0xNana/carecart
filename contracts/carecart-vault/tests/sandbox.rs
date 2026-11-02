@@ -437,5 +437,28 @@ async fn test_vault_payment_lifecycle_with_test_only_ft() -> testresult::TestRes
         .await?
         .assert_failure();
 
+    // Run the TypeScript payment adapter against these same disposable contracts.
+    let backend = repository_root.join("../../backend");
+    let result = std::process::Command::new("node")
+        .current_dir(backend)
+        .args([
+            "--import",
+            "tsx",
+            "src/payments/sandbox.ts",
+            &sandbox.rpc_addr,
+        ])
+        .env(
+            "CARECART_SANDBOX_KEY",
+            near_sandbox::config::DEFAULT_GENESIS_ACCOUNT_PRIVATE_KEY,
+        )
+        .output()?;
+    assert!(
+        result.status.success(),
+        "backend Sandbox integration failed: {} {}",
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    println!("{}", String::from_utf8_lossy(&result.stdout));
+
     Ok(())
 }

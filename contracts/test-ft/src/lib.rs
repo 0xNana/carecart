@@ -25,14 +25,24 @@ pub struct TestFt {
 impl TestFt {
     #[init]
     pub fn new(owner_id: AccountId, total_supply: U128) -> Self {
+        Self::initialize(owner_id, total_supply, false)
+    }
+
+    /// Separate six-decimal fixture; never changes the existing CCTEST initializer.
+    #[init]
+    pub fn new_test_usdc(owner_id: AccountId, total_supply: U128) -> Self {
+        Self::initialize(owner_id, total_supply, true)
+    }
+
+    fn initialize(owner_id: AccountId, total_supply: U128, six_decimals: bool) -> Self {
         let metadata = FungibleTokenMetadata {
             spec: FT_METADATA_SPEC.to_string(),
             name: "CareCart Local Test Token".to_string(),
-            symbol: "CCTEST".to_string(),
+            symbol: if six_decimals { "CCUSD" } else { "CCTEST" }.to_string(),
             icon: None,
             reference: None,
             reference_hash: None::<Base64VecU8>,
-            decimals: 0,
+            decimals: if six_decimals { 6 } else { 0 },
         };
         metadata.assert_valid();
 

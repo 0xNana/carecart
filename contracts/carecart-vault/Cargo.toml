@@ -36,10 +36,11 @@ container_build_command = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 near-contract-standards = "=5.29.1"
-near-sdk = "=5.29.1"
+# Use Rust's standard Wasm allocator; the SDK's default wee_alloc is unmaintained.
+near-sdk = { version = "=5.29.1", default-features = false }
 
 [dev-dependencies]
-near-sdk = { version = "5.29", features = ["unit-testing"] }
+near-sdk = { version = "=5.29.1", default-features = false, features = ["unit-testing"] }
 near-sandbox = "=0.3.15"
 near-api = "0.8"
 cargo-near-build = "0.11.0"

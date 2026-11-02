@@ -10,7 +10,8 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 near-contract-standards = "=5.29.1"
-near-sdk = "=5.29.1"
+# Match the vault allocator and avoid the unmaintained default wee_alloc dependency.
+near-sdk = { version = "=5.29.1", default-features = false }
 
 [lints.rust.unexpected_cfgs]
 level = "warn"

@@ -194,6 +194,63 @@ fn admin_rejection_is_recorded_for_a_pending_request() {
 }
 
 #[test]
+fn authorized_payment_agent_cannot_invoke_human_controls() {
+    let (mut contract, _, committer, requester, supplier) = setup();
+    context(&committer);
+    contract.commit_purchase_order(
+        "po-human-only".to_string(),
+        supplier,
+        account("test-token.testnet"),
+        U128(120),
+    );
+    let _ = request(&mut contract, &requester, "po-human-only");
+    context(&account("vault.testnet"));
+    let _ = contract.on_balance_checked("po-human-only".to_string(), Ok(U128(500)));
+    let pending = contract
+        .get_payment_state("po-human-only".to_string())
+        .unwrap();
+    assert_eq!(pending.state, PaymentState::PendingApproval);
+    let original_policy = contract.get_policy();
+
+    context(&requester);
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = contract.approve_payment("po-human-only".to_string());
+        }))
+        .is_err()
+    );
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = contract.reject_payment("po-human-only".to_string());
+        }))
+        .is_err()
+    );
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            contract.set_policy(Policy {
+                per_order_cap: U128(500),
+                ..original_policy.clone()
+            });
+        }))
+        .is_err()
+    );
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            contract.set_paused(true);
+        }))
+        .is_err()
+    );
+    assert_eq!(
+        contract
+            .get_payment_state("po-human-only".to_string())
+            .unwrap(),
+        pending
+    );
+    assert_eq!(contract.get_policy(), original_policy);
+    assert!(!contract.is_paused());
+}
+
+#[test]
 fn non_requester_cannot_start_a_payment() {
     let (mut contract, _, _, _, _) = setup();
     context(&account("attacker.testnet"));

@@ -144,7 +144,7 @@ fn supplier_allowlist_growth_requires_storage_deposit() {
 }
 
 #[test]
-#[should_panic(expected = "attached deposit does not cover storage growth")]
+#[should_panic(expected = "PO storage reserve is insufficient")]
 fn purchase_order_map_growth_requires_storage_deposit() {
     let (mut contract, admin, supplier, committer) = setup();
     context(&admin);
@@ -402,4 +402,31 @@ fn rejected_missing_po_and_insufficient_funds_requests_are_blocked() {
 fn payment_state_view_returns_no_record_for_unknown_request() {
     let (contract, _, _, _) = setup();
     assert_eq!(contract.get_payment_state("request-0001".to_string()), None);
+}
+
+#[test]
+fn prefunded_storage_allows_zero_deposit_commit_and_debits_reserve() {
+    let (mut contract, admin, supplier, committer) = setup();
+    context(&admin);
+    contract.set_supplier_allowed(supplier.clone(), true);
+    contract.set_po_committer(committer.clone(), true);
+    contract.fund_commit_storage();
+    let before = contract.get_commit_storage_reserve().0;
+    context_with_deposit(&committer, NearToken::from_yoctonear(0));
+    contract.commit_purchase_order(
+        "po-funded".into(),
+        supplier,
+        account("test-token.testnet"),
+        U128(42),
+    );
+    assert!(contract.get_commit_storage_reserve().0 < before);
+    assert!(contract.get_purchase_order("po-funded".into()).is_some());
+}
+
+#[test]
+#[should_panic(expected = "only the configured admin")]
+fn storage_reserve_funding_requires_admin() {
+    let (mut contract, _, _, committer) = setup();
+    context(&committer);
+    contract.fund_commit_storage();
 }

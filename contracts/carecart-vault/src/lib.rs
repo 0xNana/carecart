@@ -222,6 +222,7 @@ pub struct Contract {
     daily_reserved: u128,
     total_spent: u128,
     total_reserved: u128,
+    commit_storage_reserve: u128,
 }
 
 #[near]
@@ -244,6 +245,7 @@ impl Contract {
             daily_reserved: 0,
             total_spent: 0,
             total_reserved: 0,
+            commit_storage_reserve: 0,
         }
     }
 
@@ -305,6 +307,20 @@ impl Contract {
         self.paused = paused;
     }
 
+    /// Human-controlled funding for zero-deposit, function-call-key PO commitments.
+    #[payable]
+    pub fn fund_commit_storage(&mut self) {
+        self.assert_admin();
+        self.commit_storage_reserve = self
+            .commit_storage_reserve
+            .checked_add(env::attached_deposit().as_yoctonear())
+            .expect("storage reserve overflow");
+    }
+
+    pub fn get_commit_storage_reserve(&self) -> U128 {
+        U128(self.commit_storage_reserve)
+    }
+
     /// Store the canonical payee, token, and smallest-unit amount for one PO ID.
     /// A PO ID can be committed exactly once. Later requests will resolve their payment
     /// details from this record rather than caller-provided values.
@@ -363,7 +379,19 @@ impl Contract {
                 reserved_day: 0,
             },
         );
-        self.settle_storage_delta(storage_before, 0);
+        if env::attached_deposit().is_zero() {
+            self.purchase_orders.flush();
+            self.payment_states.flush();
+            let required = u128::from(env::storage_usage().saturating_sub(storage_before))
+                .checked_mul(env::storage_byte_cost().as_yoctonear())
+                .expect("storage charge overflow");
+            self.commit_storage_reserve = self
+                .commit_storage_reserve
+                .checked_sub(required)
+                .expect("PO storage reserve is insufficient");
+        } else {
+            self.settle_storage_delta(storage_before, 0);
+        }
     }
 
     /// Return the configured administrator.
