@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { allocateId, closeDatabase, migrateDatabase, openDatabase } from './db';
+import { seedSyntheticData } from './seed';
 
 describe('backend database setup', () => {
   let database: ReturnType<typeof openDatabase> | undefined;
@@ -42,11 +43,27 @@ describe('backend database setup', () => {
       'usage_records',
     ]);
     expect(database.pragma('foreign_keys', { simple: true })).toBe(1);
-    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1, 2, 3]);
+    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1, 2, 3, 4]);
 
     closeDatabase(database);
     database = openDatabase(databasePath);
-    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1, 2, 3]);
+    expect(database.prepare('SELECT version FROM schema_migrations').pluck().all()).toEqual([1, 2, 3, 4]);
+  });
+
+  it('upgrades an existing v3 database without losing procurement records', () => {
+    temporaryDirectory = mkdtempSync(join(tmpdir(), 'carecart-upgrade-'));
+    const path = join(temporaryDirectory, 'carecart.sqlite');
+    database = openDatabase(path);
+    seedSyntheticData(database);
+    database.exec(`ALTER TABLE purchase_orders DROP COLUMN commit_transaction_hash;
+      ALTER TABLE payments DROP COLUMN request_transaction_hash;
+      DELETE FROM schema_migrations WHERE version = 4;`);
+    closeDatabase(database);
+    database = openDatabase(path);
+    expect(database.prepare('SELECT status, commit_transaction_hash FROM purchase_orders').get())
+      .toEqual({ status: 'draft', commit_transaction_hash: null });
+    expect(database.prepare('SELECT status, request_transaction_hash FROM payments').get())
+      .toEqual({ status: 'not_requested', request_transaction_hash: null });
   });
 
   it('allocates unique typed identifiers from the database registry', () => {

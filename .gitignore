@@ -12,13 +12,25 @@ coverage/
 
 # Rust build output
 target/
+artifacts/
 
 # Local databases and logs
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.sqlite3-journal
 *.log
 
 # Local machine files
 *.pem
 .DS_Store
+__pycache__/
+*.py[cod]

@@ -173,6 +173,13 @@ const MIGRATIONS = [
       CREATE UNIQUE INDEX purchase_orders_quote_unique ON purchase_orders(quote_id);
     `,
   },
+  {
+    version: 4,
+    sql: `
+      ALTER TABLE purchase_orders ADD COLUMN commit_transaction_hash TEXT;
+      ALTER TABLE payments ADD COLUMN request_transaction_hash TEXT;
+    `,
+  },
 ] as const;
 
 export type DatabaseHandle = Database.Database;
