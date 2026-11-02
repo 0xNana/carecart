@@ -1,0 +1,75 @@
+{
+  "checkedAt": "2026-11-02T14:33:48.735Z",
+  "status": "local_checks_pass_external_gates_open",
+  "primaryAuthority": "mainnet-todo.md",
+  "checks": {
+    "backend": {
+      "testFiles": 20,
+      "testsPassed": 96,
+      "typecheck": "passed"
+    },
+    "contracts": {
+      "unitTestsPassed": 43,
+      "sandboxSuitesPassed": 2,
+      "legacyCctestPreserved": true,
+      "safetyClippyWarningsDenied": "passed"
+    },
+    "walletRegressions": {
+      "testsPassed": 9
+    },
+    "proxyBodyRegressions": {
+      "testsPassed": 4
+    },
+    "signatureMutation": {
+      "invertedCheckCaught": true,
+      "sourceRestored": true,
+      "restoredBackendSuite": "passed"
+    },
+    "sourceAndHistoryGuard": {
+      "result": "passed",
+      "scope": "current non-ignored source and reachable Git history",
+      "textFiles": 225,
+      "historyBlobs": 282,
+      "findings": [],
+      "limitation": "Pattern scan plus release-policy checks; not a cryptographic proof or a replacement for credential rotation if a leak is found.",
+      "lastObservedPassBeforeFinalProviderCleanup": true
+    }
+  },
+  "external": {
+    "liveAi": "NEAR Cloud retained as the private-model provider; explicit .env smoke with NEAR_CLOUD_API_KEY returns HTTP 402 Payment Required; successful inference/tool trace pending",
+    "oneclickTokenCatalogCompatibility": "HTTP 521 during public probe; unverified",
+    "publicV2Deployment": "not executed",
+    "realCrosschainSettlement": "not initiated; separately gated mainnet smoke required",
+    "guardian": "guardian.carecart.testnet selected by user; absent and separate-key custody unverified"
+  },
+  "approvalSourceSha256": "f01011a00daf2791a8fd7f2bcc6ebb0803bed1e2ff840999a78d5772d58d0de9",
+  "artifacts": {
+    "vault": {
+      "path": "artifacts/safety-v2/carecart_safety_vault.wasm",
+      "sha256": "8941a8b857425c451f990aecd326a05337a59ae51680a63f4fc7dd1a30c21de4",
+      "nearCodeHash": "AEnvafihMffsUr4TvgW6TVsrGyPfe7gffG5JajSsQpqH",
+      "bytes": 260935,
+      "abi": "artifacts/safety-v2/carecart_safety_vault_abi.json",
+      "build": "locked host Rust 1.93.0; not container reproducibility proof"
+    },
+    "token": {
+      "path": "artifacts/safety-v2/carecart_test_ft.wasm",
+      "sha256": "a8c92ed85916b72e18ddc508104c329372e63980fb05fe451655146574b5fb17",
+      "nearCodeHash": "CMsRPVVf3k29dhxik2UNkJz9hgNhJsdM1uZ7DiMqbymp",
+      "bytes": 165857,
+      "abi": "artifacts/safety-v2/carecart_test_ft_abi.json",
+      "build": "locked host Rust 1.93.0; not container reproducibility proof"
+    }
+  },
+  "limitations": [
+    "Local fixtures/Sandbox are not public wallet or settlement proof",
+    "No mainnet funding or transaction approval inferred",
+    "Versioned wallet/UI integration and mainnet procurement fixtures remain open",
+    "Existing dependency advisory exceptions and cold-deployer trust remain disclosed"
+  ],
+  "nextOwnerRun": [
+    "node scripts/security-check.mjs",
+    "cargo clippy --manifest-path contracts/Cargo.toml --locked -p carecart-safety-vault --all-targets -- -D warnings"
+  ],
+  "longCommandExecution": "Owner requested to run long commands and share output for subsequent verification"
+}

@@ -1,0 +1,60 @@
+{
+  "result": "passed",
+  "backend": "http://127.0.0.1:3101",
+  "dataOrigin": "synthetic",
+  "inventory": {
+    "itemId": "item-000001",
+    "onHand": 4,
+    "reorderPoint": 12
+  },
+  "forecast": {
+    "observedUsageUnits": 27,
+    "recommendations": [
+      {
+        "supplierId": "supplier-000001",
+        "supplierName": "Synthetic Demo Supplier Alpha",
+        "leadTimeDays": 3,
+        "leadTimeDemand": 3,
+        "recommendedQuantity": 11
+      },
+      {
+        "supplierId": "supplier-000002",
+        "supplierName": "Synthetic Demo Supplier Beta",
+        "leadTimeDays": 6,
+        "leadTimeDemand": 6,
+        "recommendedQuantity": 14
+      }
+    ]
+  },
+  "quoteId": "quote-000007",
+  "purchaseOrder": {
+    "id": "po-000004",
+    "requestId": "judge-local:quote-000007",
+    "quoteId": "quote-000007",
+    "itemId": "item-000001",
+    "supplierId": "supplier-000001",
+    "quantity": 14,
+    "amountAtomic": "1680",
+    "assetCode": "CCTEST",
+    "status": "draft",
+    "createdAt": "2026-11-02T07:31:12.760Z"
+  },
+  "replay": {
+    "sameOrder": true,
+    "replayed": true
+  },
+  "payeeOverride": {
+    "status": 400,
+    "code": "VALIDATION_ERROR"
+  },
+  "agentMode": "deterministic",
+  "simulation": {
+    "mode": "mock_simulation",
+    "settlement": "not_initiated",
+    "supplierId": "supplier-000001",
+    "amountAtomic": "1680"
+  },
+  "auditEventId": "audit-000004",
+  "previewChangedPaymentOrAudit": false,
+  "policyVerification": "Run the documented local Sandbox test; this HTTP script submits no payments."
+}

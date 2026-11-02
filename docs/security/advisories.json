@@ -1,0 +1,270 @@
+{
+  "checkedDate": "2026-11-02",
+  "reviewBy": "2026-11-09 or before CC-15/public release, whichever is earlier",
+  "noForcedFixOrOverrides": true,
+  "npm": {
+    "backend": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "webAll": {
+      "info": 0,
+      "low": 0,
+      "moderate": 16,
+      "high": 0,
+      "critical": 0,
+      "total": 16
+    },
+    "webProduction": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "webAffectedPackages": [
+      "@eslint-community/eslint-utils",
+      "@eslint/config-array",
+      "@eslint/eslintrc",
+      "@next/eslint-plugin-next",
+      "@typescript-eslint/eslint-plugin",
+      "@typescript-eslint/parser",
+      "@typescript-eslint/type-utils",
+      "@typescript-eslint/typescript-estree",
+      "@typescript-eslint/utils",
+      "eslint",
+      "eslint-config-next",
+      "eslint-plugin-import",
+      "eslint-plugin-jsx-a11y",
+      "eslint-plugin-react",
+      "minimatch",
+      "typescript-eslint"
+    ],
+    "webRootAdvisory": {
+      "id": "GHSA-g3hv-75wg-m249",
+      "package": "minimatch",
+      "installed": [
+        "3.1.5",
+        "10.2.6"
+      ],
+      "patched": ">=11.0.1",
+      "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+      "disposition": "deferred: lint-only dependency graph; no production minimatch; no untrusted glob inputs; forced eslint/config downgrades and blanket major overrides rejected"
+    }
+  },
+  "rust": {
+    "vulnerabilityCount": 4,
+    "warnings": {
+      "unmaintained": 1,
+      "unsound": 11
+    },
+    "findings": [
+      {
+        "kind": "vulnerability",
+        "id": "RUSTSEC-2026-0387",
+        "package": "crypto-bigint",
+        "version": "0.5.5",
+        "title": "Multiple timing variability issues in operations intended to be constant-time",
+        "url": "https://github.com/RustCrypto/crypto-bigint/pull/1365",
+        "patched": [
+          ">=0.7.6"
+        ]
+      },
+      {
+        "kind": "vulnerability",
+        "id": "RUSTSEC-2026-0391",
+        "package": "zstd",
+        "version": "0.13.3",
+        "title": "Data from an abandoned stream leaks into the next stream on a reused context",
+        "url": "https://github.com/gyscos/zstd-rs/commit/74ace2dcdca62a2ce0f034895d6079458311e003",
+        "patched": [
+          ">=0.14.3"
+        ]
+      },
+      {
+        "kind": "vulnerability",
+        "id": "RUSTSEC-2026-0403",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Uninitialized memory exposed when streaming decompression of a legacy frame fails",
+        "url": "https://github.com/gyscos/zstd-rs/commit/006e1d1ad1eeaf6b5d4c28329e70217adabcec43",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "vulnerability",
+        "id": "RUSTSEC-2026-0398",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "`Seekable::decompress` sets a `Vec` length beyond its capacity for offsets past the end",
+        "url": "https://github.com/gyscos/zstd-rs/commit/80506be743fae2ed0c2fe8b21c374c6a2eab0be7",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unmaintained",
+        "id": "RUSTSEC-2024-0449",
+        "package": "unsafe-libyaml",
+        "version": "0.2.11",
+        "title": "unsafe-libyaml is unmaintained",
+        "url": "https://github.com/dtolnay/unsafe-libyaml",
+        "patched": []
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0253",
+        "package": "lru",
+        "version": "0.16.4",
+        "title": "Potential use-after-free due to lack of panic safety in `LruCache::pop()`",
+        "url": "https://github.com/jeromefroe/lru-rs/pull/238",
+        "patched": [
+          ">=0.18.2"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0400",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Use-after-free of a dictionary after a one-shot call on a context with an open stream",
+        "url": "https://github.com/gyscos/zstd-rs/commit/d34502a0ed07f80ab2aa4c65059578e0466f2467",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0395",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Use-after-free with `CParameter::StableInBuffer`",
+        "url": "https://github.com/gyscos/zstd-rs/commit/53a8a290d8cfb52ff5b29fb6e04a40b5a174cc65",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0399",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Use-after-free through `init_using_cdict` and `init_using_ddict`",
+        "url": "https://github.com/gyscos/zstd-rs/commit/e00e7928e3e98953fc43418af6d73f6aae2378fb",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0406",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Use-after-free when changing a multithreaded context with an unfinished frame",
+        "url": "https://github.com/gyscos/zstd-rs/commit/e224018a2389915d68ed17f30109bebad36e9734",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0396",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "`Seekable` reads a NULL or out-of-bounds seek table",
+        "url": "https://github.com/gyscos/zstd-rs/commit/a9626069d6f2e90b782b8f627f57a361cfe8ef85",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0397",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "`OutBuffer::around_pos` exposes uninitialized memory",
+        "url": "https://github.com/gyscos/zstd-rs/commit/5827de2459b8ac430e87e860f00c7f3c13023833",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0404",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Double free in `DCtx::try_clone`",
+        "url": "https://github.com/gyscos/zstd-rs/commit/cee6529b553ec600a8e152aaca15a91598820ecf",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0402",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Heap buffer overflow in `CCtx::try_clone` on a multithreaded context",
+        "url": "https://github.com/gyscos/zstd-rs/commit/682b8b2967cf4aba5cfe2d940d1e381a3e23211a",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0405",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Out-of-bounds read with an out-of-range `InBuffer::pos`",
+        "url": "https://github.com/gyscos/zstd-rs/commit/20d397c0d68d8b4300c5493875ebfa10e355fcdd",
+        "patched": [
+          ">=8.2.0"
+        ]
+      },
+      {
+        "kind": "unsound",
+        "id": "RUSTSEC-2026-0401",
+        "package": "zstd-safe",
+        "version": "7.3.0",
+        "title": "Out-of-bounds read in `train_from_buffer` when sample sizes overflow",
+        "url": "https://github.com/gyscos/zstd-rs/commit/781ea454191dbf178d09c1daf6fc896d15fbaa2f",
+        "patched": [
+          ">=8.2.0"
+        ]
+      }
+    ],
+    "disposition": "Remaining crypto-bigint, zstd, zstd-safe, lru and unsafe-libyaml findings are local near-sdk unit-test dependencies, absent from the normal Wasm graph. Deferred pending compatible upstream NEAR dependency updates; no security-advisory ignores were added.",
+    "warningsBeforeAllocatorFix": {
+      "unmaintained": 2,
+      "unsound": 11
+    },
+    "resolved": {
+      "id": "RUSTSEC-2022-0054",
+      "package": "wee_alloc",
+      "change": "Disabled near-sdk default allocator in both contracts and its unit-test dependency; standard Rust Wasm allocator now used."
+    },
+    "lockfileChange": "Cargo-generated removal of six allocator-only packages; no new package versions or checksums."
+  },
+  "lockfiles": {
+    "backend/package-lock.json": "ced9df6f02952705061b1f0f8cb254f2f8b798ce7b699166776cc28b4b11e1fc",
+    "web/package-lock.json": "bcc5aa69f5aaaec9ba126c361f5a1f45b64b266c8c82634734d000b944147c5f",
+    "contracts/Cargo.lock": "9f0c4542ca5496e707021f6b01b5aca09a93d3c8fe3d45a8101e840fc6c503f8"
+  },
+  "signatures": {
+    "backend": {
+      "verifiedRegistrySignatures": 186,
+      "verifiedAttestations": 62
+    },
+    "webProduction": {
+      "verifiedRegistrySignatures": 23,
+      "verifiedAttestations": 17
+    },
+    "webAll": "incomplete: npm registry ECONNRESET while fetching eslint-config-next, including after a bounded retry; no invalid signature was reported"
+  }
+}

@@ -1,0 +1,4 @@
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s
+Backend Sandbox adapter: paid, pending, blocked, failed, restricted keys, hashes and replay audits passed
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 177.83s

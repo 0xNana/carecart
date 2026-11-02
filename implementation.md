@@ -1,9 +1,21 @@
-# CareCart implementation spec
+# CareCart prototype implementation — COMPLETED / ARCHIVED
 
-**Status:** Setup and CC-01 through CC-08 are implemented. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and backend endpoint, procurement, and deterministic agent tests pass. CC-00 provider selection remains pending; no live LLM call, testnet/mainnet deployment, or transaction signing has occurred.
+**Document status: COMPLETED / CLOSED — historical record, 2026-11-02 (UTC).**
 
-**Date:** 2026-11-01 (UTC)
-**Selected hackathon track:** Real-World Money (`realworld`).
+**Current primary authority:** [mainnet-todo.md](mainnet-todo.md), aligned with the [approved MN-00 record](CareCart-MN-00-APPROVED-2026-11-02.md). Use that document for ongoing requirements, work order, decisions and release gates. This file is retained for history/evidence; closing it does not certify unimplemented functionality, unanswered operational inputs or unperformed tests. Historical unchecked items are carried forward in the primary document rather than silently marked verified.
+
+## Historical implementation and evidence
+
+**Status:** Setup and CC-01 through CC-14 are implemented, with CC-14 dependency deferrals recorded in [security release evidence](docs/security-release.md). A clean local clone of the current source snapshot passes the numbered judge guide; evidence and expected API output are in `docs/judge-verification.md`. CC-11 browser-wallet signing and live PO payment verification remain pending; the human-approved CC-15 contract deployment/setup is now complete. The locked contract workspace tests, local Sandbox payment lifecycle, both contract Wasm builds, and backend endpoint, procurement, deterministic agent, and payment adapter tests pass. The Sandbox lifecycle also exercises the TypeScript payment client and HTTP route with restricted keys. Human-created testnet accounts and authorized key cleanup are recorded in `docs/testnet-accounts.md`; both contract deployments and all twelve approved testnet setup transactions have FINAL successful receipts; no live app PO payment has occurred. The historical prototype made no live LLM call. MN-00 now selects NEAR AI Cloud; actual live model/credentials/compatibility remain MN-08 verification work.
+
+**Handoff:** CC-15 review tooling and its concrete proposal are implemented; the setup approved by the human and executed through the CLI is verified with exact byte hashes, live CCTEST metadata and a paused/funded vault. See [deployment review](docs/testnet-deployment.md). CC-16 engineering handoff and [mainnet-todo.md](mainnet-todo.md) are prepared; MN-00 reconciliation is approved and incorporated in the primary mainnet checklist; actual submission/publication remains open in MN-13.
+
+**Local testnet readiness:** Restricted backend keys are configured/verified in owner-only ignored `.env.testnet`; an isolated supplier-mapped database is configured on backend:3101/web:3102. The formerly prepared 1680 CCTEST PO was committed/requested while paused and is Blocked/Paused. A later approved CLI resume succeeded; no successful public PO transfer is established; see [commands and review](docs/testnet-live-setup.md).
+
+**Latest public state:** The human-supplied `set_policy` transaction succeeded; a separately requested `set_paused(false)` transaction now has FINAL success. The vault and both UI read APIs report Active / 10000 CCTEST. The previous PO is Blocked/Paused and no successful PO payment is claimed. See [resume verification](docs/testnet-resume-verification.json).
+
+**Date:** 2026-11-02 (UTC)
+**Historical prototype track:** Real-World Money (`realworld`). Current approved mainnet tracks are recorded in the primary document, subject to organizer validation.
 
 ## Objective
 
@@ -18,6 +30,7 @@ The problem is routine procurement work: teams manually notice low stock, gather
 - Target NEAR testnet first. The current `DESIGN.md` describes a mainnet target; this spec supersedes that target for the initial implementation.
 - Use a test-only NEP-141 token for local/sandbox contract tests and the testnet prototype. Its address must come from a human-approved deployment result; do not copy the mainnet USDC address into testnet configuration.
 - NEAR Intents has no testnet deployment. Cross-chain behavior on testnet will use a mock adapter. An optional 1Click quote preview may use `dry: true`; that response has no deposit address and does not initiate a swap. Actual Intents settlement is out of the first testnet scope.
+- The human plans a later mainnet deployment for cross-chain payments. CC-12 remains preview-only; actual mainnet settlement requires separate implementation and a reviewed deployment.
 - No TEE or privacy claim is part of this track or the first prototype. The design's attestation screens and claims remain out of scope unless separately implemented and verified.
 - Account IDs, test token IDs, vault IDs, API keys, and model names must come from the human or verified deployment/API output. Do not invent placeholders as if they were live values.
 - The PO commitment boundary is defined: the vault admin grants a dedicated committer role; that role stores each PO ID with its supplier account, token contract, and smallest-unit amount exactly once. Future payment requests accept only the ID and resolve details from the vault. The agent receives no PO-commit permission and cannot rebind a committed ID.
@@ -49,14 +62,14 @@ The problem is routine procurement work: teams manually notice low stock, gather
 | `backend/src/procurement/purchase-orders.ts` | Purchase-order creation from persisted quotes with replay protection and audit events |
 | `backend/src/agent/tools.ts` | Fixed tool definitions and strict registered-ID argument validation |
 | `backend/src/agent/service.ts` | Deterministic forecast summary, PO drafting, and separately tagged supplier message data |
-| `backend/src/config.ts` | Server-side provider settings disabled until CC-00 is resolved |
-| `backend/src/routes/` and `backend/src/server.ts` | Loopback API for inventory, forecasts, quotes, purchase orders, and deterministic agent tasks |
+| `backend/src/config.ts` | Server-side provider gate and testnet payment configuration |
+| `backend/src/routes/` and `backend/src/server.ts` | Loopback API for inventory, forecasts, quotes, purchase orders, deterministic agent tasks, and payments |
 | `web/` | Next.js admin and judge UI with NEAR Connect on testnet |
 | `data/` | Deterministic synthetic items, suppliers, and usage history |
 | `scripts/` | Local setup, seed, build, and deployment helpers; deployment commands default to testnet |
 | `README.md` | Judge-facing product explanation and numbered, reproducible “do X, see Y” steps |
 
-The web app is still the generated Next.js starter. The backend exposes inventory and forecast reads, persisted simulated quotes, idempotent draft purchase-order creation, and a deterministic agent task endpoint. The agent tool set contains only forecast lookup and draft-PO creation; strict schemas accept registered IDs and reject extra fields. Supplier messages are tagged separately and are not included in tool arguments or dynamic instructions. Provider configuration stays server-side and environment values cannot enable a provider while CC-00 is pending. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. No contract is deployed.
+The web app is a responsive synthetic-data procurement dashboard with inventory, backend forecasts, quote generation, idempotent PO drafting, and persisted audit details. An allowlisted same-origin proxy exposes procurement APIs without wallet or payment actions. CC-12 adds an offline PO route simulator and a separately configured dry-only 1Click market preview. Both report settlement not initiated; no deposit/signing path is present. Separate read-only testnet RPC routes verify vault configuration and expose canonical payment state. NEAR Connect requests no sign-in key; human admin controls require explicit transaction review and revalidation before wallet signing. Undeployed or mismatched contracts disable controls. Live browser-wallet signing remains unverified after the approved CLI deployment. The backend exposes inventory and forecast reads, persisted simulated quotes, idempotent draft purchase-order creation, a deterministic agent task endpoint, and an ID-only payment endpoint. The payment adapter persists chain outcomes, audit events, and transaction hashes. The agent tool set contains only forecast lookup and draft-PO creation; strict schemas accept registered IDs and reject extra fields. Supplier messages are tagged separately and are not included in tool arguments or dynamic instructions. Provider configuration stays server-side and environment values cannot enable a provider while CC-00 is pending. The vault stores policy, admin-controlled supplier/committer/requester roles, immutable PO commitments, and auditable payment state. Payment requests resolve the payee/token/amount from a PO ID, check token balance and current policy, reserve capacity before the NEP-141 transfer, and settle through private callbacks. A local-only test token and Sandbox integration test exercise the cross-contract flow. The vault and CCTEST contracts are now deployed and verified on testnet; see [receipts](docs/testnet-deployment-receipts.json).
 
 For the on-chain boundary, an administrator grants the PO committer role to a dedicated backend account. `commit_purchase_order` records the PO ID, allowlisted supplier, configured token, and integer amount exactly once. Future payment calls accept the ID only. Keep the committer key separate from the agent's future function-call key; the latter should be scoped to `request_payment`.
 
@@ -143,15 +156,15 @@ npm ci --prefix web
 
 The optional 1Click SDK is already present in the backend dependency lock for dry-quote preview work only. NEAR Connect is already installed in the web project.
 
-The dependency installation blocked install scripts for `better-sqlite3` and `esbuild`. Both projects pin `ignore-scripts=true`; their prebuilt packages loaded successfully in this environment, so no scripts were approved. Recheck native package loading if changing platforms or versions.
+Both projects pin `ignore-scripts=true`. CC-13 restored both lockfiles in a clean Linux clone without copied node_modules; native SQLite/esbuild packages loaded, 64 backend tests and the production web build passed without enabling install scripts. The first registry install encountered a transient ECONNRESET; retrying the same locked install succeeded. Other platforms have not been verified.
 
-The web dependency install reported 16 moderate advisories. The detailed `npm audit` registry request stalled, so those findings are not yet triaged; rerun `npm audit --prefix web` before release. No forced dependency upgrades were applied.
+CC-14 triaged the 16 moderate web development-tree entries as one minimatch advisory; backend and web production npm audits report zero. Four Rust vulnerability entries and twelve warnings remain in local unit-test dependencies. Both contracts disable the unmaintained SDK allocator and use the standard Wasm allocator. See [dispositions, verification limits and recheck deadline](docs/security-release.md); no forced upgrades or advisory suppressions were used.
 
 Setup checks completed: locked Rust crates fetched; the workspace passed `cargo check --target wasm32-unknown-unknown --workspace --locked` and `cargo near build non-reproducible-wasm --manifest-path contracts/carecart-vault/Cargo.toml --locked`. The focused CC-01 policy suite now passes, and the wasm workspace check passes after CC-02. Both npm dependency trees resolved and the web starter passed `npm run build -- --webpack`. The default Turbopack build is blocked in this execution environment because it cannot bind its internal local socket. No transaction or deployment was run.
 
 ## Configuration and key handling
 
-The application should load local configuration from `.env`; root `.gitignore` excludes `.env` and `.env.*`, while allowing the committed `.env.example` with empty secret values. No local `.env` file or key was created. Never log private keys or tokens.
+The application should load local configuration from `.env`; root `.gitignore` excludes `.env` and `.env.*`, while allowing the committed `.env.example` with empty secret values. For the CC-13 judge run, the example was copied to an ignored `.env` in a disposable clone, with empty signing/provider credentials and dry quotes disabled. The separate web file held public configuration only. Never log private keys or tokens.
 
 Initial configuration names:
 
@@ -161,6 +174,9 @@ Initial configuration names:
 | `NEAR_RPC_URL` | `https://test.rpc.fastnear.com` |
 | `VAULT_ID` | Human-approved testnet deployment output; unset until deployed |
 | `TEST_TOKEN_ID` | Human-approved testnet mock-token deployment output; unset until deployed |
+| `PO_COMMITTER_ACCOUNT_ID` | Human-approved dedicated testnet committer account |
+| `PO_COMMITTER_PRIVATE_KEY` | Function-call key scoped to the vault and only `commit_purchase_order`; local `.env` only |
+| `VAULT_ASSET_CODE` | `CCTEST`, matching the synthetic quote and PO asset |
 | `AGENT_ACCOUNT_ID` | Human-provided testnet account; do not invent |
 | `AGENT_FC_PRIVATE_KEY` | Testnet function-call key only, limited to vault request methods; local `.env` only |
 | `OPENAI_BASE_URL` | `https://cloud-api.near.ai/v1` if NEAR AI Cloud is selected |
@@ -169,7 +185,7 @@ Initial configuration names:
 | `ONECLICK_BASE_URL` | `https://1click.chaindefuser.com`, quote preview only |
 | `ONECLICK_JWT` | Optional partner JWT; local `.env` only |
 
-The admin and deployer full-access keys remain in the user's wallet or CLI keychain. They must not be put in the backend environment. The agent key is a function-call key and must not be replaced with a full-access key.
+The admin and deployer full-access keys remain in the user's wallet or CLI keychain. They must not be put in the backend environment. Both backend signing keys must be function-call keys scoped to exactly their respective vault method. The admin funds `fund_commit_storage` from a human-controlled wallet; zero-deposit commitments consume that on-chain reserve. The client verifies RPC chain ID and access-key permissions before every signed call and waits for final execution. The approved public deployment used fresh initialization with the reserve field. Old local fixtures still require fresh initialization.
 
 ## Code and data conventions
 
@@ -185,10 +201,7 @@ The admin and deployer full-access keys remain in the user's wallet or CLI keych
 
 The auction tests have been replaced with focused policy and payment tests. CC-01 through CC-04 verification passes with synthetic accounts and smallest-unit integer amounts. The workspace test suite includes the Sandbox integration test using the test-only NEP-141 token for deposit/balance, auto-pay, pending approval, blocked supplier/funds, duplicate requests, failed transfers, and callback privacy. `cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked` and `cargo near build non-reproducible-wasm` for both contracts pass. Sandbox tests need permission to bind local loopback RPC sockets in restricted environments.
 
-Remaining prototype verification includes:
-
-- A judge-flow check from a fresh clone using the final README commands and testnet-only configuration.
-- Secret review confirming `.env` is ignored and no key appears in tracked files.
+CC-13/14 completed the fresh local snapshot judge-flow and source/history secret checks. The approved staged CC-15 deployment is verified. Remaining public verification is the separately reviewed browser-wallet and live PO payment path. Known audit findings and signature-check limitations are documented, not suppressed.
 
 For any testnet transaction or deployment, stop for explicit human confirmation before signing. Never run a mainnet transaction or deploy as part of test verification without explicit confirmation.
 
@@ -218,10 +231,7 @@ Final submission endpoint: `POST https://nearhackathon.com/api/applications`. Th
 
 ## Open questions for review
 
-1. Which human-owned testnet account should be used for the admin and deployment roles? No account is assumed or created here.
-2. Should the first public testnet demo deploy the in-repo mock NEP-141 token, or use a testnet token whose contract metadata is verified at setup time?
-3. Is NEAR AI Cloud the intended LLM provider? The architecture supports its documented OpenAI-compatible API, but the model should be selected from the live models endpoint and no TEE claim is planned.
-4. Which license should be added before the repository is made public?
+This historical question list is closed. Testnet accounts, CCTEST deployment, vault roles, restricted backend configuration and CLI resume have recorded evidence. A blocked PO is not a successful public payment. MN-00 selects NEAR AI Cloud, manual Run tick, MIT and the three planned tracks. Live model/credentials/testing, actual license-file publication inputs, mainnet identities/custody/budgets and all exact actions remain tracked only in [mainnet-todo.md](mainnet-todo.md) MN-08–MN-13/G0B. No pending question here creates a second active backlog.
 
 ## Sources checked
 

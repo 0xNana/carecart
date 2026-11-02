@@ -1,0 +1,46 @@
+{
+  "result": "passed",
+  "headers": {
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "referrer-policy": "no-referrer",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "x-powered-by": null
+  },
+  "checks": [
+    {
+      "path": "/api/supplier-quotes",
+      "status": 413
+    },
+    {
+      "path": "/api/supplier-quotes",
+      "encoding": "chunked, no Content-Length",
+      "status": 413
+    },
+    {
+      "path": "/api/supplier-quotes",
+      "status": 403
+    },
+    {
+      "path": "/api/payments",
+      "status": 404
+    },
+    {
+      "path": "/api/approve_payment",
+      "status": 404
+    },
+    {
+      "path": "/api/vault",
+      "status": 405
+    },
+    {
+      "path": "/api/intents/deposit/submit",
+      "status": 404
+    },
+    {
+      "path": "/api/purchase-orders",
+      "status": 400
+    }
+  ],
+  "rejectedRequestsChangedStoredData": false
+}

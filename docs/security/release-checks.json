@@ -1,0 +1,32 @@
+{
+  "checkedDate": "2026-11-02",
+  "publicTransactionsSignedOrBroadcast": 0,
+  "source": "Independent local snapshot clone; npm modules freshly restored offline for CC-14, pinned compiler/package caches reused; final scripts/docs subsequently synchronized without copying runtime env or databases.",
+  "checks": {
+    "backendTests": 64,
+    "backendTypecheck": "passed",
+    "walletRpcCases": 6,
+    "proxyBodyCases": 4,
+    "webLint": "passed",
+    "webWebpackBuild": "passed",
+    "rustPolicyTests": 21,
+    "rustPaymentTests": 9,
+    "sandboxIntegrationTests": 1,
+    "postAllocatorWasmWorkspaceCheck": "passed",
+    "currentVaultAndTokenLockedWasmBuilds": "passed",
+    "deploymentPlanUnitCases": 3,
+    "deploymentCliMockRpcCases": 4,
+    "bashSyntax": "passed",
+    "documentationLocalLinks": "passed",
+    "gitDiffWhitespace": "passed",
+    "restoredRootPreviewHttpAndHeaders": "passed"
+  },
+  "dependencyAudits": "See advisories.json: documented findings remain; full web development signature verification incomplete due to registry transport resets.",
+  "liveLimits": [
+    "No contract deployment",
+    "No app wallet ownership or public payment verified",
+    "No mainnet, inference, TEE or cross-chain settlement"
+  ],
+  "sourceAgreement": "Final non-ignored files match independent verification checkout; source inputs and lock hashes checked. Remote HEAD was not published.",
+  "scope": "Historical CC-14 checks and CC-15 pre-deployment review; later approved public deployment is recorded separately in testnet-deployment-receipts.json."
+}

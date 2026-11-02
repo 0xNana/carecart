@@ -1,4 +1,12 @@
-# CareCart: Policy-Bounded Procurement Agent on NEAR Mainnet
+# CareCart design — COMPLETED / ARCHIVED
+
+**Document status: COMPLETED / CLOSED — historical record, 2026-11-02 (UTC).**
+
+**Current primary authority:** [mainnet-todo.md](mainnet-todo.md), aligned with the [approved MN-00 record](CareCart-MN-00-APPROVED-2026-11-02.md). Use that document for ongoing requirements, work order, decisions and release gates. This file is retained for history/evidence; closing it does not certify unimplemented functionality, unanswered operational inputs or unperformed tests. Historical unchecked items are carried forward in the primary document rather than silently marked verified.
+
+## Archived original design — non-operative target text
+
+The original proposal below is preserved, including its dated examples and verification labels. Its statements about deployed mainnet payments, absolute holdings caps, old agent/admin ABI, three-chain settlement, TEE and scheduled autonomy are historical target claims, not current functionality or authority. The accepted corrections, exact 10/25/25 policy and immutable 25/25/50 maxima, treasury accounting/exit, guardian, Base-first scope and evidence gates are consolidated in [mainnet-todo.md](mainnet-todo.md). No historical “never cut” or schedule statement overrides that primary document.
 
 > Working name. hackathon design doc, written on Nov 1, 2026, for a **NEAR mainnet**  Implementation starts today,  Nov 1, 2026 (UTC).
 > Hackathon: [NEAR HACKATHON](https://nearhackathon.com). Development runs Nov 1–14, 2026; submissions close Nov 14, 23:59 UTC.

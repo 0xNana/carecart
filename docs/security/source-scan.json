@@ -1,0 +1,8 @@
+{
+  "result": "passed",
+  "scope": "current non-ignored source and reachable Git history",
+  "textFiles": 182,
+  "historyBlobs": 233,
+  "findings": [],
+  "limitation": "Pattern scan plus release-policy checks; not a cryptographic proof or a replacement for credential rotation if a leak is found."
+}

@@ -1,0 +1,49 @@
+{
+  "verifiedAt": "2026-11-02T14:54:35.533Z",
+  "manifestId": "mainnet-usdc-v2",
+  "fundingAuthorized": false,
+  "sources": {
+    "circle": "https://developers.circle.com/stablecoins/usdc-contract-addresses",
+    "rpc": "https://rpc.mainnet.near.org",
+    "oneClick": "https://1click.chaindefuser.com/v0/tokens"
+  },
+  "registry": {
+    "sha256": "edd438d6bc6cec5e1694aa78651304610a7612b5d17d59659b3e4f6798561d68",
+    "candidateListed": true
+  },
+  "chain": {
+    "chain_id": "mainnet",
+    "genesis_hash": "EPnLgE7iEq9s7yTkos96M3cWymH5avBAPm3qx3NXqR8H",
+    "sync_info": {
+      "syncing": false,
+      "latest_block_height": 222733913,
+      "latest_block_hash": "58vsjPv4EmXrsVhvgbgr5DRkT7Jgvs7BBg7yFMbCnMkt",
+      "latest_block_time": "2026-11-02T14:54:25.729813356Z"
+    }
+  },
+  "metadata": {
+    "blockHeight": 222733919,
+    "blockHash": "9Q6P9GjemfF1YhB2N9tuXLq7Bcfd1y7cakLkDexJoEQe",
+    "value": {
+      "spec": "ft-1.0.0",
+      "name": "USDC",
+      "symbol": "USDC",
+      "decimals": 6
+    }
+  },
+  "storageBounds": {
+    "blockHeight": 222733924,
+    "blockHash": "F35euzvpo53oPHqmWHrsWQEUBc3b5exVGwEEh7yCS9H5",
+    "value": {
+      "min": "1250000000000000000000",
+      "max": "1250000000000000000000"
+    }
+  },
+  "assets": null,
+  "oneClickVerification": "not-verified",
+  "registrations": {
+    "status": "pending-G0B",
+    "accounts": []
+  },
+  "manifestFingerprint": "8eb0100470bf038df0f4e9036c78cb5bb645d6d2752bfa1becbb8987f860c83c"
+}

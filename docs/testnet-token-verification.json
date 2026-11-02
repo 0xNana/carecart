@@ -1,0 +1,32 @@
+{
+  "result": "verified-initial-test-token",
+  "network": "testnet",
+  "artifacts": {
+    "vault": {
+      "path": "/home/nana/projects/carecart/artifacts/testnet/carecart_vault.wasm",
+      "bytes": 190863,
+      "sha256": "658eb04175d1b5245e0e22e418c563688e44bcd0cb44ac482808dbea8d92c5bc",
+      "codeHash": "7qSNa6FJR1x5ua2R41yBRJU86J1K4tGFg857QzbEj5Sb"
+    },
+    "token": {
+      "path": "/home/nana/projects/carecart/artifacts/testnet/carecart_test_ft.wasm",
+      "bytes": 163728,
+      "sha256": "5bfac537f638170e019c6eff5c57da2845b732a8acd5d27ff37c618a8af7a7db",
+      "codeHash": "7C3tDjf9aVJ4TpNEXxrpVMi29bQyWWsfs3Z6uJf6k65x"
+    }
+  },
+  "metadata": {
+    "spec": "ft-1.0.0",
+    "name": "CareCart Local Test Token",
+    "symbol": "CCTEST",
+    "icon": null,
+    "reference": null,
+    "reference_hash": null,
+    "decimals": 0
+  },
+  "storageBounds": {
+    "min": "1490000000000000000000",
+    "max": "1490000000000000000000"
+  },
+  "next": "Obtain separate explicit approval for vault deployment and setup steps 2–12. No transaction was performed by this check."
+}

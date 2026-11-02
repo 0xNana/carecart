@@ -1,0 +1,116 @@
+{
+  "verifiedAt": "2026-11-02T15:04:09.450664+00:00",
+  "scope": "MN-01 local implementation; not mainnet release clearance",
+  "toolchain": {
+    "node": "24.21.0",
+    "npm": "12.2.1",
+    "typescript": "7.0.2"
+  },
+  "cleanInstall": {
+    "location": "isolated /tmp copy; source bytes matched workspace",
+    "command": "npm ci --offline --no-audit --no-fund --cache /tmp/carecart-mn01-npm-cache",
+    "note": "Cached tarballs checked against unchanged lockfile integrity. npm 12 blocked install scripts; the locked better-sqlite3 native build was run explicitly with cached Node 24.21.0 headers. No project allowScripts or dependency changes."
+  },
+  "checks": {
+    "npm test": {
+      "testFiles": 26,
+      "passed": 151,
+      "failed": 0
+    },
+    "npm run typecheck": "passed",
+    "tsc --noEmit false --rootDir src --outDir dist": "passed",
+    "git diff --check": "passed"
+  },
+  "preservedFiles": [
+    {
+      "path": "backend/data/live-ai-smoke.sqlite",
+      "sha256": "57a9558b25ef57811f4955651fa71444cac9271f3c1944288de763a493d49f7f",
+      "unchanged": true
+    },
+    {
+      "path": "backend/data/testnet-smoke.sqlite-shm",
+      "sha256": "ff5f85b643be3a4eea24e563e4428da5dfd48eca073d2f051839eb3e16133d2a",
+      "unchanged": true
+    },
+    {
+      "path": "backend/data/testnet-smoke.sqlite-wal",
+      "sha256": "0cf43db6730898fef41e8627529529aec7f970ebb31eee006a0fcc6b92b8723d",
+      "unchanged": true
+    },
+    {
+      "path": "backend/data/testnet-smoke.sqlite",
+      "sha256": "96646c78c8cb57dcbf29cc394fef4ee40f28c33b03302518f8024ddf45727510",
+      "unchanged": true
+    },
+    {
+      "path": "backend/data/live-ai-smoke.sqlite-wal",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "backend/data/live-ai-smoke.sqlite-shm",
+      "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "unchanged": true
+    },
+    {
+      "path": ".env.example",
+      "sha256": "28d484e0994e2207fd81d1e5e808517271013eaf89e90a26f04511bdde648f07",
+      "unchanged": true
+    },
+    {
+      "path": "backend/src/seed.ts",
+      "sha256": "5fb63c0fde538499f63750d04b1a9089e20dc3b4e803559dfbdba970abc989d2",
+      "unchanged": true
+    },
+    {
+      "path": "backend/package.json",
+      "sha256": "9c7e211203360614aec443f2ec8648d31b5d40bc730ce0522c8d8b0c1f32c0bb",
+      "unchanged": true
+    },
+    {
+      "path": "backend/package-lock.json",
+      "sha256": "ced9df6f02952705061b1f0f8cb254f2f8b798ce7b699166776cc28b4b11e1fc",
+      "unchanged": true
+    },
+    {
+      "path": "web/package.json",
+      "sha256": "90a9dd7c20c786e5686a7834370463beeb15cb1d075a32a57086f748a05b6f78",
+      "unchanged": true
+    },
+    {
+      "path": "web/package-lock.json",
+      "sha256": "bcc5aa69f5aaaec9ba126c361f5a1f45b64b266c8c82634734d000b944147c5f",
+      "unchanged": true
+    },
+    {
+      "path": "contracts/Cargo.lock",
+      "sha256": "5921eb6e574a341507575fcc07f0129dad60160898d8df890874fed2db037177",
+      "unchanged": true
+    }
+  ],
+  "sourceSha256": {
+    "profiles/mainnet.candidate.json": "05d2781289171c90b0883b65f1154e6fcccfd680a61d81df2876ecbb39f6034b",
+    "backend/src/amounts.ts": "e1e586def7b5e8313bb6e8a5cdbd8fd215e5f298fc19953289e92bebe817074e",
+    "backend/src/amounts.test.ts": "6efe4763b6d499766107e8e18a31cd69cf1527ad7ec5b19b6acf0715fdbcd928",
+    "backend/src/profiles/mainnet.ts": "41bf8749dd82ec8a3f544881ed11b53808cba970f4fa42d7f3fadedd360c1f6f",
+    "backend/src/profiles/mainnet.test.ts": "ea5a15c99e12154db8d9576777657c59047f27c4290c5c3fedf495ab56ee06d3",
+    "backend/src/profiles/mainnet-fixtures.ts": "153af0192e18ff5a7f31a7c3935384fe0b72dafd9c25d4dc55b77d1977b6e9c8",
+    "backend/src/profiles/mainnet-fixtures.test.ts": "ad08fb88186df462bfaa1cd9f5d3d42e283c4909ad8913fcc036a40d38a85cb5",
+    "backend/src/profiles/storage.ts": "ce5455dd614eeed1ce1dc1b4f1098e8e68d801463e5a3f843ba360cd59efa680",
+    "backend/src/profiles/storage.test.ts": "d76e55669eef9a409d600fa9d3aefc861c0b1a97102a468e60eceadeb1c40e38",
+    "backend/src/profiles/runtime.test.ts": "836c224bc311f501f18a696dad2007abee4bb22c356940c17f70f6956a59caa3",
+    "backend/src/near/safety-profile.ts": "29cbf31978b8ad31c2a61e8ba12dcd80c2012a18f06b7efbd1c0e1c12c381645",
+    "backend/src/near/safety-profile.test.ts": "7fece978b44872d40265f58b2547afa93d9dece090a479ce0fe89281c05735f0",
+    "backend/src/near/safety-client.ts": "42ec70100fdabfc8f289a267712a5def9ebb371bb28cd6c0e0ce78dea73a51cc",
+    "backend/src/near/safety-client.test.ts": "3dc3dada605792482158216fb640722e8d8346abd546a1e2b436287be3eba353",
+    "backend/src/server.ts": "6893e6f44f7d7914697a77a82109897361dbbee901ce68335d6cc14689e01ed6",
+    "backend/src/ops/settlement.ts": "d2fd787c95e878fb7a4cd2ee80ac25b266d945b3baa86610fde8c58fe5dda437",
+    "backend/src/ops/verify-mainnet-assets.ts": "2e79663056564e057f6304d8a6e72657c39475779a7ba2b95b33cd994438eacf",
+    "backend/src/ops/verify-mainnet-assets.test.ts": "1b18eb4b03f82e102c66897bc19937c399e877244d371346ae200762a1f00a1b"
+  },
+  "remaining": [
+    "Live 1Click supported-token lookup (HTTP 521/403 from available clients)",
+    "Owner identities/control and token registrations through G0B",
+    "All operational/release/funding gates remain separate"
+  ]
+}
