@@ -15,6 +15,7 @@ export type SettlementState =
   | 'Dispatched'
   | 'Settled'
   | 'Refunded'
+  | 'Rejected'
   | 'Expired'
   | 'Failed'
   | 'Blocked';
@@ -104,6 +105,7 @@ export class SettlementJournal {
     this.db
       .transaction(() => {
         const a = this.get(id);
+        if (a.state === 'Rejected') throw new Error('Rejected attempt cannot have source dispatch evidence');
         const existing = this.db
           .prepare(
             'SELECT transaction_hash FROM settlement_source WHERE attempt_id=?',
@@ -134,7 +136,7 @@ export class SettlementJournal {
         };
         const expected = immutableHash(quote);
         // Include attempts created by an older local journal before this table existed.
-        const prior = this.db.prepare('SELECT quote FROM settlement_attempts WHERE po_id=?').all(quote.order.poId) as Array<{ quote: string }>;
+        const prior = this.db.prepare('SELECT quote, state FROM settlement_attempts WHERE po_id=?').all(quote.order.poId) as Array<{ quote: string; state: SettlementState }>;
         if (prior.some((row) => immutableHash(JSON.parse(row.quote) as VerifiedQuote) !== expected))
           throw new Error('Immutable PO conflict across quote attempts');
         const bound = this.db.prepare('SELECT immutable_hash FROM settlement_po_commitments WHERE po_id=?').get(quote.order.poId) as { immutable_hash: string } | undefined;
@@ -148,6 +150,10 @@ export class SettlementJournal {
             throw new Error('Immutable attempt conflict');
           return;
         }
+        // Rejection is final for the PO, unlike an expired/failed quote attempt. Keep the
+        // unique PO index occupied too: a restart or a fresh attempt ID cannot rearm it.
+        if (prior.some((row) => row.state === 'Rejected'))
+          throw new Error('Rejected PO cannot be retried');
         this.db
           .prepare(
             'INSERT INTO settlement_attempts (id,po_id,state,review_hash,quote) VALUES (?,?,?,?,?)',
@@ -199,6 +205,7 @@ export class SettlementJournal {
         if (['Settled', 'Refunded'].includes(a.state)) return a;
         const allowed: Record<string, SettlementState[]> = {
           PendingApproval: [
+            'Rejected',
             'Registering',
             'Dispatching',
             'Dispatched',

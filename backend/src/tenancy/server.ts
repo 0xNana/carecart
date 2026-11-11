@@ -1,0 +1,11 @@
+import {readFileSync} from 'node:fs';
+import dotenv from 'dotenv';
+import {testnetPayments} from '../profiles/testnet-payments';
+import {testnetPreparation} from '../profiles/testnet';
+import {WalletBindings} from './wallet-bindings';
+import {walletConfiguration} from './wallet-bindings';import {ClinicRuntimePool} from './runtime';
+import {join} from 'node:path';import {PROJECT_ROOT} from '../profiles/storage';import {assertNoSigningCredentials} from '../operations/local';
+import {identityConfiguration,SupabaseIdentity} from './identity';import {ClinicRegistry} from './registry';import {createTenantApp} from './api';
+import {liveConfiguration,openAiTransport} from '../agent/live';import {procurementToolDefinitions} from '../operations/tools';
+export async function startTenantServer(env:NodeJS.ProcessEnv=process.env){assertNoSigningCredentials(env);const config=identityConfiguration(env),registry=new ClinicRegistry(join(PROJECT_ROOT,'backend/data/tenancy','registry.sqlite'));const walletConfig=walletConfiguration(env),activation=env.CARECART_TESTNET_PAYMENTS_FILE?testnetPayments(JSON.parse(readFileSync(env.CARECART_TESTNET_PAYMENTS_FILE,'utf8'))):undefined;const preparation=env.CARECART_TESTNET_WORKSPACE_FILE?testnetPreparation(JSON.parse(readFileSync(env.CARECART_TESTNET_WORKSPACE_FILE,'utf8'))):undefined;const ai=liveConfiguration(env),provider=ai?{config:ai,transport:openAiTransport(ai,procurementToolDefinitions),evidence:'live-provider' as const}:undefined;const pool=new ClinicRuntimePool(activation?{registry,wallets:new WalletBindings(registry,config.origin,walletConfig),testnet:activation}:undefined,{preparation,requireTestnet:true,provider});const app=createTenantApp(registry,new SupabaseIdentity(config),config.origin,pool,walletConfig);const port=Number(env.CARECART_OPERATIONS_PORT??3002);if(!Number.isInteger(port)||port<1024||port>65535){await app.close();throw new Error('Invalid port');}for(const s of ['SIGINT','SIGTERM'] as const)process.once(s,()=>void app.close());await app.listen({host:'127.0.0.1',port});return app;}
+if(require.main===module){dotenv.config({path:join(PROJECT_ROOT,'.env')});void startTenantServer().catch(()=>{console.error('Supabase clinic service failed closed; inspect explicit identity/origin configuration.');process.exitCode=1;});}

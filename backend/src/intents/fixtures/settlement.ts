@@ -5,7 +5,7 @@ import { buildSettlementRequest, BASE_USDC, NEAR_USDC, type SettlementOrder, typ
 
 export const now = new Date('2026-11-02T12:00:00Z');
 export const order: SettlementOrder = {
-  profile: 'mainnet-usdc-v2',
+  profile: 'local-usdc-v2',
   poId: 'po-base-1',
   vault: 'vault.near',
   treasury: 'treasury.near',

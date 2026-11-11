@@ -1,7 +1,5 @@
-import { resolve } from 'node:path';
-
-import { config as loadEnv } from 'dotenv';
 import Fastify from 'fastify';
+import { resolve } from 'node:path';
 
 import {
   closeDatabase,
@@ -10,71 +8,45 @@ import {
   type DatabaseHandle,
 } from './db';
 import { seedSyntheticData } from './seed';
-import { registerAgentRoutes } from './routes/agent';
-import { registerLiveAgent, type ManualAi } from './routes/live-agent';
-import { liveConfiguration, openAiTransport } from './agent/live';
-import { registerInventoryRoutes } from './routes/inventory';
-import { registerPurchaseOrderRoutes } from './routes/purchase-orders';
+import { registerInventoryReadRoutes } from './routes/inventory';
 import { registerDashboardRoutes } from './routes/dashboard';
-import { registerPaymentRoutes } from './routes/payments';
-import { loadVaultPaymentConfiguration } from './config';
-import { NearApiVaultClient } from './near/client';
-import { VaultPaymentAdapter } from './payments/adapter';
 import { registerIntentsRoutes } from './routes/intents';
-import { DryQuotePreview, loadDryPreviewConfiguration } from './intents/preview';
-import { assertPrototypeProfile } from './profiles/mainnet';
-
-loadEnv({ path: resolve(__dirname, '../../.env') });
+import { assertPrototypeProfile } from './profiles/storage';
+import { assertNoSigningCredentials } from './operations/local';
 
 export interface CreateServerOptions {
   database: DatabaseHandle;
   clock?: () => Date;
-  paymentAdapter?: VaultPaymentAdapter;
-  dryPreview?: DryQuotePreview;
-  manualAi?: ManualAi;
 }
 
-export function createServer({
-  database,
-  clock = () => new Date(),
-  paymentAdapter,
-  dryPreview,
-  manualAi,
-}: CreateServerOptions) {
+/** Public synthetic reads and retired legacy endpoints only. No execution dependency or activation flag exists. */
+export function createServer(options: CreateServerOptions) {
+  if (Object.keys(options).some(key => !['database', 'clock'].includes(key)))
+    throw new Error('Legacy execution dependencies are forbidden; use authenticated v2 operations');
+  const { database, clock = () => new Date() } = options;
   const app = Fastify({ logger: false });
   registerDashboardRoutes(app, database, clock);
-  registerAgentRoutes(app, database, clock);
-  registerLiveAgent(app, database, manualAi);
-  registerInventoryRoutes(app, database, clock);
-  registerPurchaseOrderRoutes(app, database, clock);
-  registerPaymentRoutes(app, paymentAdapter);
-  registerIntentsRoutes(app, database, clock, dryPreview);
+  registerInventoryReadRoutes(app, database);
+  for (const route of ['/api/supplier-quotes', '/api/purchase-orders', '/api/payments', '/api/agent/tasks', '/api/agent/tick']) {
+    app.post(route, async (_request, reply) => reply.code(410).header('Cache-Control', 'no-store').send({
+      error: { code: 'LEGACY_EXECUTION_RETIRED', message: 'Use authenticated v2 procurement. Public legacy execution is retired.' },
+    }));
+  }
+  registerIntentsRoutes(app);
   return app;
 }
 
 export async function startServer(): Promise<ReturnType<typeof createServer>> {
+  // Never load the root .env or construct a signer from legacy environment variables.
+  assertNoSigningCredentials(process.env);
   assertPrototypeProfile();
-  const databasePath = process.env.CARECART_DATABASE_PATH ?? DEFAULT_DATABASE_PATH;
+  if (process.env.CARECART_DATABASE_PATH !== undefined && resolve(process.env.CARECART_DATABASE_PATH) !== DEFAULT_DATABASE_PATH)
+    throw new Error('Public synthetic demo database is fixed; financial journals cannot be selected');
+  const databasePath = DEFAULT_DATABASE_PATH;
   const database = openDatabase(databasePath);
   try {
     seedSyntheticData(database);
-    const paymentConfiguration = loadVaultPaymentConfiguration();
-    const paymentAdapter = paymentConfiguration
-      ? new VaultPaymentAdapter(
-          database,
-          new NearApiVaultClient(paymentConfiguration),
-          {
-            tokenAccountId: paymentConfiguration.tokenAccountId,
-            assetCode: paymentConfiguration.assetCode,
-          },
-        )
-      : undefined;
-    const dryConfiguration = loadDryPreviewConfiguration();
-    const ai = liveConfiguration();
-    const operatorToken = process.env.CARECART_OPERATOR_TOKEN?.trim() ?? '';
-    if (ai && operatorToken.length < 32) throw new Error('Live manual AI requires a server-only operator token of at least 32 characters');
-    const app = createServer({ database, paymentAdapter, dryPreview: dryConfiguration ? new DryQuotePreview(dryConfiguration) : undefined,
-      manualAi: ai ? { config: ai, transport: openAiTransport(ai), operatorToken } : undefined });
+    const app = createServer({ database });
     app.addHook('onClose', async () => closeDatabase(database));
 
     const port = Number(process.env.PORT ?? '3001');

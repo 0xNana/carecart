@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { openDatabase, closeDatabase } from '../db';
 import { seedSyntheticData } from '../seed';
 import { createServer } from '../server';
+import { createSupplierQuotes } from '../procurement/suppliers';
+import { createPurchaseOrder } from '../procurement/purchase-orders';
 
 describe('judge dashboard read model', () => {
   let database: ReturnType<typeof openDatabase>;
@@ -16,19 +18,22 @@ describe('judge dashboard read model', () => {
   it('serializes exact amounts, server quote eligibility and persisted draft/audit records', async () => {
     seedSyntheticData(database);
     app = createServer({ database, clock: () => new Date('2026-11-09T12:00:00Z') });
-    const quotes = await app.inject({ method: 'POST', url: '/api/supplier-quotes', payload: { itemId: 'item-000001' } });
-    const quote = quotes.json().quotes[0];
-    const created = await app.inject({ method: 'POST', url: '/api/purchase-orders', payload: { itemId: 'item-000001', quoteId: quote.quoteId, requestId: 'dashboard-order-0001' } });
+    // Fixture setup uses domain functions; the public HTTP mutations are retired.
+    const quotes = createSupplierQuotes(database, 'item-000001', new Date('2026-11-09T12:00:00Z'));
+    if (quotes.kind !== 'created') throw new Error('Synthetic quote fixture failed');
+    const quote = quotes.quotes[0];
+    const created = createPurchaseOrder(database, { itemId: 'item-000001', quoteId: quote.id, requestId: 'dashboard-order-0001' }, new Date('2026-11-09T12:00:00Z'));
+    if (created.kind !== 'created') throw new Error('Synthetic order fixture failed');
     const response = await app.inject({ method: 'GET', url: '/api/dashboard' });
     const snapshot = response.json();
     expect(response.headers['cache-control']).toBe('no-store');
     expect(snapshot.inventory[0]).toMatchObject({ dataOrigin: 'synthetic', isLowStock: true });
     expect(snapshot.suppliers[0]).toEqual({ id: 'supplier-000001', displayName: 'Synthetic Demo Supplier Alpha' });
-    expect(snapshot.quotes.find((entry: { id: string }) => entry.id === quote.quoteId)).toMatchObject({ used: true, expired: false, totalAmountAtomic: quote.totalAmountAtomic });
+    expect(snapshot.quotes.find((entry: { id: string }) => entry.id === quote.id)).toMatchObject({ used: true, expired: false, totalAmountAtomic: quote.totalAmountAtomic.toString() });
     expect(snapshot.quotes.find((entry: { id: string }) => entry.id === 'quote-000001')).toMatchObject({ expired: true });
-    expect(snapshot.purchaseOrders[0]).toMatchObject({ id: created.json().purchaseOrder.id, status: 'draft', paymentStatus: 'not_requested', amountAtomic: quote.totalAmountAtomic });
+    expect(snapshot.purchaseOrders[0]).toMatchObject({ id: created.purchaseOrder.id, status: 'draft', paymentStatus: 'not_requested', amountAtomic: quote.totalAmountAtomic.toString() });
     expect(snapshot.purchaseOrders[0]).toMatchObject({ commitTransactionHash: null, requestTransactionHash: null, paymentUpdatedAt: null });
-    expect(snapshot.auditEvents[0]).toMatchObject({ eventType: 'purchase_order_created', entityId: created.json().purchaseOrder.id });
+    expect(snapshot.auditEvents[0]).toMatchObject({ eventType: 'purchase_order_created', entityId: created.purchaseOrder.id });
   });
   it('includes persisted payment timestamps and public transaction hashes', async () => {
     seedSyntheticData(database);

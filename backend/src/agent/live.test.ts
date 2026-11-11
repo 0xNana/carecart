@@ -7,7 +7,7 @@ import {
   runLiveAgent,
   type AiTransport,
 } from './live';
-import { createServer } from '../server';
+import { legacyHandlerFixture as createServer } from '../../test-support/legacy-handlers';
 import { createSupplierQuotes } from '../procurement/suppliers';
 let db: ReturnType<typeof openDatabase>;
 afterEach(() => {

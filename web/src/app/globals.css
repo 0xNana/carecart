@@ -11,6 +11,8 @@
   --amber:#8b4f10;
   --amber-soft:#fff3dc;
   --danger:#9d2f28;
+  --control-border:#78948b;
+  --radius-sm:6px;
   --radius:10px
 }
 * {
@@ -19,6 +21,11 @@
 html {
   scroll-behavior:smooth;
   scroll-padding-top:24px
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior:auto
+  }
 }
 body {
   margin:0;
@@ -1131,6 +1138,8 @@ pre {
 .text-link { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
 .canonical-payment { margin-top: 12px; padding: 12px; background: var(--soft); border-radius: 6px; overflow-wrap: anywhere; }
 .payment-error { color: var(--danger); margin-top: 8px; }
+.appInventoryScope.ops { width: 100%; max-width: none; margin: 0; padding: 0; }
+.testnet-wallet-scope .wallet-panel { margin: 0; }
 @media (max-width: 767px) {
   .wallet-panel { padding: 16px; }
   .vault-facts, .policy-fields { grid-template-columns: minmax(0, 1fr); }

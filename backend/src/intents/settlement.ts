@@ -23,7 +23,7 @@ const account = z
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
 export const SettlementOrderSchema = z
   .object({
-    profile: z.literal('mainnet-usdc-v2'),
+    profile: z.literal('local-usdc-v2'),
     poId: z.string().regex(/^[a-zA-Z0-9_-]{1,64}$/),
     vault: account,
     treasury: account,

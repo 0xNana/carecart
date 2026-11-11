@@ -1,7 +1,9 @@
+import {assertTenantExecution,type TenantExecutionPermit} from '../tenancy/treasury-authority';
 import Database from 'better-sqlite3';
 import { chmodSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { digest } from '../intents/settlement';
+import {financialDatabaseOwner} from '../tenancy/treasury';
 import { SafetyOrderSchema } from './commitments';
 
 export interface WriteEvidence { transactionHash: string | null; reconciled: boolean }
@@ -9,7 +11,7 @@ export interface WriteEvidence { transactionHash: string | null; reconciled: boo
 export class OperationJournal {
   private readonly db: Database.Database;
   readonly persistent: boolean;
-  constructor(path: string, readonly profileFingerprint: string) {
+  constructor(readonly path: string, readonly profileFingerprint: string,readonly tenantPermit?:TenantExecutionPermit) {
     if (!/^[a-f0-9]{64}$/.test(profileFingerprint)) throw new Error('Reviewed profile fingerprint required');
     this.persistent = path !== ':memory:';
     if (this.persistent) mkdirSync(dirname(path), { recursive: true });
@@ -42,7 +44,17 @@ export class OperationJournal {
     if (row && row.payload_hash !== digest(payload)) throw new Error('Immutable backend operation conflict');
     return row;
   }
+  /** Recovery must refer to an existing exact intent, never create or replace one. */
+  assertRecorded(key: string, payload: object): void {
+    if (!this.operation(key, payload)) throw new Error('No recorded backend operation to reconcile');
+  }
   begin(key: string, payload: object): WriteEvidence | null {
+    const intent=payload as {method?:string;args?:{order?:unknown;po_id?:string}};
+    const poId=intent.args?.order?SafetyOrderSchema.parse(intent.args.order).po_id:intent.args?.po_id;
+    // Other method shapes cannot reuse a permit for a PO commitment/payment request.
+    if(financialDatabaseOwner(this.path)&&key!==intent.method+':'+poId)throw new Error('Exact tenant operation key required');
+    const role=intent.method==='commit_purchase_order'?'committer':'requester';
+    assertTenantExecution(this.path,role,poId??'',intent.method==='commit_purchase_order'||intent.method==='request_payment'?this.tenantPermit:undefined,intent.args?.order?digest(SafetyOrderSchema.parse(intent.args.order)):undefined);
     return this.db.transaction(() => {
       const previous = this.operation(key, payload);
       if (previous?.state === 'Confirmed') return JSON.parse(previous.evidence!) as WriteEvidence;

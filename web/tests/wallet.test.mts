@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTransaction, MAX_U128, type VaultState } from '../src/lib/near.ts';
-import { createReview, submitReviewed, WalletResponsePendingError } from '../src/lib/wallet-transactions.ts';
-import { vaultConfig, vaultReader } from '../src/lib/vault-rpc.ts';
-const config = vaultConfig({});
+import { buildTransaction, MAX_U128, type VaultState } from '../test-support/legacy-wallet/near.ts';
+import { createReview, submitReviewed, WalletResponsePendingError } from '../test-support/legacy-wallet/wallet-transactions.ts';
+import { vaultConfig, vaultReader } from '../test-support/legacy-wallet/vault-rpc.ts';
+const testnetEnvironment = { CARECART_PLAYGROUND_PROFILE: 'testnet-cctest', CARECART_PLAYGROUND_RPC_URL: 'https://test.rpc.fastnear.com', CARECART_VAULT_ID: 'vault.carecart.testnet', CARECART_TEST_TOKEN_ID: 'token.carecart.testnet', CARECART_ADMIN_ID: 'admin.carecart.testnet' };
+const config = vaultConfig(testnetEnvironment);
 const state: VaultState = { ...config, network: 'testnet', deployment: 'ready', checkedAt: '', paused: false,
   policy: { token_id: config.tokenId, per_order_cap: '100', daily_cap: '1000', balance_cap: '5000' } };
 const pending = { purchaseOrder: { po_id: 'po-000001', supplier_id: 'medsupply-a.carecart.testnet', token_id: config.tokenId, amount: '500' },
@@ -12,7 +13,7 @@ test('only the configured admin can build testnet transactions for a ready vault
   const action = { method: 'set_paused', args: { paused: true } } as const;
   assert.throws(() => buildTransaction(state, 'agent.carecart.testnet', action), /admin wallet/);
   assert.throws(() => buildTransaction({ ...state, deployment: 'not_deployed' }, config.adminId, action), /not ready/);
-  assert.throws(() => vaultConfig({ CARECART_VAULT_ID: 'vault.near' }), /testnet accounts/);
+  assert.throws(() => vaultConfig({ ...testnetEnvironment, CARECART_VAULT_ID: 'vault.near' }), /testnet accounts/);
   const tx = buildTransaction(state, config.adminId, action);
   assert.equal(tx.network, 'testnet'); assert.equal(tx.actions[0].params.deposit, '0');
 });

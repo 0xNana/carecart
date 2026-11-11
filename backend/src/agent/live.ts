@@ -86,7 +86,8 @@ export function privateToolModels(
     );
   });
 }
-export function openAiTransport(config: LiveAiConfiguration): AiTransport {
+export interface ModelToolDefinition { name:string;description:string;parameters:Record<string,unknown> }
+export function openAiTransport(config: LiveAiConfiguration, toolDefinitions:readonly ModelToolDefinition[]=AGENT_TOOL_DEFINITIONS): AiTransport {
   if (config.baseURL !== 'https://cloud-api.near.ai/v1')
     throw new Error('NEAR Cloud credential endpoint mismatch');
   const client = new OpenAI({
@@ -104,7 +105,7 @@ export function openAiTransport(config: LiveAiConfiguration): AiTransport {
     async complete(
       messages,
       model,
-      allowedTools = AGENT_TOOL_DEFINITIONS.map((tool) => tool.name),
+      allowedTools = toolDefinitions.map((tool) => tool.name),
     ) {
       const hasToolResult = messages.some(
         (message) =>
@@ -116,7 +117,7 @@ export function openAiTransport(config: LiveAiConfiguration): AiTransport {
       return (await client.chat.completions.create({
         model,
         messages: messages as OpenAI.ChatCompletionMessageParam[],
-        tools: AGENT_TOOL_DEFINITIONS.filter((tool) =>
+        tools: toolDefinitions.filter((tool) =>
           allowedTools.includes(tool.name),
         ).map((tool) => ({
           type: 'function' as const,

@@ -1,7 +1,8 @@
+import {publicToken} from './token-registry';
 import { z } from 'zod';
 import { resolve } from 'node:path';
 import { digest, NEAR_USDC } from '../intents/settlement';
-import { assertMainnetDatabasePath, isMainnetDatabasePath, PROJECT_ROOT } from '../profiles/storage';
+import { assertLocalV2DatabasePath, isLocalV2DatabasePath, PROJECT_ROOT } from '../profiles/storage';
 const account = z
   .string()
   .min(2)
@@ -31,13 +32,15 @@ export const SafetyProfileSchema = z
       .regex(/^[1-9][0-9]{0,38}$/)
       .refine((v) => BigInt(v) < 2n ** 128n),
     codeHash: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,50}$/),
+    // Owner-reviewed CareCart test fixture. Never accepted as a mainnet token identity.
+    testToken: z.object({symbol:z.literal('CCUSD'),codeHash:z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,50}$/)}).strict().optional(),
     databasePath: z.string().min(1),
   })
   .strict()
   .superRefine((p, ctx) => {
     try {
-      if (p.network === 'mainnet') assertMainnetDatabasePath(p.databasePath);
-      else if (isMainnetDatabasePath(p.databasePath)) throw new Error('Testnet cannot use mainnet state');
+      if (p.network === 'mainnet') assertLocalV2DatabasePath(p.databasePath);
+      else if (isLocalV2DatabasePath(p.databasePath)) throw new Error('Testnet cannot use mainnet state');
     } catch {
       ctx.addIssue({ code: 'custom', message: 'Database network isolation mismatch' });
     }
@@ -74,7 +77,10 @@ export const SafetyProfileSchema = z
         code: 'custom',
         message: 'Mainnet profile/token mismatch',
       });
-    if (p.network === 'testnet' && roles.some((a) => !a.endsWith('.testnet')))
+    if(p.testToken){
+      if(p.network!=='testnet'||!p.token.endsWith('.testnet'))ctx.addIssue({code:'custom',message:'Explicit testnet-only token required'});
+    }else try { publicToken(p.network,p.token); } catch { ctx.addIssue({code:'custom',message:'Unsupported or wrong-network token contract'}); }
+    if (p.network === 'testnet' && roles.filter(a=>a!==p.token).some((a) => !a.endsWith('.testnet')))
       ctx.addIssue({ code: 'custom', message: 'Testnet namespace required' });
     if (
       /(?:^|\/)testnet-smoke\.sqlite$/.test(p.databasePath) ||

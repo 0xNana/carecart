@@ -54,7 +54,7 @@ export class SettlementRecovery {
     const a = journal.get(attemptId);
     if (a.state !== 'Dispatched') return a;
     if (
-      a.quote.order.profile !== 'mainnet-usdc-v2' ||
+      a.quote.order.profile !== 'local-usdc-v2' ||
       (await this.near.viewNodeStatus()).chain_id !== 'mainnet'
     )
       throw new Error('Mainnet recovery profile required');

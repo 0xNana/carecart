@@ -3,6 +3,20 @@ import type { InventoryItemId, SupplierId } from '../domain';
 
 export const USAGE_WINDOW_DAYS = 30;
 
+/** Shared exact quantity calculation for the isolated CCTEST and native-USDC domains. */
+export function forecastQuantity(onHand: number, reorderPoint: number, usageUnits: number, leadTimeDays: number) {
+  if (![onHand, reorderPoint, usageUnits, leadTimeDays].every(Number.isSafeInteger) ||
+      onHand < 0 || reorderPoint < 0 || usageUnits < 0 || leadTimeDays <= 0)
+    throw new RangeError('forecast inputs must be non-negative safe integers with positive lead time');
+  const numerator = BigInt(usageUnits) * BigInt(leadTimeDays);
+  const demand = (numerator + BigInt(USAGE_WINDOW_DAYS) - 1n) / BigInt(USAGE_WINDOW_DAYS);
+  const needed = BigInt(reorderPoint) + demand - BigInt(onHand);
+  const recommended = needed > 0n ? needed : 0n;
+  if (demand > BigInt(Number.MAX_SAFE_INTEGER) || recommended > BigInt(Number.MAX_SAFE_INTEGER))
+    throw new RangeError('forecast quantity exceeds the safe integer range');
+  return { leadTimeDemand: Number(demand), recommendedQuantity: Number(recommended) };
+}
+
 export interface SupplierForecast {
   supplierId: SupplierId;
   supplierName: string;
@@ -50,20 +64,8 @@ export function calculateInventoryForecast(
       if (!Number.isSafeInteger(entry.leadTimeDays) || entry.leadTimeDays <= 0) {
         throw new RangeError('supplier lead time must be a positive safe integer');
       }
-      const demandNumerator = BigInt(observedUsageUnits) * BigInt(entry.leadTimeDays);
-      const leadTimeDemand = Number(
-        (demandNumerator + BigInt(USAGE_WINDOW_DAYS) - 1n) / BigInt(USAGE_WINDOW_DAYS),
-      );
-      if (!Number.isSafeInteger(leadTimeDemand)) {
-        throw new RangeError('lead-time demand exceeds the safe integer range');
-      }
-      const recommendedQuantity = Math.max(
-        0,
-        item.reorderPoint + leadTimeDemand - item.onHand,
-      );
-      if (!Number.isSafeInteger(recommendedQuantity)) {
-        throw new RangeError('recommended order quantity exceeds the safe integer range');
-      }
+      const { leadTimeDemand, recommendedQuantity } = forecastQuantity(item.onHand, item.reorderPoint,
+        observedUsageUnits, entry.leadTimeDays);
       return {
         supplierId: supplier.id,
         supplierName: supplier.displayName,

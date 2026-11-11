@@ -5,7 +5,7 @@ import { allocateId, closeDatabase, openDatabase } from '../db';
 import { seedSyntheticData } from '../seed';
 import { NearApiVaultClient } from '../near/client';
 import { VaultPaymentAdapter } from './adapter';
-import { createServer } from '../server';
+import { legacyHandlerFixture as createServer } from '../../test-support/legacy-handlers';
 
 async function main() {
   const rpcUrl = process.argv[2];

@@ -2,19 +2,19 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, linkSync, writeFileSync, r
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import { assertMainnetDatabasePath, MAINNET_DATABASE_PATH, PROJECT_ROOT } from './storage';
+import { assertLocalV2DatabasePath, assertPrototypeProfile, LOCAL_V2_DATABASE_PATH, PROJECT_ROOT } from './storage';
 
-describe('mainnet state path isolation', () => {
+describe('local-v2 state path isolation', () => {
   it('rejects traversal and memory aliases', () => {
-    expect(() => assertMainnetDatabasePath(MAINNET_DATABASE_PATH)).not.toThrow();
-    for (const path of [':memory:', '/tmp/carecart.sqlite', 'backend/data/mainnet-usdc-v2/../testnet-smoke.sqlite'])
-      expect(() => assertMainnetDatabasePath(path)).toThrow();
+    expect(() => assertLocalV2DatabasePath(LOCAL_V2_DATABASE_PATH)).not.toThrow();
+    for (const path of [':memory:', '/tmp/carecart.sqlite', 'backend/data/local-v2/../testnet-smoke.sqlite'])
+      expect(() => assertLocalV2DatabasePath(path)).toThrow();
   });
   it('rejects symlinks, dangling symlinks, directory links and hardlinks', () => {
-    const parent = join(PROJECT_ROOT, 'backend/data/mainnet-usdc-v2');
+    const parent = join(PROJECT_ROOT, 'backend/data/local-v2');
     mkdirSync(parent, { recursive: true });
     const directory = mkdtempSync(join(parent, 'path-test-'));
-    const external = mkdtempSync(join(tmpdir(), 'carecart-mn01-links-'));
+    const external = mkdtempSync(join(tmpdir(), 'carecart-v2-links-'));
     try {
       const target = join(external, 'legacy.sqlite');
       writeFileSync(target, 'isolated test fixture');
@@ -26,7 +26,7 @@ describe('mainnet state path isolation', () => {
       writeFileSync(original, 'isolated test fixture');
       linkSync(original, join(directory, 'hard.sqlite'));
       for (const name of ['linked.sqlite', 'dangling.sqlite', 'directory/legacy.sqlite', 'hard.sqlite'])
-        expect(() => assertMainnetDatabasePath(join(directory, name))).toThrow(/links/);
+        expect(() => assertLocalV2DatabasePath(join(directory, name))).toThrow(/links/);
     } finally {
       rmSync(directory, { recursive: true });
       rmSync(external, { recursive: true });
@@ -34,5 +34,11 @@ describe('mainnet state path isolation', () => {
         if ((error as NodeJS.ErrnoException).code !== 'ENOTEMPTY') throw error;
       }
     }
+  });
+  it('rejects non-testnet-cctest prototype profiles', () => {
+    expect(() => assertPrototypeProfile({})).not.toThrow();
+    for (const environment of [{ NEAR_NETWORK: 'mainnet' }, { CARECART_PROFILE: 'local-v2' }, { CARECART_PROFILE: '' }])
+      expect(() => assertPrototypeProfile(environment)).toThrow();
+    expect(() => assertPrototypeProfile({ CARECART_DATABASE_PATH: join(PROJECT_ROOT, 'backend/data/local-v2/carecart.sqlite') })).toThrow();
   });
 });

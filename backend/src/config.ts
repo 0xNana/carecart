@@ -25,8 +25,8 @@ export interface VaultPaymentConfiguration {
 }
 
 /**
- * Resolve a backend-only testnet payment configuration. An unset configuration keeps the
- * payment route disabled; partial credentials and non-testnet settings fail closed.
+ * Historical testnet configuration parser for explicit fixtures/tools only.
+ * The public server never loads this parser or constructs a payment adapter.
  */
 export function loadVaultPaymentConfiguration(
   environment: NodeJS.ProcessEnv = process.env,
@@ -56,7 +56,7 @@ export function loadVaultPaymentConfiguration(
   if (missing.length > 0) {
     throw new Error(`vault payment configuration is incomplete: ${missing.join(', ')}`);
   }
-  if ((environment.NEAR_NETWORK ?? 'testnet').trim() !== 'testnet') {
+  if (environment.NEAR_NETWORK?.trim() !== 'testnet') {
     throw new Error('CareCart payment configuration currently supports NEAR testnet only');
   }
 
@@ -69,6 +69,13 @@ export function loadVaultPaymentConfiguration(
   if (rpcUrl.protocol !== 'https:') {
     throw new Error('NEAR_RPC_URL must use HTTPS for testnet');
   }
+  if (!['https://test.rpc.fastnear.com', 'https://rpc.testnet.near.org'].includes(values.rpcUrl))
+    throw new Error('Explicit reviewed testnet RPC required');
+  const accounts = [values.vaultAccountId, values.tokenAccountId, values.committerAccountId, values.requesterAccountId];
+  if (accounts.some(account => account.length > 64 || !/^[a-z0-9]+(?:[._-][a-z0-9]+)*\.testnet$/.test(account)) || new Set(accounts).size !== accounts.length)
+    throw new Error('Independent named testnet accounts required');
+  if (environment.VAULT_ASSET_CODE !== undefined && environment.VAULT_ASSET_CODE !== 'CCTEST')
+    throw new Error('Legacy test token must be labeled CCTEST, never native USDC');
 
   for (const key of [values.committerPrivateKey, values.requesterPrivateKey]) {
     try {
@@ -80,7 +87,7 @@ export function loadVaultPaymentConfiguration(
 
   return {
     ...values,
-    assetCode: environment.VAULT_ASSET_CODE?.trim() || 'CCTEST',
+    assetCode: 'CCTEST',
   };
 }
 

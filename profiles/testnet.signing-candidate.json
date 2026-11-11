@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "network": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "vault": "safety-v2.carecart.testnet",
+  "token": "token-v2.carecart.testnet",
+  "vaultCodeHash": "BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3",
+  "tokenCodeHash": "8SHC5cfTSwdgKTtuCJPnsgNCj8Q9P3LpsAhLNDpMd6FW",
+  "clinicId": "dfa461bd-16f8-443a-9ca7-13e9b4697940",
+  "paymentActivationEnabled": true,
+  "ownerAuthorization": "Local testnet app signing and payments within existing policy",
+  "roles": [
+    {
+      "role": "committer",
+      "account": "committer-v2.carecart.testnet",
+      "variable": "SAFETY_COMMITTER_PRIVATE_KEY",
+      "method": "commit_purchase_order",
+      "publicKey": "ed25519:BNvE1Cmyr2Tdad2c9wDt2AGk3G33KzSpvFYQ4rto1wpX",
+      "credentialFile": "backend/.env.testnet-committer",
+      "receiver": "safety-v2.carecart.testnet",
+      "allowanceYocto": "200000000000000000000000",
+      "methodNames": [
+        "commit_purchase_order"
+      ]
+    },
+    {
+      "role": "requester",
+      "account": "agent-v2.carecart.testnet",
+      "variable": "SAFETY_REQUESTER_PRIVATE_KEY",
+      "method": "request_payment",
+      "publicKey": "ed25519:GdKnGkh7zTevtWR9dt1dzvNMYpW4wfTAS2cUjKAaYews",
+      "credentialFile": "backend/.env.testnet-requester",
+      "receiver": "safety-v2.carecart.testnet",
+      "allowanceYocto": "200000000000000000000000",
+      "methodNames": [
+        "request_payment"
+      ]
+    }
+  ],
+  "keysInstalledOnTestnet": true,
+  "keyInstallationTransactions": [
+    "6Dhhj2daCz2HSBebqSi8N7iZyf5NbDrgcbhxjBPtaWhU",
+    "2abpeAf7vsNiGgsT3gGT7XTQfdd3PBsDQ2c1uHRXcSLs"
+  ],
+  "acceptancePaymentVerified": true,
+  "acceptancePaymentTransaction": "Dfk9PUaGc6Gqc2533esgfB7zcG7kt3kSD5ixYuefQzvK"
+}

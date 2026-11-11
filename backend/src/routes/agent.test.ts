@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { closeDatabase, loadDomainRecords, openDatabase } from '../db';
 import { createSupplierQuotes } from '../procurement/suppliers';
 import { seedSyntheticData } from '../seed';
-import { createServer } from '../server';
+import { legacyHandlerFixture as createServer } from '../../test-support/legacy-handlers';
 
 describe('deterministic agent task endpoint', () => {
   let database: ReturnType<typeof openDatabase> | undefined;

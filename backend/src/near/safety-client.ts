@@ -1,3 +1,6 @@
+import {assertTenantExecution,assertTenantSigningProfile} from '../tenancy/treasury-authority';
+import {financialDatabaseOwner} from '../tenancy/treasury';
+import {verifyTokenObservation} from './token-registry';
 import {
   Account,
   JsonRpcProvider,
@@ -5,6 +8,7 @@ import {
   type KeyPairString,
   type SerializedReturnValue,
 } from 'near-api-js';
+import { z } from 'zod';
 import { SafetyProfileSchema, type SafetyProfile } from './safety-profile';
 import {
   digest,
@@ -28,22 +32,46 @@ const methods = {
   committer: ['commit_purchase_order', 'commit_quote'],
   requester: ['request_payment', 'request_crosschain'],
 } as const;
+const operationId = SafetyOrderSchema.shape.po_id;
+const RecoveryOperationSchema = z.discriminatedUnion('method', [
+  z.object({ method: z.literal('commit_purchase_order'), args: z.object({ order: SafetyOrderSchema }).strict() }).strict(),
+  z.object({ method: z.literal('commit_quote'), args: z.object({ quote: SafetyQuoteSchema }).strict() }).strict(),
+  z.object({ method: z.literal('request_payment'), args: z.object({ po_id: operationId }).strict() }).strict(),
+  z.object({ method: z.literal('request_crosschain'), args: z.object({ po_id: operationId, attempt_id: operationId }).strict() }).strict(),
+]);
+export type SafetyReadTransport=Pick<JsonRpcProvider,'viewNodeStatus'|'viewAccount'|'callFunction'>;
 /** Separate v2 ABI, explicit manifest, no automatic configuration from the old CCTEST environment. */
 export class SafetyVaultClient {
   private readonly provider: JsonRpcProvider;
   readonly profile: SafetyProfile;
+  readonly injectedReads:boolean;
+  get readOnly(){return !this.credentials&&!this.operations;}
   constructor(
     raw: SafetyProfile,
     private readonly credentials?: { committer?: string; requester?: string },
     private readonly operations?: OperationJournal,
+    readTransport?: SafetyReadTransport,
   ) {
     this.profile = Object.freeze(SafetyProfileSchema.parse(raw));
+    if(this.profile.testToken&&credentials){
+      try{assertTenantSigningProfile(this.profile,credentials.committer?'committer':'requester',operations?.tenantPermit);}
+      catch{throw new Error('Public testnet activation is disabled without a consumed clinic authorization');}
+    }
+    this.injectedReads=!!readTransport;
+    if(readTransport&&(credentials||operations))throw new Error('Injected read transport cannot hold signing authority');
     this.provider = new JsonRpcProvider({ url: this.profile.rpcUrl });
+    if(readTransport){
+      this.provider.viewNodeStatus=readTransport.viewNodeStatus.bind(readTransport);
+      this.provider.viewAccount=readTransport.viewAccount.bind(readTransport);
+      this.provider.callFunction=readTransport.callFunction.bind(readTransport);
+    }
     if (credentials?.committer && credentials?.requester)
       throw new Error('Separate processes must load only one backend role credential');
     if (operations && operations.profileFingerprint !== digest(this.profile))
       throw new Error('Operation journal profile mismatch');
   }
+  async verify(){await this.verifyProfile();}
+  async ownerAccessKey(accountId:string,publicKey:string){await this.verifyProfile();return this.provider.viewAccessKey({accountId,publicKey,finalityQuery:{finality:'final'}});}
   private async verifyProfile() {
     const p = this.profile;
     const status = await this.provider.viewNodeStatus();
@@ -55,12 +83,16 @@ export class SafetyVaultClient {
     });
     if (account.code_hash !== p.codeHash)
       throw new Error('Unreviewed safety vault code');
-    const meta = await this.provider.callFunction<{ decimals: number; symbol?: string }>({
+    const tokenAccount=await this.provider.viewAccount({accountId:p.token,blockQuery:{finality:'final'}});
+    const meta = await this.provider.callFunction<{ decimals: number; symbol?: string; spec?:string }>({
       contractId: p.token,
       method: 'ft_metadata',
       args: {},
       blockQuery: { finality: 'final' },
     });
+    if(p.testToken){
+      if(tokenAccount.code_hash!==p.testToken.codeHash||meta?.symbol!==p.testToken.symbol||meta?.spec!=='ft-1.0.0')throw new Error('Reviewed test token identity mismatch');
+    }else verifyTokenObservation(p.network,p.token,tokenAccount.code_hash,meta??{});
     if (meta?.decimals !== 6)
       throw new Error('Safety profile token decimals mismatch');
     if (p.network === 'mainnet' && meta.symbol !== 'USDC')
@@ -87,6 +119,45 @@ export class SafetyVaultClient {
     const fields = args as { order?: SafetyOrder; quote?: SafetyQuote; po_id?: string; attempt_id?: string };
     return `${method}:${fields.order?.po_id ?? fields.quote?.attempt_id ?? fields.attempt_id ?? fields.po_id}`;
   }
+  /**
+   * Read-only recovery: finalized canonical effects can confirm a recorded intent without
+   * credentials or another signature. Confirmation means the operation was observed, not
+   * that a payment settled. Missing/unchanged state is never proof of non-execution: it
+   * leaves Sending/Ambiguous frozen. There is deliberately no reset/retry transition.
+   */
+  async reconcileOperation(input: unknown) {
+    const operation = RecoveryOperationSchema.parse(input);
+    const { method, args } = operation;
+    this.journal().assertRecorded(this.operationKey(method, args), operation);
+    const poId = operation.method === 'commit_purchase_order' ? operation.args.order.po_id
+      : operation.method === 'commit_quote' ? operation.args.quote.po_id : operation.args.po_id;
+    const order = await this.canonicalOrder(poId); // Verifies profile/release and uses finalized RPC views.
+    if (operation.method === 'commit_purchase_order') {
+      if (digest(order) !== digest(operation.args.order)) throw new Error('Canonical immutable PO commitment conflict');
+    } else if (operation.method === 'commit_quote') {
+      const expected = operation.args.quote;
+      const stored = SafetyQuoteSchema.parse(await this.view('get_quote', { attempt_id: expected.attempt_id }));
+      if (digest(stored) !== digest(expected) || order.destination === 'Near' ||
+          stored.route_id !== order.destination.Base.route_id || stored.route_version !== order.destination.Base.version)
+        throw new Error('Canonical immutable quote commitment conflict');
+    } else {
+      const payment = await this.view<SafetyPayment>('get_payment', { po_id: poId });
+      this.assertPaymentStatus(payment);
+      if (payment.status === 'Committed') throw new Error('Backend operation unresolved; no retry is authorized');
+      if (operation.method === 'request_payment') {
+        if (order.destination !== 'Near' || payment.attempt_id !== '')
+          throw new Error('Canonical same-chain request conflict');
+      } else {
+        const quote = SafetyQuoteSchema.parse(await this.view('get_quote', { attempt_id: operation.args.attempt_id }));
+        if (payment.attempt_id !== operation.args.attempt_id)
+          throw new Error('Backend operation unresolved; canonical attempt differs');
+        if (order.destination === 'Near' || quote.attempt_id !== operation.args.attempt_id || quote.po_id !== poId ||
+            quote.route_id !== order.destination.Base.route_id || quote.route_version !== order.destination.Base.version)
+          throw new Error('Canonical cross-chain request conflict');
+      }
+    }
+    return this.observed(method, args);
+  }
   async view<T extends SerializedReturnValue>(
     method: string,
     args: Record<string, unknown>,
@@ -99,6 +170,12 @@ export class SafetyVaultClient {
     });
     if (value == null) throw new Error('Canonical v2 record unavailable');
     return value;
+  }
+  async finalTransaction(txHash:string,role?:'committer'|'requester'){
+    if(this.injectedReads)throw new Error('Injected reads cannot fetch real transaction evidence');
+    if(!/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(txHash))throw new Error('NEAR transaction hash required');
+    await this.verifyProfile();
+    return this.provider.viewTransactionStatusWithReceipts({txHash,accountId:role?this.profile[role]:this.profile.admin,waitUntil:'FINAL'});
   }
   private async revalidate(q: VerifiedQuote) {
     const r = await fetch('https://1click.chaindefuser.com/v0/tokens', {
@@ -150,6 +227,13 @@ export class SafetyVaultClient {
     method: string,
     args: object,
   ) {
+    // Public tenant execution is disabled independently of the attached journal.
+    // A testnet memory journal cannot disguise the configured operational database's owner.
+    if(financialDatabaseOwner(this.profile.databasePath)){
+      if(!this.operations?.tenantPermit)throw new Error('TENANT_DIRECT_SIGNING_DISABLED');
+      const input=args as {order?:SafetyOrder;po_id?:string};
+      assertTenantExecution(this.profile.databasePath,role,input.order?.po_id??input.po_id??'',this.operations?.tenantPermit,input.order?digest(input.order):undefined);
+    }
     const key = this.credentials?.[role];
     if (!(methods[role] as readonly string[]).includes(method) || !key)
       throw new Error('Restricted backend capability unavailable');
@@ -207,6 +291,7 @@ export class SafetyVaultClient {
         gas: 120_000_000_000_000n,
         waitUntil: 'FINAL',
       });
+      if(this.profile.testToken&&(outcome.final_execution_status!=='FINAL'||typeof outcome.status!=='object'||'Failure' in outcome.status||outcome.receipts_outcome.some(r=>typeof r.outcome.status!=='object'||'Failure' in r.outcome.status)))throw new Error('Finalized testnet receipt failed');
       return journal.confirm(operationKey, payload, { transactionHash: outcome.transaction.hash, reconciled: false });
     } catch {
       journal.ambiguous(operationKey);
@@ -237,6 +322,16 @@ export class SafetyVaultClient {
     return this.send('committer', 'commit_purchase_order', { order });
   }
   /** Finalized canonical lookup; never accepts PO fields from a requester. */
+  async lookupOrder(poId: string): Promise<SafetyOrder | null> {
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(poId)) throw new Error('Registered PO ID required');
+    await this.verifyProfile();
+    const raw = await this.optionalView<SafetyOrder>('get_purchase_order', { po_id: poId });
+    if (raw === null) return null; // RPC errors are not interpreted as absence.
+    const order = SafetyOrderSchema.parse(raw);
+    if (order.po_id !== poId || order.profile !== this.profile.network || order.token !== this.profile.token)
+      throw new Error('Canonical PO profile mismatch');
+    return order;
+  }
   async canonicalOrder(poId: string) {
     if (!/^[A-Za-z0-9_-]{1,64}$/.test(poId)) throw new Error('Registered PO ID required');
     await this.verifyProfile();

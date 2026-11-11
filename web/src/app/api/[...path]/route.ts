@@ -4,9 +4,13 @@ import { ProxyBodyTooLarge, readProxyBody } from '@/lib/proxy-body';
 async function forward(request: NextRequest, context: RouteContext<'/api/[...path]'>) {
   const { path } = await context.params;
   const route = path.join('/');
+  if (request.method === 'POST' && ['supplier-quotes', 'purchase-orders', 'payments', 'agent/tasks', 'agent/tick'].includes(route))
+    return Response.json({ error: { code: 'LEGACY_EXECUTION_RETIRED', message: 'Use authenticated v2 procurement. Public legacy execution is retired.' } }, { status: 410, headers: { 'Cache-Control': 'no-store' } });
+  if (['intents/config', 'intents/preview', 'intents/dry-quote'].includes(route))
+    return Response.json({error:{code:'SIMULATION_RETIRED'}},{status:410,headers:{'Cache-Control':'no-store'}});
   const allowed = request.method === 'GET'
-    ? route === 'dashboard' || route === 'intents/config' || /^inventory\/item-[0-9]{6}\/forecast$/.test(route)
-    : request.method === 'POST' && ['supplier-quotes', 'purchase-orders', 'intents/preview', 'intents/dry-quote'].includes(route);
+    ? route === 'dashboard' || /^inventory\/item-[0-9]{6}\/forecast$/.test(route)
+    : false;
   if (!allowed) return Response.json({ error: { message: 'Endpoint not available in this dashboard' } }, { status: 404 });
   const origin = request.headers.get('origin');
   // Next may normalize nextUrl's hostname; compare against the browser's actual Host header.
@@ -18,7 +22,7 @@ async function forward(request: NextRequest, context: RouteContext<'/api/[...pat
       method: request.method,
       headers: { 'Content-Type': 'application/json' },
       body: request.method === 'POST' ? await readProxyBody(request) : undefined,
-      cache: 'no-store', signal: AbortSignal.timeout(route === 'intents/dry-quote' ? 30000 : 10000), redirect: 'error',
+      cache: 'no-store', signal: AbortSignal.timeout(10000), redirect: 'error',
     });
     return new Response(await upstream.text(), {
       status: upstream.status,

@@ -1,0 +1,4 @@
+import {cookies} from 'next/headers';
+import {redirect} from 'next/navigation';import {identityContext} from '@/lib/identity-backend';import {ClinicOnboarding} from '@/components/clinic-onboarding';import {AuthEntry} from '@/components/auth-entry';import {authConfiguration} from '@/lib/auth-config';
+export const instant=false;
+export default async function Page({searchParams}:{searchParams:Promise<{invite?:string}>}){await cookies();try{authConfiguration();}catch{return <AuthEntry mode="login" next="/onboarding"/>;}const invite=(await searchParams).invite??'';let context;try{context=await identityContext();}catch{redirect('/login?next='+encodeURIComponent('/onboarding'+(/^[a-f0-9]{64}$/.test(invite)?'?invite='+invite:'')));}return <ClinicOnboarding context={context} invite={/^[a-f0-9]{64}$/.test(invite)?invite:''}/>;}

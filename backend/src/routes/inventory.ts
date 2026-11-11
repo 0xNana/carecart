@@ -14,10 +14,9 @@ function validationError(reply: FastifyReply) {
   });
 }
 
-export function registerInventoryRoutes(
+export function registerInventoryReadRoutes(
   app: FastifyInstance,
   database: DatabaseHandle,
-  clock: () => Date,
 ): void {
   app.get('/api/inventory', async (_request, reply) => {
     const { inventoryItems } = loadDomainRecords(database);
@@ -45,7 +44,11 @@ export function registerInventoryRoutes(
     }
     return reply.send(forecast);
   });
+}
 
+/** Historical handler fixture only; not registered by the public runtime. */
+export function registerInventoryRoutes(app: FastifyInstance, database: DatabaseHandle, clock: () => Date): void {
+  registerInventoryReadRoutes(app, database);
   app.post('/api/supplier-quotes', async (request, reply) => {
     const parsedBody = SupplierQuoteRequestSchema.safeParse(request.body);
     if (!parsedBody.success) return validationError(reply);

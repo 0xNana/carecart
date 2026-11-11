@@ -235,6 +235,9 @@ fn immutable_po_and_non_admin_cannot_rebind_or_administer() {
     assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| v.unpause())).is_err());
 }
 fn cross(v: &mut Contract) -> QuoteCommitment {
+    cross_until(v, 2 * 86_400_000_000_000)
+}
+fn cross_until(v: &mut Contract, deadline_ns: u64) -> QuoteCommitment {
     context("admin.testnet", 1, 1);
     v.set_route(Route {
         route_id: "base-alpha".into(),
@@ -261,7 +264,7 @@ fn cross(v: &mut Contract) -> QuoteCommitment {
         route_version: 1,
         signed_quote_hash: "b".repeat(64),
         deposit_account: id(&"a".repeat(64)),
-        deadline_ns: U64(2 * 86_400_000_000_000),
+        deadline_ns: U64(deadline_ns),
         min_amount_out: U128(900_000),
         storage_deposit_yocto: U128(1_490_000_000_000_000_000_000),
     };
@@ -431,6 +434,216 @@ fn registration_failure_releases_original_day_reservation_once() {
         v.get_payment("cross-po".into()).unwrap().reason,
         Reason::RegistrationFailed
     );
+}
+
+#[test]
+fn rejected_po_remains_terminal_without_reservations_or_callback_effects() {
+    let mut v = ready(5_000_000);
+    let mut quote = cross(&mut v);
+    context("admin.testnet", 1, 1);
+    let rejected = v.reject_payment("cross-po".into());
+    assert_eq!(rejected.status, Status::Rejected);
+    context("agent.testnet", 0, 2);
+    assert_eq!(
+        v.request_crosschain("cross-po".into(), "attempt-1".into()),
+        rejected
+    );
+    context("committer.testnet", 0, 2);
+    quote.attempt_id = "attempt-2".into();
+    quote.deadline_ns = U64(4 * 86_400_000_000_000);
+    v.commit_quote(quote);
+    context("agent.testnet", 0, 2);
+    assert!(
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            v.request_crosschain("cross-po".into(), "attempt-2".into())
+        }))
+        .is_err()
+    );
+    context("vault.testnet", 0, 3);
+    let _ = v.on_registered("cross-po".into(), Err(PromiseError::Failed));
+    assert_eq!(v.on_payment("cross-po".into(), Ok(())), rejected);
+    assert_eq!(v.get_state().accounted_balance, U128(5_000_000));
+    assert_eq!(v.get_state().reserved_payment, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).spent, U128(0));
+}
+
+#[test]
+fn late_successful_payment_cannot_be_reversed_or_debited_twice() {
+    let mut v = ready(50_000_000);
+    commit(&mut v, "late", 10_000_000);
+    request(&mut v, "late");
+    callback(&mut v, "late", 2, true);
+    callback(&mut v, "late", 3, false);
+    callback(&mut v, "late", 3, true);
+    assert_eq!(v.get_payment("late".into()).unwrap().status, Status::Paid);
+    assert_eq!(v.get_state().accounted_balance, U128(40_000_000));
+    assert_eq!(v.get_state().reserved_payment, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).spent, U128(10_000_000));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(2)).spent, U128(0));
+    assert_eq!(v.get_day_usage(U64(3)).spent, U128(0));
+}
+
+#[test]
+fn failed_base_transfer_after_expiry_releases_once_without_claiming_a_refund() {
+    let mut v = ready(5_000_000);
+    let quote = cross(&mut v);
+    context("admin.testnet", 1, 1);
+    let _ = approve(&mut v, "cross-po".into(), Some(quote.signed_quote_hash));
+    context("vault.testnet", 0, 1);
+    let _ = v.on_registered(
+        "cross-po".into(),
+        Ok(StorageBalance {
+            total: NearToken::from_yoctonear(1),
+            available: NearToken::from_yoctonear(0),
+        }),
+    );
+    callback(&mut v, "cross-po", 3, false);
+    callback(&mut v, "cross-po", 4, true);
+    callback(&mut v, "cross-po", 4, false);
+    let payment = v.get_payment("cross-po".into()).unwrap();
+    assert_eq!(payment.status, Status::Failed);
+    assert_eq!(payment.reason, Reason::TransferFailed);
+    assert_eq!(v.get_state().accounted_balance, U128(5_000_000));
+    assert_eq!(v.get_state().spendable, U128(5_000_000));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).spent, U128(0));
+    assert_eq!(v.get_day_usage(U64(3)).spent, U128(0));
+}
+
+#[test]
+fn successful_base_transfer_after_expiry_is_dispatched_in_its_original_day() {
+    let mut v = ready(5_000_000);
+    let quote = cross(&mut v);
+    context("admin.testnet", 1, 1);
+    let _ = approve(&mut v, "cross-po".into(), Some(quote.signed_quote_hash));
+    context("vault.testnet", 0, 1);
+    let _ = v.on_registered(
+        "cross-po".into(),
+        Ok(StorageBalance {
+            total: NearToken::from_yoctonear(1),
+            available: NearToken::from_yoctonear(0),
+        }),
+    );
+    callback(&mut v, "cross-po", 3, true);
+    callback(&mut v, "cross-po", 4, false);
+    assert_eq!(
+        v.get_payment("cross-po".into()).unwrap().status,
+        Status::Dispatched
+    );
+    assert_eq!(v.get_state().accounted_balance, U128(4_000_000));
+    assert_eq!(v.get_state().reserved_payment, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).spent, U128(1_000_000));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(3)).spent, U128(0));
+}
+
+#[test]
+fn expired_registration_releases_original_day_without_dispatch_or_duplicate_release() {
+    let mut v = ready(5_000_000);
+    let quote = cross(&mut v);
+    context("admin.testnet", 1, 1);
+    let _ = approve(&mut v, "cross-po".into(), Some(quote.signed_quote_hash));
+    context("vault.testnet", 0, 2);
+    let _ = v.on_registered(
+        "cross-po".into(),
+        Ok(StorageBalance {
+            total: NearToken::from_yoctonear(1),
+            available: NearToken::from_yoctonear(0),
+        }),
+    );
+    let _ = v.on_registered("cross-po".into(), Err(PromiseError::Failed));
+    assert_eq!(
+        v.get_payment("cross-po".into()).unwrap().status,
+        Status::Expired
+    );
+    assert_eq!(v.get_state().accounted_balance, U128(5_000_000));
+    assert_eq!(v.get_state().reserved_payment, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).spent, U128(0));
+    assert_eq!(v.get_day_usage(U64(2)).reserved, U128(0));
+}
+
+#[test]
+fn late_withdrawal_cannot_consume_or_release_an_unresolved_payment_reservation() {
+    let mut v = ready(5_000_000);
+    commit(&mut v, "unresolved", 1_000_000);
+    request(&mut v, "unresolved");
+    context("admin.testnet", 1, 2);
+    let _ = v.withdraw_all();
+    assert_eq!(v.get_state().reserved_payment, U128(1_000_000));
+    assert_eq!(v.get_state().reserved_withdrawal, U128(4_000_000));
+    assert_eq!(v.get_state().spendable, U128(0));
+    context("vault.testnet", 0, 3);
+    v.on_withdrawal(U64(1), Ok(()));
+    v.on_withdrawal(U64(1), Err(PromiseError::Failed));
+    assert_eq!(v.get_state().accounted_balance, U128(1_000_000));
+    assert_eq!(v.get_state().reserved_payment, U128(1_000_000));
+    assert_eq!(v.get_state().reserved_withdrawal, U128(0));
+    assert_eq!(v.get_state().spendable, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(1_000_000));
+    assert_eq!(
+        v.get_payment("unresolved".into()).unwrap().status,
+        Status::Dispatching
+    );
+    callback(&mut v, "unresolved", 4, false);
+    callback(&mut v, "unresolved", 4, true);
+    assert_eq!(v.get_state().accounted_balance, U128(1_000_000));
+    assert_eq!(v.get_state().spendable, U128(1_000_000));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(4)).spent, U128(0));
+}
+
+fn check_late_registration_daily_policy(daily_limit: u128) {
+    let mut v = ready(5_000_000);
+    let quote = cross_until(&mut v, 4 * 86_400_000_000_000);
+    context("admin.testnet", 1, 1);
+    let _ = approve(&mut v, "cross-po".into(), Some(quote.signed_quote_hash));
+    commit(&mut v, "new-day", 1_000_000);
+    context("agent.testnet", 0, 2);
+    let _ = v.request_payment("new-day".into());
+    context("admin.testnet", 1, 2);
+    let mut policy = v.get_state().policy;
+    policy.daily_dispatch_limit = U128(daily_limit);
+    v.set_policy(policy);
+    context("vault.testnet", 0, 2);
+    let _ = v.on_registered(
+        "cross-po".into(),
+        Ok(StorageBalance {
+            total: NearToken::from_yoctonear(1),
+            available: NearToken::from_yoctonear(0),
+        }),
+    );
+    let payment = v.get_payment("cross-po".into()).unwrap();
+    if daily_limit < 1_000_000 {
+        assert_eq!(payment.status, Status::Failed);
+        assert_eq!(payment.reason, Reason::DailyCapacity);
+        assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
+        assert_eq!(v.get_state().accounted_balance, U128(5_000_000));
+    } else {
+        assert_eq!(payment.status, Status::Dispatching);
+        assert_eq!(v.get_day_usage(U64(1)).reserved, U128(1_000_000));
+        callback(&mut v, "cross-po", 3, true);
+        assert_eq!(v.get_day_usage(U64(1)).spent, U128(1_000_000));
+        assert_eq!(v.get_state().accounted_balance, U128(4_000_000));
+    }
+    assert_eq!(v.get_day_usage(U64(2)).reserved, U128(1_000_000));
+    callback(&mut v, "new-day", 3, false);
+    assert_eq!(v.get_day_usage(U64(2)).reserved, U128(0));
+    assert_eq!(v.get_day_usage(U64(2)).spent, U128(0));
+    assert_eq!(v.get_state().reserved_payment, U128(0));
+    assert_eq!(v.get_state().spendable, v.get_state().accounted_balance);
+}
+
+#[test]
+fn late_registration_rejects_a_lowered_policy_and_releases_only_its_original_day() {
+    check_late_registration_daily_policy(500_000);
+}
+
+#[test]
+fn late_registration_does_not_borrow_or_reserve_against_the_new_day_budget() {
+    check_late_registration_daily_policy(1_500_000);
 }
 
 #[test]
@@ -760,4 +973,30 @@ fn quote_commitment_hash_matches_the_backend_vector() {
         quote.commitment_hash(),
         "0669e734b6288e5873074d1e7e6a5a46d29ac3fa41f6e4fb31c4904884db7c50"
     );
+}
+
+#[test]
+fn four_usdc_unknown_supplier_is_blocked_with_sufficient_initial_funds_and_no_limit_excess() {
+    let mut v = ready(5_000_000);
+    context("admin.testnet", 1, 1);
+    let mut policy = v.get_state().policy;
+    policy.accepted_deposit_ceiling = U128(5_000_000);
+    v.set_policy(policy);
+    let mut unknown = order("unknown-four", 4_000_000, Destination::Near);
+    unknown.supplier = id("unknown-supplier.testnet");
+    context("committer.testnet", 0, 1);
+    v.commit_purchase_order(unknown);
+    context("agent.testnet", 0, 1);
+    let _ = v.request_payment("unknown-four".into());
+    let payment = v.get_payment("unknown-four".into()).unwrap();
+    assert_eq!(payment.status, Status::Blocked);
+    assert_eq!(payment.reason, Reason::UnknownSupplier);
+    assert_eq!(v.get_state().accounted_balance, U128(5_000_000));
+    assert_eq!(
+        v.get_state().policy.accepted_deposit_ceiling,
+        U128(5_000_000)
+    );
+    assert_eq!(v.get_state().reserved_payment, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).spent, U128(0));
+    assert_eq!(v.get_day_usage(U64(1)).reserved, U128(0));
 }

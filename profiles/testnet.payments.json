@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "ownerApproved": true,
+  "clinicId": "dfa461bd-16f8-443a-9ca7-13e9b4697940",
+  "profile": {
+    "version": 2,
+    "network": "testnet",
+    "rpcUrl": "https://test.rpc.fastnear.com",
+    "vault": "safety-v2.carecart.testnet",
+    "token": "token-v2.carecart.testnet",
+    "decimals": 6,
+    "admin": "admin.carecart.testnet",
+    "guardian": "guardian-v2.carecart.testnet",
+    "treasury": "treasury.carecart.testnet",
+    "committer": "committer-v2.carecart.testnet",
+    "requester": "agent-v2.carecart.testnet",
+    "committerPublicKey": "ed25519:BNvE1Cmyr2Tdad2c9wDt2AGk3G33KzSpvFYQ4rto1wpX",
+    "requesterPublicKey": "ed25519:GdKnGkh7zTevtWR9dt1dzvNMYpW4wfTAS2cUjKAaYews",
+    "maxKeyAllowanceYocto": "200000000000000000000000",
+    "codeHash": "BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3",
+    "testToken": {
+      "symbol": "CCUSD",
+      "codeHash": "8SHC5cfTSwdgKTtuCJPnsgNCj8Q9P3LpsAhLNDpMd6FW"
+    },
+    "databasePath": "/home/nana/projects/carecart/backend/data/testnet-v2/clinics/dfa461bd-16f8-443a-9ca7-13e9b4697940/state.sqlite"
+  },
+  "suppliers": [
+    "medsupply-a.carecart.testnet",
+    "medsupply-b.carecart.testnet",
+    "medsupply-v2-c.carecart.testnet"
+  ]
+}

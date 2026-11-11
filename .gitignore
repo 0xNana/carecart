@@ -2,6 +2,8 @@
 .env
 .env.*
 !/.env.example
+!/.env.identity.example
+!/.env.testnet.example
 
 # JavaScript dependencies and build output
 node_modules/

@@ -216,6 +216,117 @@ async fn safety_vault_real_receipts() -> testresult::TestResult<()> {
             .0,
         1_000_000
     );
+    // Isolated receipt fixture only: exercise human same-chain review below the initial
+    // accepted balance ceiling. This is not the approved mainnet automatic threshold.
+    let mut human_policy = Policy::initial();
+    human_policy.auto_per_po_limit = U128(500_000);
+    call(
+        &vault,
+        admin.account_id(),
+        &signer,
+        &n,
+        "set_policy",
+        json!({"policy":human_policy}),
+        one,
+    )
+    .await?;
+    for po_id in ["human-approved", "human-rejected"] {
+        call(&vault,committer.account_id(),&signer,&n,"commit_purchase_order",json!({"order":{"po_id":po_id,"profile":"testnet","supplier":supplier.account_id(),"token":token.account_id(),"amount":"1000000","invoice_digest":"e".repeat(64),"destination":"Near"}}),zero).await?;
+        call(
+            &vault,
+            agent.account_id(),
+            &signer,
+            &n,
+            "request_payment",
+            json!({"po_id":po_id}),
+            zero,
+        )
+        .await?;
+        assert_eq!(
+            view::<Payment>(&vault, &n, "get_payment", json!({"po_id":po_id}))
+                .await?
+                .status,
+            Status::PendingApproval
+        );
+    }
+    let same_chain_args = json!({"po_id":"human-approved","expected_quote_hash":null,"expected_commitment_hash":null});
+    vault
+        .call_function("approve_payment", same_chain_args.clone())
+        .transaction()
+        .deposit(zero)
+        .gas(NearGas::from_tgas(120))
+        .with_signer(admin.account_id().clone(), signer.clone())
+        .send_to(&n)
+        .await?
+        .assert_failure();
+    vault
+        .call_function("approve_payment", same_chain_args.clone())
+        .transaction()
+        .deposit(one)
+        .gas(NearGas::from_tgas(120))
+        .with_signer(agent.account_id().clone(), signer.clone())
+        .send_to(&n)
+        .await?
+        .assert_failure();
+    call(
+        &vault,
+        admin.account_id(),
+        &signer,
+        &n,
+        "approve_payment",
+        same_chain_args.clone(),
+        one,
+    )
+    .await?;
+    assert_eq!(
+        view::<Payment>(&vault, &n, "get_payment", json!({"po_id":"human-approved"}))
+            .await?
+            .status,
+        Status::Paid
+    );
+    vault
+        .call_function("approve_payment", same_chain_args)
+        .transaction()
+        .deposit(one)
+        .gas(NearGas::from_tgas(120))
+        .with_signer(admin.account_id().clone(), signer.clone())
+        .send_to(&n)
+        .await?
+        .assert_failure();
+    call(
+        &vault,
+        admin.account_id(),
+        &signer,
+        &n,
+        "reject_payment",
+        json!({"po_id":"human-rejected"}),
+        one,
+    )
+    .await?;
+    assert_eq!(
+        view::<Payment>(&vault, &n, "get_payment", json!({"po_id":"human-rejected"}))
+            .await?
+            .status,
+        Status::Rejected
+    );
+    vault.call_function("approve_payment", json!({"po_id":"human-rejected","expected_quote_hash":null,"expected_commitment_hash":null}))
+        .transaction().deposit(one).gas(NearGas::from_tgas(120)).with_signer(admin.account_id().clone(), signer.clone()).send_to(&n).await?.assert_failure();
+    assert_eq!(
+        view::<U128>(&token, &n, "ft_balance_of", balance(supplier.account_id()))
+            .await?
+            .0,
+        2_000_000
+    );
+    call(
+        &vault,
+        admin.account_id(),
+        &signer,
+        &n,
+        "set_policy",
+        json!({"policy":Policy::initial()}),
+        one,
+    )
+    .await?;
     // Wasm entrypoint privacy and one-yocto checks, not only direct Rust calls.
     for (method, args, who, deposit) in [
         ("on_payment", json!({"po_id":"paid"}), agent, zero),
@@ -272,7 +383,7 @@ async fn safety_vault_real_receipts() -> testresult::TestResult<()> {
         view::<U128>(&token, &n, "ft_balance_of", balance(treasury.account_id()))
             .await?
             .0,
-        998_000_000
+        997_000_000
     );
     // Local Base mock: real FT registration and transfer, without an external settlement.
     call(
@@ -468,15 +579,18 @@ async fn safety_vault_real_receipts() -> testresult::TestResult<()> {
             .await?
             .assert_failure();
     }
+    // TestResult converts errors into panics; inspect this expected RPC error directly.
+    let oversized = vault
+        .call_function("get_payments", json!({"po_ids":vec!["paid";51]}))
+        .read_only::<near_sdk::serde_json::Value>()
+        .fetch_from(&n)
+        .await;
+    assert!(oversized.is_err());
     assert!(
-        view::<near_sdk::serde_json::Value>(
-            &vault,
-            &n,
-            "get_payments",
-            json!({"po_ids":vec!["paid";51]})
-        )
-        .await
-        .is_err()
+        oversized
+            .unwrap_err()
+            .to_string()
+            .contains("at most 50 PO lookups")
     );
     call(
         &vault,
@@ -494,7 +608,157 @@ async fn safety_vault_real_receipts() -> testresult::TestResult<()> {
     assert_eq!(state["reserved_withdrawal"], "0");
     assert_eq!(state["paused"], true);
     println!(
-        "Safety Sandbox: Paid once, partial refund, forced-transfer quarantine, guardian, one-yocto, private callback, treasury-only exit verified"
+        "Safety Sandbox: automatic and human same-chain Paid once, terminal rejection, Base source dispatch, partial refund, forced-transfer quarantine, guardian, one-yocto, private callback, treasury-only exit verified"
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn procurement_wallet_real_receipts() -> testresult::TestResult<()> {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+    let sandbox = near_sandbox::Sandbox::start_sandbox().await?;
+    let network = NetworkConfig::from_rpc_url("sandbox", sandbox.rpc_addr.parse()?);
+    let signer = Signer::from_secret_key(
+        near_sandbox::config::DEFAULT_GENESIS_ACCOUNT_PRIVATE_KEY
+            .parse()
+            .unwrap(),
+    )?;
+    let mut accounts = Vec::new();
+    for name in [
+        "admin.testnet",
+        "guardian.testnet",
+        "treasury.testnet",
+        "committer.testnet",
+        "agent.testnet",
+        "supplier.testnet",
+        "vault.testnet",
+        "token.testnet",
+    ] {
+        accounts.push(create_account(&sandbox, name).await?);
+    }
+    let [
+        admin,
+        guardian,
+        treasury,
+        committer,
+        requester,
+        supplier,
+        vault_account,
+        token_account,
+    ] = accounts.as_slice()
+    else {
+        unreachable!()
+    };
+    let vault = vault_account.as_contract();
+    let token = token_account.as_contract();
+    let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    near_api::Contract::deploy(token.account_id().clone())
+        .use_code(build_wasm(manifest.join("../test-ft/Cargo.toml"))?)
+        .with_init_call(
+            "new_test_usdc",
+            json!({"owner_id":treasury.account_id(),"total_supply":"1000000000"}),
+        )?
+        .with_signer(signer.clone())
+        .send_to(&network)
+        .await?
+        .assert_success();
+    // Local-only human review fixture; mainnet's initial 10-USDC auto policy is unchanged.
+    let mut policy = Policy::initial();
+    policy.auto_per_po_limit = U128(500_000);
+    near_api::Contract::deploy(vault.account_id().clone()).use_code(build_wasm(manifest.join("Cargo.toml"))?)
+        .with_init_call("new", json!({"admin":admin.account_id(),"guardian":guardian.account_id(),"treasury":treasury.account_id(),"token":token.account_id(),"policy":policy}))?
+        .with_signer(signer.clone()).send_to(&network).await?.assert_success();
+    let one = NearToken::from_yoctonear(1);
+    for account in [vault.account_id(), supplier.account_id()] {
+        call(
+            &token,
+            treasury.account_id(),
+            &signer,
+            &network,
+            "storage_deposit",
+            json!({"account_id":account,"registration_only":true}),
+            NearToken::from_near(1),
+        )
+        .await?;
+    }
+    call(
+        &vault,
+        admin.account_id(),
+        &signer,
+        &network,
+        "fund_storage",
+        json!({}),
+        NearToken::from_near(1),
+    )
+    .await?;
+    for (method, args) in [
+        (
+            "set_supplier",
+            json!({"supplier":supplier.account_id(),"allowed":true}),
+        ),
+        (
+            "set_role",
+            json!({"account":committer.account_id(),"role":"committer","allowed":true}),
+        ),
+        (
+            "set_role",
+            json!({"account":requester.account_id(),"role":"requester","allowed":true}),
+        ),
+        ("unpause", json!({})),
+    ] {
+        call(
+            &vault,
+            admin.account_id(),
+            &signer,
+            &network,
+            method,
+            args,
+            one,
+        )
+        .await?;
+    }
+    call(
+        &token,
+        treasury.account_id(),
+        &signer,
+        &network,
+        "ft_transfer_call",
+        json!({"receiver_id":vault.account_id(),"amount":"5000000","msg":"deposit"}),
+        one,
+    )
+    .await?;
+    let repository = manifest.parent().unwrap().parent().unwrap();
+    let node = std::env::var("CARECART_NODE_BIN").unwrap_or_else(|_| "node".into());
+    let mut child = Command::new(node)
+        .current_dir(repository.join("backend"))
+        .args(["--import", "tsx", "test-support/combined-sandbox.ts"])
+        .env_clear()
+        .env("PATH", std::env::var("PATH").unwrap_or_default())
+        .env("HOME", std::env::var("HOME").unwrap_or_default())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let input = json!({"rpcUrl":sandbox.rpc_addr,"rootKey":near_sandbox::config::DEFAULT_GENESIS_ACCOUNT_PRIVATE_KEY});
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(input.to_string().as_bytes())?;
+    let output = child.wait_with_output()?;
+    assert!(
+        output.status.success(),
+        "combined Sandbox bridge failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let evidence: near_sdk::serde_json::Value = near_sdk::serde_json::from_slice(&output.stdout)?;
+    assert_eq!(evidence["status"], "passed");
+    assert_eq!(evidence["execution"], "genuine-local-sandbox");
+    assert_eq!(evidence["receiptEvidence"]["transferConfirmed"], true);
+    assert_eq!(evidence["publicChainExecution"], false);
+    println!(
+        "Combined procurement/restricted-worker/wallet-controller/FINAL-receipt/SQLite restart verified on real local Sandbox. Evidence: /tmp/carecart-closeout/combined-sandbox-evidence.json"
     );
     Ok(())
 }

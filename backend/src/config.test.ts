@@ -12,6 +12,12 @@ describe('payment configuration', () => {
     expect(() => loadVaultPaymentConfiguration({ ...complete, NEAR_NETWORK: 'mainnet' })).toThrow(/testnet only/);
     expect(() => loadVaultPaymentConfiguration({ ...complete, NEAR_RPC_URL: 'http://localhost:3030' })).toThrow(/HTTPS/);
   });
+  it('requires explicit testnet identity, RPC and CCTEST semantics, never legacy USDC labeling',()=>{
+    for(const extra of [{NEAR_NETWORK:undefined},{NEAR_RPC_URL:'https://rpc.mainnet.near.org'},
+      {VAULT_ID:'vault.near'},{TEST_TOKEN_ID:'usdc.near'},{AGENT_ACCOUNT_ID:'agent.near'},
+      {PO_COMMITTER_ACCOUNT_ID:'committer.near'},{VAULT_ASSET_CODE:'USDC'},{AGENT_ACCOUNT_ID:'committer.testnet'}])
+      expect(()=>loadVaultPaymentConfiguration({...complete,...extra})).toThrow();
+  });
   it('uses the test token label and keeps signing values in the server config', () => {
     expect(loadVaultPaymentConfiguration(complete)).toMatchObject({ assetCode: 'CCTEST', vaultAccountId: 'vault.testnet' });
   });

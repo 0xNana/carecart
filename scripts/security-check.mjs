@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, readlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
+import {verifiedTransactionSignatures} from './security-scan-helpers.mjs';
 
 // Heuristic release guard, not a guarantee that every possible secret format is detectable.
 // Reports only locations/rule names, never matched values. Git operations are read-only.
@@ -22,16 +23,18 @@ let textFiles = 0;
 function scan(buffer, location) {
   if (buffer.includes(0)) return;
   const content = buffer.toString('utf8');
+  const publicSignatures=verifiedTransactionSignatures(buffer);
   for (const [rule, pattern] of patterns) {
     pattern.lastIndex = 0;
     for (const match of content.matchAll(pattern)) {
+      if(rule==='near_private_key'&&publicSignatures.has(match[0]))continue;
       findings.push({ location, line: content.slice(0, match.index).split('\n').length, rule });
     }
   }
 }
 for (const file of files) {
   if (!existsSync(resolve(root, file))) continue; // Tracked deletions are not release files.
-  if ((/(^|\/)\.env(?:$|\.)/.test(file) && file !== '.env.example') || /(?:\.pem|\.key)$/.test(file) || /(^|\/)\.near-credentials\//.test(file)) {
+  if ((/(^|\/)\.env(?:$|\.)/.test(file) && !['.env.example','.env.identity.example','.env.testnet.example'].includes(file)) || /(?:\.pem|\.key)$/.test(file) || /(^|\/)\.near-credentials\//.test(file)) {
     findings.push({ location: file, rule: 'credential_file_in_source' });
   }
   const path = resolve(root, file);

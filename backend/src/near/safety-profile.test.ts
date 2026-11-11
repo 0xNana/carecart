@@ -1,3 +1,4 @@
+import {PUBLIC_TOKENS} from './token-registry';
 import { describe, expect, it } from 'vitest';
 import { safetyProfile } from './safety-profile';
 import { NEAR_USDC } from '../intents/settlement';
@@ -6,7 +7,7 @@ const testnet = {
   network: 'testnet',
   rpcUrl: 'https://rpc.testnet.near.org',
   vault: 'safety.testnet',
-  token: 'ccusd.testnet',
+  token: PUBLIC_TOKENS.testnet.account,
   decimals: 6,
   admin: 'admin.testnet',
   guardian: 'guardian.testnet',
@@ -44,7 +45,7 @@ describe('separate safety deployment profile', () => {
       committer: 'committer.near',
       requester: 'requester.near',
       rpcUrl: 'https://rpc.mainnet.near.org',
-      databasePath: 'backend/data/mainnet-usdc-v2/carecart.sqlite',
+      databasePath: 'backend/data/local-v2/carecart.sqlite',
     };
     expect(safetyProfile(mainnet).profile.network).toBe('mainnet');
     expect(() =>
@@ -55,7 +56,7 @@ describe('separate safety deployment profile', () => {
     ).toThrow();
     for (const databasePath of [
       'backend/data/safety-testnet.sqlite',
-      'backend/data/mainnet-usdc-v2/../carecart.sqlite',
+      'backend/data/local-v2/../carecart.sqlite',
       `${process.cwd()}/data/carecart.sqlite`,
       ':memory:',
     ]) expect(() => safetyProfile({ ...mainnet, databasePath })).toThrow();
