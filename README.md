@@ -23,12 +23,12 @@ flowchart LR
 
 | Domain | Implementation | Responsibility |
 |---|---|---|
-| **Inventory** | [`backend/src/inventory`](file:///home/nana/projects/carecart/backend/src/inventory) | Append-only stock ledger (units/packs, receipts, dispensing, direct consumption, reasoned adjustments, batch/expiry tracking) and headless [`InventoryMonitor`](file:///home/nana/projects/carecart/backend/src/inventory/monitor.ts) with lease-based crash recovery. |
-| **Procurement** | [`backend/src/procurement`](file:///home/nana/projects/carecart/backend/src/procurement) & [`backend/src/workflow`](file:///home/nana/projects/carecart/backend/src/workflow) | Exact integer reorder forecasting (`reorderPoint + leadTimeDemand - inventoryPosition`), deterministic quote selection (`lowest-total-then-supplier-id-v1`), and durable replenishment cases. |
-| **Live AI Specialist** | [`backend/src/operations/runs.ts`](file:///home/nana/projects/carecart/backend/src/operations/runs.ts) & [`backend/src/agent/live.ts`](file:///home/nana/projects/carecart/backend/src/agent/live.ts) | Live **NEAR AI Cloud** (`z-ai/glm-5.3-flash`) procurement specialist operating under a strict 4-turn tool budget (`get_inventory_forecast`, `prepare_replenishment_case`, `evaluate_supplier_quotes`, `explain_procurement_decision`, `get_required_human_actions`, `propose_next_action`). The AI cannot alter prices, select unapproved suppliers, or sign transactions. |
-| **On-Chain Safety Vault** | [`contracts/carecart-safety-vault`](file:///home/nana/projects/carecart/contracts/carecart-safety-vault/src/lib.rs) | Rust NEAR smart contract enforcing immutable PO commitments, supplier allowlists, pause-only guardian, treasury recovery, and six-decimal spending caps (**10 CCUSD auto / 25 CCUSD hard PO / 25 CCUSD daily / 5 CCUSD initial accepted deposit**). |
-| **Identity & Multi-Tenancy** | [`backend/src/tenancy`](file:///home/nana/projects/carecart/backend/src/tenancy) | Supabase SSR authentication, clinic-scoped RBAC (`Admin`, `InventoryManager`, `ProcurementReviewer`, `Viewer`), per-clinic isolated SQLite databases, and NEP-413 wallet ownership verification. |
-| **Web Application** | [`web/src/app`](file:///home/nana/projects/carecart/web/src/app) | Next.js 16 / React 19 interface with landing page (`/`) and authenticated clinic workspace (`/app`: Overview, Inventory, Replenishment, Suppliers, Payments, Activity, Settings). |
+| **Inventory** | [`backend/src/inventory`](backend/src/inventory) | Append-only stock ledger (units/packs, receipts, dispensing, direct consumption, reasoned adjustments, batch/expiry tracking) and headless [`InventoryMonitor`](backend/src/inventory/monitor.ts) with lease-based crash recovery. |
+| **Procurement** | [`backend/src/procurement`](backend/src/procurement) & [`backend/src/workflow`](backend/src/workflow) | Exact integer reorder forecasting (`reorderPoint + leadTimeDemand - inventoryPosition`), deterministic quote selection (`lowest-total-then-supplier-id-v1`), and durable replenishment cases. |
+| **Live AI Specialist** | [`backend/src/operations/runs.ts`](backend/src/operations/runs.ts) & [`backend/src/agent/live.ts`](backend/src/agent/live.ts) | Live **NEAR AI Cloud** (`z-ai/glm-5.3-flash`) procurement specialist operating under a strict 4-turn tool budget (`get_inventory_forecast`, `prepare_replenishment_case`, `evaluate_supplier_quotes`, `explain_procurement_decision`, `get_required_human_actions`, `propose_next_action`). The AI cannot alter prices, select unapproved suppliers, or sign transactions. |
+| **On-Chain Safety Vault** | [`contracts/carecart-safety-vault`](contracts/carecart-safety-vault/src/lib.rs) | Rust NEAR smart contract enforcing immutable PO commitments, supplier allowlists, pause-only guardian, treasury recovery, and six-decimal spending caps (**10 CCUSD auto / 25 CCUSD hard PO / 25 CCUSD daily / 5 CCUSD initial accepted deposit**). |
+| **Identity & Multi-Tenancy** | [`backend/src/tenancy`](backend/src/tenancy) | Supabase SSR authentication, clinic-scoped RBAC (`Admin`, `InventoryManager`, `ProcurementReviewer`, `Viewer`), per-clinic isolated SQLite databases, and NEP-413 wallet ownership verification. |
+| **Web Application** | [`web/src/app`](web/src/app) | Next.js 16 / React 19 interface with landing page (`/`) and authenticated clinic workspace (`/app`: Overview, Inventory, Replenishment, Suppliers, Payments, Activity, Settings). |
 
 ---
 
@@ -54,7 +54,7 @@ flowchart LR
 - **Rust:** `1.93.0` with `wasm32-unknown-unknown` target
 
 ### 1. Configure Environment
-Copy [`.env.example`](file:///home/nana/projects/carecart/.env.example) to `.env` in the repository root and symlink `web/.env.local -> ../.env`:
+Copy [`.env.example`](.env.example) to `.env` in the repository root and symlink `web/.env.local -> ../.env`:
 
 ```bash
 cp .env.example .env
@@ -66,8 +66,8 @@ Key environment settings in `.env`:
 - `NEAR_CLOUD_BASE_URL=https://cloud-api.near.ai/v1`
 - `NEAR_CLOUD_MODEL=z-ai/glm-5.3-flash`
 - `NEAR_CLOUD_API_KEY=<your-near-ai-cloud-key>`
-- `CARECART_TESTNET_WORKSPACE_FILE=/home/nana/projects/carecart/profiles/testnet.demo.json`
-- `CARECART_TESTNET_PAYMENTS_FILE=/home/nana/projects/carecart/profiles/testnet.payments.json`
+- `CARECART_TESTNET_WORKSPACE_FILE=../profiles/testnet.demo.json`
+- `CARECART_TESTNET_PAYMENTS_FILE=../profiles/testnet.payments.json`
 
 ### 2. Install & Run Automated Verification
 ```bash
