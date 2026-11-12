@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { z } from 'zod';
-import { chmodSync } from 'node:fs';
+import { secureStateDatabase } from '../storage/state-database-permissions';
 import { digest } from '../intents/settlement';
 import {Movement,Autonomy,Products,OrderLink,type Product,type TenantBinding} from './model';
 import {migrateInventory} from './migrations';
@@ -26,7 +26,7 @@ export class InventoryLedger {
         this.db.pragma('busy_timeout=3000');
         this.db.pragma('journal_mode=WAL');
         this.db.pragma('synchronous=FULL');
-        chmodSync(path, 0o600);
+        secureStateDatabase(path);
         try {
             Products.parse(products);
             migrateInventory(this.db,fingerprint,products,clock,tenant);
