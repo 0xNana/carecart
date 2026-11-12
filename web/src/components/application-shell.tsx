@@ -31,8 +31,6 @@ export function useApplication() {
 
 export function ApplicationShell({ role, children,tenant }: { role: OperatorRole; children: ReactNode;tenant?:{clinic:ClinicContext;clinics:ClinicContext[];email:string} }) {
   const [client] = useState(() => new OperatorClient(undefined,tenant?.clinic.id));
-  const [publicTestnet,setPublicTestnet]=useState(false);
-  useEffect(()=>{let active=true;void client.session().then(s=>{if(active)setPublicTestnet(s.deployment==='public-testnet');}).catch(()=>{if(active)setPublicTestnet(false);});return()=>{active=false;};},[client]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
@@ -80,17 +78,17 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
                   <path d="M23 4.5v9M18.5 9h9" />
                 </svg>
               </span>
-              <span>CareCart</span><span className={styles.testnetBadge}>NEAR Testnet</span>
+              <span>CareCart</span><span className={styles.testnetBadge}>Demo</span>
             </Link>
             <div className={styles.workspaceIdentity}>
               <strong>{tenant?.clinic.name??'CareCart workspace'}</strong>
-              <span>{tenant?tenant.clinic.role+' · '+tenant.clinic.country:'Local synthetic environment'}</span>
+              <span>{tenant?tenant.clinic.role+' · '+tenant.clinic.country:'CareCart workspace'}</span>
             </div>
             <div className={styles.headerActions}>
               {tenant&&<ClinicSwitcher clinics={tenant.clinics} active={tenant.clinic.id}/>}
               <Link className={styles.attentionLink} href="/app/payments" aria-label="Open payment attention queue">
                 <span aria-hidden="true">◉</span>
-                <span>Attention</span>
+                <span>Needs review</span>
               </Link>
               <div className={styles.account}>
                 <span className={styles.accountAvatar} aria-hidden="true">{role === "operator" ? "OP" : "VW"}</span>
@@ -142,9 +140,9 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
             </nav>
             <div className={styles.sidebarFoot}>
               <span className={styles.footDot} />
-              <div><strong>{tenant?.clinic.name??"Synthetic clinic"}</strong><small>{publicTestnet?'Testnet payment review':'Testnet preparation'}</small></div>
+              <div><strong>{tenant?.clinic.name??"CareCart clinic"}</strong><small>Demo workspace</small></div>
             </div>
-            <div className={styles.mobileAccount}>{tenant&&<ClinicSwitcher clinics={tenant.clinics} active={tenant.clinic.id}/>}<span>Authenticated {tenant?.clinic.role??role}</span><button disabled={signingOut} onClick={()=>void signOut()}>{signingOut?'Signing out…':'Sign out'}</button></div>
+            <div className={styles.mobileAccount}>{tenant&&<ClinicSwitcher clinics={tenant.clinics} active={tenant.clinic.id}/>}<span>Signed in as {tenant?.clinic.role??(role==='operator'?'Staff':'Viewer')}</span><button disabled={signingOut} onClick={()=>void signOut()}>{signingOut?'Signing out…':'Sign out'}</button></div>
             {tenant&&<Link href="/onboarding">Manage clinics</Link>}
           </aside>
 

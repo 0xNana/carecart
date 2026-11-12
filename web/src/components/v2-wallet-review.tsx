@@ -2,6 +2,7 @@
 import {useRef,useState} from 'react';
 import {V2WalletController,type WalletReview,type V2Wallet} from '../lib/v2-wallet';
 import type {OperatorClient,OperatorSession} from '../lib/operator-client';
+import {statusLabel} from '../lib/product-copy';
 export function V2WalletReview({client,session,caseId,revision,paymentState,reviews,onRefresh}:{client:OperatorClient;session:OperatorSession;caseId:string;revision:number;
  paymentState:string;reviews:WalletReview[];onRefresh:()=>Promise<void>}){
  const [review,setReview]=useState<WalletReview|null>(reviews[0]??null);const [connected,setConnected]=useState(false);const [confirmed,setConfirmed]=useState(false);
@@ -18,34 +19,33 @@ export function V2WalletReview({client,session,caseId,revision,paymentState,revi
   await action(()=>controller.current!.submit(review,wallet,client,true));
  }
  const terms=review?.terms;
- return <section className="ops-panel ops-wallet" aria-label="V2 human wallet review"><h3>Human payment approval</h3>
-  <p className="ops-attention">{available?'Isolated mock wallet · simulated execution only · no keys or public-chain transactions':'Public wallet approval is not yet available'}</p>
+ return <section className="ops-panel ops-wallet" aria-label="Payment approval"><h3>Payment approval</h3>
+  <p className="ops-attention">{available?'Preview only · no money will move.':'Payment approval is not available for this purchase yet.'}</p>
 
-  <p>Independently recorded payment: <strong>{paymentState}</strong>. Wallet submission is not payment completion.</p>
-   {!available&&<p>{session.walletMode==='local-sandbox'?'Genuine local Sandbox RPC / CCUSD test tokens. Browser signing is unavailable; the isolated process harness exercises the wallet protocol separately.':'Orders requiring human approval remain on hold until an authorized wallet review is available.'}</p>}
-  {available&&<><button disabled={busy||!operator} onClick={()=>{setConnected(v=>!v);setConfirmed(false);}}>{connected?'Disconnect isolated mock admin':'Connect isolated mock admin'}</button>
-   <p>{connected?`Mock identity: ${session.walletProfile!.admin} · profile ${session.walletProfile!.network} (simulated)`:'No isolated wallet identity selected.'}</p>
-   <div className="ops-pagination"><button disabled={busy||!operator||paymentState!=='PendingApproval'} onClick={()=>void action(()=>client.prepareWalletReview(caseId,'approve',revision))}>Prepare unsigned approval</button>
-    <button disabled={busy||!operator||paymentState!=='PendingApproval'} onClick={()=>void action(()=>client.prepareWalletReview(caseId,'reject',revision))}>Prepare unsigned rejection</button></div>
+  <p>Payment status: <strong>{statusLabel(paymentState)}</strong>. A submitted request is not complete until it is verified.</p>
+   {!available&&<p>This purchase will stay on hold until an approved payment method is set up.</p>}
+  {available&&<><button disabled={busy||!operator} onClick={()=>{setConnected(v=>!v);setConfirmed(false);}}>{connected?'Close preview wallet':'Open preview wallet'}</button>
+   <p>{connected?'Preview wallet ready.':'No preview wallet is open.'}</p>
+   <div className="ops-pagination"><button disabled={busy||!operator||paymentState!=='PendingApproval'} onClick={()=>void action(()=>client.prepareWalletReview(caseId,'approve',revision))}>Review approval</button>
+    <button disabled={busy||!operator||paymentState!=='PendingApproval'} onClick={()=>void action(()=>client.prepareWalletReview(caseId,'reject',revision))}>Review rejection</button></div>
   </>}
-  {error&&<p role="alert" className="ops-error">{error}. Refresh saved review and canonical state before any further action.</p>}
-  {busy&&<p role="status">Validating and saving the wallet boundary…</p>}
-  {review&&<><p>Review <code>{review.id}</code> · <strong>{review.state}</strong> · {review.execution==='mocked-rpc'?'MOCKED evidence; no actual USDC settlement':review.execution==='sandbox-rpc'?'Genuine local Sandbox RPC; CCUSD test token, no public USDC settlement':'Recorded public RPC evidence; revalidation required'}</p>
-   <p>Transaction report: {review.transactionHash??'None'} · verified transaction attribution: {String(review.transactionVerified)}</p>
-   {terms&&<><dl><dt>Action</dt><dd>{terms.action}</dd><dt>Canonical PO</dt><dd>{terms.order.po_id}</dd><dt>Canonical hash</dt><dd>{terms.canonicalHash}</dd>
+  {error&&<p role="alert" className="ops-error">Payment approval could not be updated. Refresh and check the status before trying again.</p>}
+  {busy&&<p role="status">Saving approval details…</p>}
+  {review&&<><p>Approval status: <strong>{statusLabel(review.state)}</strong></p>
+   {terms&&<details><summary>Advanced transaction details</summary><dl><dt>Action</dt><dd>{terms.action}</dd><dt>Order reference</dt><dd>{terms.order.po_id}</dd><dt>Order fingerprint</dt><dd>{terms.canonicalHash}</dd>
     <dt>Supplier / recipient</dt><dd>{terms.order.supplier} / {terms.recipient}</dd><dt>Token / six-decimal atomic amount</dt><dd>{terms.order.token} / {terms.order.amount}</dd>
     <dt>Network / contract</dt><dd>{terms.transaction.network} / {terms.transaction.receiverId} (execution: {review.execution})</dd><dt>Reviewed code hash</dt><dd>{terms.codeHash}</dd>
     <dt>Admin signer / attached deposit</dt><dd>{terms.transaction.signerId} / exactly 1 yoctoNEAR</dd><dt>Review expires</dt><dd>{review.expiresAt}</dd></dl>
     {terms.base&&<details open><summary>Bound Base quote, fees, minimum output, recipient and refund terms</summary><pre>{JSON.stringify(terms.base,null,2)}</pre></details>}
-    <details><summary>Exact unsigned v2 transaction and policy snapshot</summary><pre>{JSON.stringify({transaction:terms.transaction,policy:terms.policy,spendable:terms.spendable,usage:terms.usage,approvalBlocks:terms.approvalBlocks},null,2)}</pre></details>
-   </>}
-   {review.state==='Prepared'&&available&&<><label><input type="checkbox" checked={confirmed} disabled={busy||!operator||paymentState!=='PendingApproval'} onChange={e=>setConfirmed(e.target.checked)}/> I reviewed these exact terms and authorize only an isolated mock wallet action.</label>
-    <div className="ops-pagination"><button disabled={busy||!operator||!connected||!confirmed||paymentState!=='PendingApproval'} onClick={()=>void submit()}>Confirm simulated wallet {terms?.action==='reject'?'rejection':'approval'}</button>
-    <button disabled={busy||!operator} onClick={()=>void action(()=>client.report(review.id,'Cancelled',null))}>Cancel before wallet handoff</button></div></>}
-   {['Handoff','Submitted','Ambiguous'].includes(review.state)&&<p className="ops-attention">An action may already have executed. Do not resend. Read-only canonical reconciliation is required.</p>}
-   <div className="ops-pagination"><button disabled={busy} onClick={()=>void action(()=>client.walletReview(review.id))}>Refresh saved review</button>
-    <button disabled={busy||!operator} onClick={()=>void action(()=>client.reconcileWallet(review.id))}>Observe canonical state (read only)</button></div>
-   <h4>Approval activity</h4><ol>{review.events.map((e,i)=><li key={i}><strong>{e.eventType}</strong> · {e.timestamp} · {e.actor}<pre>{JSON.stringify(e.evidence,null,2)}</pre></li>)}</ol>
+    <details><summary>Transaction and payment limits</summary><pre>{JSON.stringify({transaction:terms.transaction,policy:terms.policy,spendable:terms.spendable,usage:terms.usage,approvalBlocks:terms.approvalBlocks},null,2)}</pre></details></details>
+   }
+   {review.state==='Prepared'&&available&&<><label><input type="checkbox" checked={confirmed} disabled={busy||!operator||paymentState!=='PendingApproval'} onChange={e=>setConfirmed(e.target.checked)}/> I reviewed these details and confirm the preview.</label>
+    <div className="ops-pagination"><button disabled={busy||!operator||!connected||!confirmed||paymentState!=='PendingApproval'} onClick={()=>void submit()}>Confirm preview</button>
+    <button disabled={busy||!operator} onClick={()=>void action(()=>client.report(review.id,'Cancelled',null))}>Cancel review</button></div></>}
+   {['Handoff','Submitted','Ambiguous'].includes(review.state)&&<p className="ops-attention">This action may still be processing. Don’t repeat it yet; check the status below.</p>}
+   <div className="ops-pagination"><button disabled={busy} onClick={()=>void action(()=>client.walletReview(review.id))}>Refresh approval status</button>
+    <button disabled={busy||!operator} onClick={()=>void action(()=>client.reconcileWallet(review.id))}>Check payment status</button></div>
+   <details><summary>Approval history</summary><ol>{review.events.map((e,i)=><li key={i}><strong>{statusLabel(e.eventType)}</strong> · {e.timestamp}<details><summary>Activity details</summary><pre>{JSON.stringify(e.evidence,null,2)}</pre></details></li>)}</ol></details>
   </>}
  </section>;
 }

@@ -59,8 +59,7 @@ export function parseWorkflowProjection(raw:unknown):WorkflowProjection {
 }
 export const stateText=(s:string)=>s.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^Po /,'PO ');
 export function caseStateLabel(c:WorkspaceCase) {
- const prefix=c.evidenceKind==='sandbox-rpc'?'Local NEAR Sandbox · CCUSD test token':c.evidenceKind==='mocked-rpc'?'Mocked RPC':c.evidenceKind==='public-rpc'?'Recorded public RPC':'Local workflow';
- return `${prefix} · ${statusLabel(c.state)}`;
+ return statusLabel(c.state);
 }
 export function usdc(value:string) {const n=BigInt(value);return `${n/BigInt(1_000_000)}.${(n%BigInt(1_000_000)).toString().padStart(6,'0')}`;}
 export const terminalStates=new Set(['SameChainConfirmed','DestinationSettled','Refunded','Rejected','Failed','Expired']);

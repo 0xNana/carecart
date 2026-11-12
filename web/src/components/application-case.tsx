@@ -44,23 +44,22 @@ export function ApplicationCase({caseId,onClose}:{caseId:string;onClose:()=>void
   {error&&<p role="alert">{actionError(new Error(error),"Order details are unavailable. Refresh before retrying any payment action.")}</p>}
   {!detail&&!error&&<p role="status">Loading order details…</p>}
   {detail&&session&&<>
-   <section className={styles.panel} aria-label="Procurement AI review">
-    <h3>Procurement specialist · {session.providerAvailable?`NEAR AI Cloud (${session.model??'configured'})`:'Deterministic only'}</h3>
-    <p>Run the constrained procurement specialist on this order to verify stock forecasts, supplier quotes and the next required action. AI cannot sign or initiate payments.</p>
+  <section className={styles.panel} aria-label="Purchase planning help">
+    <h3>Purchase planning help</h3>
+    <p>Review stock, compare supplier offers and see the next step. This check will not place an order or send a payment.</p>
     <div className="ops-actions">
-     <button className={styles.evidenceButton} disabled={!canRunProcurement||!session.providerAvailable||running} onClick={()=>void runAgent('provider')}>{running?'Running NEAR AI Cloud…':'Evaluate with NEAR AI Cloud'}</button>
-     <button className={styles.evidenceButton} disabled={!canRunProcurement||running} onClick={()=>void runAgent('deterministic',activeRun?.state==='Failed'&&activeRun.mode==='provider'?activeRun.id:undefined)}>{activeRun?.state==='Failed'&&activeRun.mode==='provider'?'Run deterministic fallback':'Run deterministic check'}</button>
+     <button className={styles.evidenceButton} disabled={!canRunProcurement||!session.providerAvailable||running} onClick={()=>void runAgent('provider')}>{running?'Checking…':'Review with AI'}</button>
+     <button className={styles.evidenceButton} disabled={!canRunProcurement||running} onClick={()=>void runAgent('deterministic',activeRun?.state==='Failed'&&activeRun.mode==='provider'?activeRun.id:undefined)}>Run standard checks</button>
     </div>
     {runError&&<p className={styles.error} role="alert">{runError}</p>}
-    {activeRun&&<details open={activeRun.id===latestRun?.id}><summary>Latest run: {statusLabel(activeRun.state)} · {activeRun.execution==='live-provider'?`NEAR AI Cloud (${activeRun.model})`:activeRun.execution} · {activeRun.durationMs} ms</summary>
-     <p>Started {displayTime(activeRun.startedAt)} · Inference performed: {activeRun.inferencePerformed?'Yes':'No'}</p>
-     {activeRun.error&&<p className={styles.error} role="status">Run error: {activeRun.error.code}{activeRun.error.httpStatus?` (HTTP ${activeRun.error.httpStatus})`:''}</p>}
-     {activeRun.result?.decision&&<p>{activeRun.result.decision.explanation} Next action: <strong>{statusLabel(activeRun.result.decision.nextAction)}</strong></p>}
-     {activeRun.steps.length>0&&<ol>{activeRun.steps.map(step=><li key={step.callId}><strong>{step.tool}</strong> · {statusLabel(step.state)}</li>)}</ol>}
+    {activeRun&&<details open={activeRun.id===latestRun?.id}><summary>Latest check: {statusLabel(activeRun.state)} · {displayTime(activeRun.startedAt)}</summary>
+     {activeRun.error&&<p className={styles.error} role="status">The check could not be completed. Refresh the order before trying again.</p>}
+     {activeRun.result?.decision&&<p>{activeRun.result.decision.explanation} Next step: <strong>{statusLabel(activeRun.result.decision.nextAction)}</strong></p>}
+     <details><summary>Check timing</summary><p>Started {displayTime(activeRun.startedAt)} · Duration {activeRun.durationMs} ms</p></details>
     </details>}
    </section>
    <FinancialReviewPanel client={client} caseId={caseId} revision={detail.revision} operator={session.role==='operator'&&(!session.permissions||session.permissions.includes('finance'))} onRefresh={refresh}/>
-   <details><summary>Order activity and technical evidence</summary><OperationsWorkspace publicPayments={session.deployment==='public-testnet'} testnetAssets={session.deployment==='testnet-preparation'} key={detail.revision} initialProjection={detail.projection} source="authenticated"/></details>
+   <details><summary>More order details</summary><OperationsWorkspace publicPayments={session.deployment==='public-testnet'} testnetAssets={session.deployment==='testnet-preparation'} key={detail.revision} initialProjection={detail.projection} source="authenticated"/></details>
    <V2WalletReview client={client} session={session} caseId={caseId} revision={detail.revision}
     paymentState={detail.projection.cases[0].paymentState} reviews={detail.walletReviews} onRefresh={refresh}/>
   </>}
