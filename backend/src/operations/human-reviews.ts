@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {digest} from '../intents/settlement';
 import {SettlementJournal} from '../intents/journal';
+import {profileFingerprint} from '../near/safety-profile';
 import type {VaultReader} from '../near/vault-reader';import {isSandboxProfile} from '../sandbox/profile';
 import {paymentReview,type PaymentReview} from '../near/human-review';
 import {verifyHumanTransaction} from '../near/human-receipts';
@@ -22,7 +23,7 @@ type Row={id:string;case_id:string;session_hash:string;request_hash:string;terms
 export class HumanReviews {
  readonly db;
  constructor(readonly workflow:ReplenishmentWorkflow,readonly auth:OperatorAuth,readonly binding:HumanReviewBinding){
-  if(digest(binding.client.profile)!==workflow.procurement.fingerprint||auth.profileFingerprint!==workflow.procurement.fingerprint)throw new Error('Wallet review profile mismatch');
+  if(profileFingerprint(binding.client.profile)!==workflow.procurement.fingerprint||auth.profileFingerprint!==workflow.procurement.fingerprint)throw new Error('Wallet review profile mismatch');
   if(!binding.client.readOnly)throw new Error('Signing authority is forbidden in the human review service');
   if(binding.client.injectedReads&&binding.kind!=='mocked-rpc')throw new Error('Injected reads must be labeled mocked');
   if(isSandboxProfile(binding.client.profile)!==(binding.kind==='sandbox-rpc'))throw new Error('Sandbox identity/evidence boundary mismatch');

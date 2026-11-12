@@ -1,5 +1,6 @@
 import {assertTestnetPayments} from '../profiles/testnet-payments';
 import {SafetyVaultClient} from '../near/safety-client';
+import {profileFingerprint} from '../near/safety-profile';
 import type {SafetyProfile} from '../near/safety-profile';
 import Database from 'better-sqlite3';
 import {z} from 'zod';
@@ -38,7 +39,7 @@ export function assertTenantExecution(path:string,role:FinancialRole,poId:string
 /** A profile/configuration file cannot mint a signing permit. The consumed registry operation must match. */
 export function assertTenantSigningProfile(profile:SafetyProfile,role:FinancialRole,permit?:TenantExecutionPermit){
  const entry=permit&&permits.get(permit);
- if(!entry||entry.scope.environment!=='near-testnet'||entry.scope.profileFingerprint!==digest(profile))throw new OperationsError(403,'PUBLIC_TREASURY_EXECUTION_DISABLED');
+ if(!entry||entry.scope.environment!=='near-testnet'||entry.scope.profileFingerprint!==profileFingerprint(profile))throw new OperationsError(403,'PUBLIC_TREASURY_EXECUTION_DISABLED');
  assertTenantExecution(profile.databasePath,role,entry.scope.canonical.po_id,permit,entry.scope.canonicalHash);
 }
 
@@ -48,7 +49,7 @@ export class TenantTreasuryAuthority {
  readonly #checked=new WeakMap<object,{hash:string;expires:number}>();
  constructor(readonly registry:ClinicRegistry,readonly wallets:WalletBindings,readonly workflow:ReplenishmentWorkflow,readonly binding:FinancialBinding,readonly clinicId:string,readonly environment:TreasuryEnvironment){
   z.uuid().parse(clinicId);TreasuryEnvironment.parse(environment);this.treasuries=new ClinicTreasuries(registry);
-  if(financialDatabaseOwner(workflow.procurement.profile.databasePath)!==clinicId||digest(binding.client.profile)!==workflow.procurement.fingerprint)throw new Error('Trusted clinic runtime/reader binding required');
+  if(financialDatabaseOwner(workflow.procurement.profile.databasePath)!==clinicId||profileFingerprint(binding.client.profile)!==workflow.procurement.fingerprint)throw new Error('Trusted clinic runtime/reader binding required');
  }
  #session(s:TreasuryScope){
   const r=this.registry.db.prepare('SELECT session_id FROM identity_sessions WHERE hash=? AND user_id=? AND expires>? AND session_id NOT IN (SELECT session_id FROM identity_revocations)').get(s.sessionHash,s.user.userId,this.registry.clock()) as {session_id:string}|undefined;

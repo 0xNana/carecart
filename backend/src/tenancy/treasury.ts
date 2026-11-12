@@ -2,7 +2,7 @@ import {assertTestnetPayments,type TestnetPayments} from '../profiles/testnet-pa
 import Database from 'better-sqlite3';
 import {z} from 'zod';
 import {digest} from '../intents/settlement';
-import {SafetyProfileSchema,type SafetyProfile} from '../near/safety-profile';
+import {profileFingerprint,SafetyProfileSchema,type SafetyProfile} from '../near/safety-profile';
 import {isSandboxProfile} from '../sandbox/profile';
 import {OperationsError} from '../operations/auth';
 import {ClinicRegistry} from './registry';
@@ -47,7 +47,7 @@ export class ClinicTreasuries {
   return this.registry.db.transaction(()=>{
    const previous=this.registry.db.prepare('SELECT version FROM clinic_treasury_heads WHERE clinic_id=? AND environment=?').get(clinicId,environment) as {version:number}|undefined;
    if((previous?.version??0)!==expectedVersion)throw new OperationsError(409,'TREASURY_VERSION_CHANGED');
-   return this.#append({clinicId,environment,version:expectedVersion+1,network:profile.network,vault:profile.vault,token:profile.token,treasuryOwner:profile.treasury,controller:profile.admin,committer:profile.committer,requester:profile.requester,profileFingerprint:digest(profile),databasePath:profile.databasePath,permittedRoles:roles,status:'Draft',operator,at:this.registry.clock()},previous?'TreasuryUpdated':'TreasuryCreated');
+   return this.#append({clinicId,environment,version:expectedVersion+1,network:profile.network,vault:profile.vault,token:profile.token,treasuryOwner:profile.treasury,controller:profile.admin,committer:profile.committer,requester:profile.requester,profileFingerprint:profileFingerprint(profile),databasePath:profile.databasePath,permittedRoles:roles,status:'Draft',operator,at:this.registry.clock()},previous?'TreasuryUpdated':'TreasuryCreated');
   }).immediate();
  }
  transition(operator:string,clinicId:string,environment:TreasuryEnvironment,expectedVersion:number,status:'Active'|'Revoked',testnet?:TestnetPayments){
@@ -57,7 +57,7 @@ export class ClinicTreasuries {
    // No public activation path exists in this phase, even for a host administrator.
    if(status==='Active'){
     if(c.status!=='Draft')throw new OperationsError(403,'PUBLIC_TREASURY_ACTIVATION_DISABLED');
-    if(environment==='near-testnet'&&testnet){assertTestnetPayments(testnet.profile,clinicId,testnet);if(digest(testnet.profile)!==c.profileFingerprint)throw new OperationsError(403,'TREASURY_SCOPE_CONFLICT');}
+    if(environment==='near-testnet'&&testnet){assertTestnetPayments(testnet.profile,clinicId,testnet);if(profileFingerprint(testnet.profile)!==c.profileFingerprint)throw new OperationsError(403,'TREASURY_SCOPE_CONFLICT');}
     else if(environment!=='local-sandbox')throw new OperationsError(403,'PUBLIC_TREASURY_ACTIVATION_DISABLED');
    }
    if(status==='Active')for(const row of this.registry.db.prepare('SELECT clinic_id FROM clinic_treasury_heads WHERE environment=? AND clinic_id<>?').all(environment,clinicId) as {clinic_id:string}[]){const other=this.get(row.clinic_id,environment);if(other.status==='Active'&&other.vault===c.vault)throw new OperationsError(409,'VAULT_ALREADY_ASSIGNED_TO_CLINIC');}

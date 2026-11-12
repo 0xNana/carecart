@@ -9,7 +9,7 @@ import {
   type SerializedReturnValue,
 } from 'near-api-js';
 import { z } from 'zod';
-import { SafetyProfileSchema, type SafetyProfile } from './safety-profile';
+import { profileFingerprint,SafetyProfileSchema, type SafetyProfile } from './safety-profile';
 import {
   digest,
   revalidateStoredQuote,
@@ -67,7 +67,7 @@ export class SafetyVaultClient {
     }
     if (credentials?.committer && credentials?.requester)
       throw new Error('Separate processes must load only one backend role credential');
-    if (operations && operations.profileFingerprint !== digest(this.profile))
+    if (operations && operations.profileFingerprint !== profileFingerprint(this.profile))
       throw new Error('Operation journal profile mismatch');
   }
   async verify(){await this.verifyProfile();}
@@ -432,7 +432,7 @@ export class SafetyVaultClient {
       throw new Error('Canonical payment status unavailable');
   }
   async reconcile(attemptId: string, journal: SettlementJournal) {
-    if (journal.profileFingerprint !== digest(this.profile))
+    if (journal.profileFingerprint !== profileFingerprint(this.profile))
       throw new Error('Journal profile mismatch');
     await this.verifyProfile();
     const a = journal.get(attemptId);
@@ -450,7 +450,7 @@ export class SafetyVaultClient {
     journal: SettlementJournal,
   ) {
     if (
-      journal.profileFingerprint !== digest(this.profile) ||
+      journal.profileFingerprint !== profileFingerprint(this.profile) ||
       this.profile.network !== 'mainnet'
     )
       throw new Error('Mainnet journal profile mismatch');
@@ -469,7 +469,7 @@ export class SafetyVaultClient {
   }
   /** Produces an unsigned review only. The caller must hand it to an explicit human wallet action. */
   async approvalReview(attemptId: string, journal: SettlementJournal) {
-    if (journal.profileFingerprint !== digest(this.profile))
+    if (journal.profileFingerprint !== profileFingerprint(this.profile))
       throw new Error('Journal profile mismatch');
     await this.verifyProfile();
     const a = journal.get(attemptId);

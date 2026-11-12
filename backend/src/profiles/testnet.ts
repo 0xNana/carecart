@@ -1,4 +1,4 @@
-import {dirname,relative,resolve,sep} from 'node:path';
+import {dirname,isAbsolute,relative,resolve,sep} from 'node:path';
 import {lstatSync} from 'node:fs';
 import {safetyProfile} from '../near/safety-profile';
 import {PROJECT_ROOT} from './storage';
@@ -10,6 +10,7 @@ export function testnetProfile(raw:unknown){
  if(p.network!=='testnet'||!p.testToken||p.rpcUrl!=='https://test.rpc.fastnear.com')throw new Error('Pinned testnet CCUSD profile required; no network fallback');
  const root=resolve(PROJECT_ROOT,'backend/data/testnet-v2'),path=resolve(PROJECT_ROOT,p.databasePath),suffix=relative(root,path);
  if(!suffix||suffix==='..'||suffix.startsWith('..'+sep)||!suffix.endsWith('.sqlite')||path!==p.databasePath)throw new Error('Dedicated absolute testnet-v2 database required');
+ if(p.fingerprintDatabasePath){const identityPath=resolve(p.fingerprintDatabasePath),marker=`${sep}backend${sep}data${sep}testnet-v2${sep}`,index=identityPath.lastIndexOf(marker),identitySuffix=index<0?'':identityPath.slice(index+marker.length);if(!isAbsolute(p.fingerprintDatabasePath)||index<0||identitySuffix!==suffix)throw new Error('Fingerprint database path must identify the same dedicated testnet workspace');}
  for(let at=path;;at=dirname(at)){
   try{const s=lstatSync(at);if(s.isSymbolicLink()||(s.isFile()&&s.nlink>1))throw new Error('Testnet state links forbidden');}
   catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}

@@ -1,6 +1,7 @@
 import {verifyNativePayment} from '../near/human-receipts';
 import {assertTestnetPayments,type TestnetPayments} from '../profiles/testnet-payments';
 import {SafetyVaultClient} from '../near/safety-client';
+import {profileFingerprint} from '../near/safety-profile';
 import {financialDatabaseOwner} from '../tenancy/treasury';
 import Database from 'better-sqlite3';
 import type {TenantTreasuryAuthority,TreasuryApproval,TreasuryScope,TenantExecutionPermit} from '../tenancy/treasury-authority';
@@ -26,7 +27,7 @@ export class FinancialAuthorizations {
  constructor(readonly workflow:ReplenishmentWorkflow,readonly binding?:FinancialBinding,connection?:Database.Database,readonly clock=()=>Date.now(),readonly tenantAuthority?:TenantTreasuryAuthority){
   this.owned=!connection;
   if(tenantAuthority&&(tenantAuthority.workflow!==workflow||tenantAuthority.binding!==binding))throw new Error('Tenant authority runtime mismatch');
-  if(binding&&(!['mocked-rpc','sandbox-rpc','public-rpc'].includes(binding.kind)||!binding.client.readOnly||digest(binding.client.profile)!==workflow.procurement.fingerprint||
+  if(binding&&(!['mocked-rpc','sandbox-rpc','public-rpc'].includes(binding.kind)||!binding.client.readOnly||profileFingerprint(binding.client.profile)!==workflow.procurement.fingerprint||
     (binding.kind==='sandbox-rpc')!==isSandboxProfile(workflow.procurement.profile)||
     (binding.kind==='mocked-rpc'&&(!binding.client.injectedReads||workflow.procurement.profile.vault!=='vault.local-ops.near'))||
     (binding.kind==='sandbox-rpc'&&(binding.client.injectedReads||binding.simulateRole))))throw new Error('Financial environment/authority mismatch');

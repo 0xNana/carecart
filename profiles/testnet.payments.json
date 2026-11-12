@@ -22,7 +22,8 @@
       "symbol": "CCUSD",
       "codeHash": "8SHC5cfTSwdgKTtuCJPnsgNCj8Q9P3LpsAhLNDpMd6FW"
     },
-    "databasePath": "/home/nana/projects/carecart/backend/data/testnet-v2/clinics/dfa461bd-16f8-443a-9ca7-13e9b4697940/state.sqlite"
+    "databasePath": "/home/nana/projects/carecart/backend/data/testnet-v2/clinics/dfa461bd-16f8-443a-9ca7-13e9b4697940/state.sqlite",
+    "fingerprintDatabasePath": "/home/nana/projects/carecart/backend/data/testnet-v2/clinics/dfa461bd-16f8-443a-9ca7-13e9b4697940/state.sqlite"
   },
   "suppliers": [
     "medsupply-a.carecart.testnet",

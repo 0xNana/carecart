@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {join} from 'node:path';
 import {digest} from '../intents/settlement';
-import {SafetyProfileSchema,type SafetyProfile} from '../near/safety-profile';
+import {profileFingerprint,SafetyProfileSchema,type SafetyProfile} from '../near/safety-profile';
 import {PROJECT_ROOT} from './storage';
 import {testnetProfile} from './testnet';
 
@@ -17,5 +17,5 @@ export function testnetPayments(raw:unknown):TestnetPayments {
  return {...c,profile:p};
 }
 export function assertTestnetPayments(profile:SafetyProfile,clinicId:string,raw:unknown):void{
- const c=testnetPayments(raw);if(c.clinicId!==clinicId||digest(c.profile)!==digest(profile))throw new Error('Clinic testnet payment configuration mismatch');
+ const c=testnetPayments(raw);if(c.clinicId!==clinicId||profileFingerprint(c.profile)!==profileFingerprint(profile))throw new Error('Clinic testnet payment configuration mismatch');
 }

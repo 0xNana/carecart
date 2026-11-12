@@ -10,7 +10,7 @@ import {V2ProcurementStore,type InventoryQuoteSource} from '../procurement/v2-st
 import {ReplenishmentWorkflow} from '../workflow/cases';
 import {clinicProducts,openingQuantities,syntheticOffers} from './catalog';
 import {testnetProfile} from '../profiles/testnet';
-import type {SafetyProfile} from '../near/safety-profile';
+import {profileFingerprint,type SafetyProfile} from '../near/safety-profile';
 
 export const offers=syntheticOffers([gloves],2);
 /** Separate clinic and Playground workspaces share the same ledger and P1/P2 engine. */
@@ -20,7 +20,7 @@ export function openInventoryOperations(name='inventory-runtime',clock=()=>Date.
   roleCredentials(options.financialWorker);
  }else{assertNoSigningCredentials(process.env);}
  const clinic=options.dataset==='clinic',products=(clinic?clinicProducts:[gloves]).map(p=>options.tenant?{...p,clinicId:options.tenant.clinicId,storeroomId:options.tenant.storeroomId}:p),quotes=clinic?syntheticOffers(products,3):structuredClone(offers);
- const profile=options.testnet?testnetProfile(options.testnet.profile).profile:localOperationsProfile(name),fingerprint=digest(profile);
+ const profile=options.testnet?testnetProfile(options.testnet.profile).profile:localOperationsProfile(name),fingerprint=options.testnet?profileFingerprint(profile):digest(profile);
  if(options.testnet){
   if(options.testnet.suppliers.length!==3||new Set(options.testnet.suppliers).size!==3||options.testnet.suppliers.some(s=>!s.endsWith('.testnet')))throw new Error('Three independent reviewed testnet suppliers required');
   for(const offer of quotes)offer.account=options.testnet.suppliers[Number(offer.supplierId.split('-').at(-1))-1];

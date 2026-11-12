@@ -5,6 +5,7 @@ import { SettlementJournal } from '../intents/journal';
 import { baseRpc, SettlementRecovery } from '../intents/recovery';
 import { verifyBaseReceipt, verifyNearRefund } from '../intents/receipts';
 import { SafetyVaultClient } from '../near/safety-client';
+import {profileFingerprint} from '../near/safety-profile';
 import { V2ProcurementStore, ProcurementPoId } from '../procurement/v2-store';
 import type {WorkflowProcurement,WorkflowSnapshot} from './procurement-port';
 import type {VaultReader} from '../near/vault-reader';
@@ -50,7 +51,7 @@ export async function observeVault(store: WorkflowProcurement, poId: string,
   const local = store.resolve(poId).canonical;
   const client = readClient ?? new SafetyVaultClient(store.profile);
   if(isSandboxProfile(store.profile)!==(kind==='sandbox-rpc'))throw new Error('Explicit Sandbox/public observation separation required');
-  if(digest(client.profile)!==store.fingerprint)throw new Error('Observation client profile mismatch');
+  if(profileFingerprint(client.profile)!==store.fingerprint)throw new Error('Observation client profile mismatch');
   if(client.injectedReads&&kind!=='mocked-rpc')throw new Error('Injected reads cannot prove public-chain execution');
   const canonical = await client.canonicalOrder(poId); // profile/release/token checks + finalized lookup
   if (digest(local) !== digest(canonical)) throw new Error('Canonical procurement/vault conflict');

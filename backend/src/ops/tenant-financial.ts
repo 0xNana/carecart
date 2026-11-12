@@ -1,6 +1,7 @@
 import {testnetPayments} from '../profiles/testnet-payments';
 import {openInventoryOperations} from '../inventory/local';
 import {SafetyVaultClient} from '../near/safety-client';
+import {profileFingerprint} from '../near/safety-profile';
 import {readFileSync} from 'node:fs';import {join} from 'node:path';import dotenv from 'dotenv';import {z} from 'zod';
 import {PROJECT_ROOT} from '../profiles/storage';
 import {ClinicRegistry} from '../tenancy/registry';import {ClinicTreasuries,FinancialRole} from '../tenancy/treasury';
@@ -39,7 +40,7 @@ export async function tenantFinancialMain(args=process.argv.slice(2),env:NodeJS.
   const client=new SafetyVaultClient(local.store.profile),binding:FinancialBinding={kind:'public-rpc',client,verify:()=>client.verify(),testnet:grant};
   const wallets=new WalletBindings(registry,env.CARECART_PUBLIC_ORIGIN??'',walletConfiguration(env));
   const authority=new TenantTreasuryAuthority(registry,wallets,local.workflow,binding,clinicId,'near-testnet');financial=new FinancialAuthorizations(local.workflow,binding,undefined,Date.now,authority);
-  const ticket=financial.get(authorizationId);if(ticket.terms.clinicId!==clinicId||ticket.role!==role||!ticket.terms.tenantScope||ticket.terms.profileFingerprint!==digest(grant.profile))throw new Error('Exact tenant/role authorization required');
+  const ticket=financial.get(authorizationId);if(ticket.terms.clinicId!==clinicId||ticket.role!==role||!ticket.terms.tenantScope||ticket.terms.profileFingerprint!==profileFingerprint(grant.profile))throw new Error('Exact tenant/role authorization required');
   const result=action==='observe'?await financial.reconcile(authorizationId):await financial.executeTestnet(authorizationId,role,env);
   return {authorizationId:result.id,clinicId,role,state:result.state,publicChainExecution:action==='execute'};
  }finally{financial?.close();local?.close();registry.close();}

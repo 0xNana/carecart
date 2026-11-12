@@ -71,6 +71,8 @@ Key environment settings in `.env`:
 
 Keep signing credentials out of this shared `.env`. The API, inventory worker, and web server reject them at startup. If you enable a payment signer, provision a protected role-specific environment for that signer with only its own key.
 
+When moving an existing testnet clinic database to another host, update the profile's `databasePath` to the new absolute path and retain `fingerprintDatabasePath` as the original path. Both paths must end in the same `backend/data/testnet-v2/...` location. This keeps the profile identity stable while the database uses its new host path.
+
 ### 2. Install & Run Automated Verification
 ```bash
 nvm use

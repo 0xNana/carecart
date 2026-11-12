@@ -35,6 +35,7 @@ export const SafetyProfileSchema = z
     // Owner-reviewed CareCart test fixture. Never accepted as a mainnet token identity.
     testToken: z.object({symbol:z.literal('CCUSD'),codeHash:z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{32,50}$/)}).strict().optional(),
     databasePath: z.string().min(1),
+    fingerprintDatabasePath: z.string().min(1).max(1024).optional(),
   })
   .strict()
   .superRefine((p, ctx) => {
@@ -80,6 +81,7 @@ export const SafetyProfileSchema = z
     if(p.testToken){
       if(p.network!=='testnet'||!p.token.endsWith('.testnet'))ctx.addIssue({code:'custom',message:'Explicit testnet-only token required'});
     }else try { publicToken(p.network,p.token); } catch { ctx.addIssue({code:'custom',message:'Unsupported or wrong-network token contract'}); }
+    if(p.fingerprintDatabasePath&&p.network!=='testnet')ctx.addIssue({code:'custom',message:'Fingerprint database relocation is testnet-only'});
     if (p.network === 'testnet' && roles.filter(a=>a!==p.token).some((a) => !a.endsWith('.testnet')))
       ctx.addIssue({ code: 'custom', message: 'Testnet namespace required' });
     if (
@@ -92,8 +94,15 @@ export const SafetyProfileSchema = z
       });
   });
 export type SafetyProfile = z.infer<typeof SafetyProfileSchema>;
+/** A copied database keeps its original profile identity while databasePath points at its current host location. */
+export function profileFingerprint(raw:unknown) {
+  const profile=SafetyProfileSchema.parse(raw),{fingerprintDatabasePath,...identity}=profile;
+  if(identity.network==='mainnet')identity.databasePath=resolve(PROJECT_ROOT,identity.databasePath);
+  if(fingerprintDatabasePath)identity.databasePath=fingerprintDatabasePath;
+  return digest(identity);
+}
 export function safetyProfile(raw: unknown) {
   const profile = SafetyProfileSchema.parse(raw);
   if (profile.network === 'mainnet') profile.databasePath = resolve(PROJECT_ROOT, profile.databasePath);
-  return { profile, fingerprint: digest(profile) };
+  return { profile, fingerprint: profileFingerprint(profile) };
 }
