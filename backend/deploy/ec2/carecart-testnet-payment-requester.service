@@ -1,0 +1,40 @@
+[Unit]
+Description=CareCart NEAR Testnet Payment Worker (requester)
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=carecart-requester
+Group=carecart-payments
+WorkingDirectory=/home/ubuntu/carecart/backend
+Environment=HOME=/tmp
+Environment=NVM_DIR=/home/ubuntu/.nvm
+Environment=CARECART_SHARED_STATE_GROUP=carecart-payments
+EnvironmentFile=/etc/carecart/testnet-payment-common.env
+EnvironmentFile=/etc/carecart/testnet-payment-requester.env
+ExecStart=/bin/bash /home/ubuntu/carecart/backend/deploy/ec2/run-testnet-payment-worker.sh requester
+Restart=on-failure
+RestartSec=5
+UMask=0007
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectHostname=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/home/ubuntu/carecart/backend/data/tenancy
+ReadWritePaths=/home/ubuntu/carecart/backend/data/testnet-v2/clinics/dfa461bd-16f8-443a-9ca7-13e9b4697940
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

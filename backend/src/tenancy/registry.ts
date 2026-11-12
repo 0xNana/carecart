@@ -1,5 +1,6 @@
-import Database from 'better-sqlite3';import {randomBytes,randomUUID,createHash} from 'node:crypto';import {mkdirSync,chmodSync} from 'node:fs';import {dirname} from 'node:path';import {z} from 'zod';
+import Database from 'better-sqlite3';import {randomBytes,randomUUID,createHash} from 'node:crypto';import {mkdirSync} from 'node:fs';import {dirname} from 'node:path';import {z} from 'zod';
 import {OperationsError} from '../operations/auth';import type {VerifiedIdentity} from './identity';
+import {secureStateDatabase} from '../storage/state-database-permissions';
 const hash=(x:string)=>createHash('sha256').update(x).digest('hex');
 export const ClinicRole=z.enum(['Clinic Admin','Inventory Officer','Procurement Officer','Finance Officer','Viewer']);export type ClinicRole=z.infer<typeof ClinicRole>;
 export type Permission='inventory'|'procurement'|'finance'|'admin'|'simulation';
@@ -11,7 +12,7 @@ export interface IdentitySession {hash:string;userId:string;sessionId:string;csr
 export class ClinicRegistry {
  readonly db:Database.Database;
  constructor(readonly path:string,readonly clock=()=>Date.now()){
-  mkdirSync(dirname(path),{recursive:true,mode:0o700});this.db=new Database(path);chmodSync(path,0o600);this.db.pragma('journal_mode=WAL');this.db.pragma('synchronous=FULL');this.db.pragma('busy_timeout=5000');
+  mkdirSync(dirname(path),{recursive:true,mode:0o700});this.db=new Database(path);secureStateDatabase(path);this.db.pragma('journal_mode=WAL');this.db.pragma('synchronous=FULL');this.db.pragma('busy_timeout=5000');
   this.db.transaction(()=>{this.db.exec(`CREATE TABLE IF NOT EXISTS tenancy_migrations(version INTEGER PRIMARY KEY,applied_at INTEGER NOT NULL);
    CREATE TABLE IF NOT EXISTS clinics(id TEXT PRIMARY KEY,name TEXT NOT NULL,country TEXT NOT NULL,timezone TEXT NOT NULL,storeroom TEXT NOT NULL,workspace TEXT UNIQUE NOT NULL,synthetic_demo INTEGER NOT NULL,status TEXT NOT NULL,created_by TEXT NOT NULL);
    CREATE TABLE IF NOT EXISTS clinic_memberships(clinic_id TEXT NOT NULL,user_id TEXT NOT NULL,email TEXT NOT NULL,role TEXT NOT NULL,status TEXT NOT NULL,PRIMARY KEY(clinic_id,user_id));

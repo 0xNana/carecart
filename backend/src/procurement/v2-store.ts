@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
-import { chmodSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { secureStateDatabase } from '../storage/state-database-permissions';
 import { dirname } from 'node:path';
 import { z } from 'zod';
 import { safetyProfile, type SafetyProfile } from '../near/safety-profile';
@@ -70,7 +71,7 @@ export class V2ProcurementStore {
           if (row && row.fingerprint !== this.fingerprint) throw new Error('Journal profile mismatch');
         }
       }
-      chmodSync(this.profile.databasePath, 0o600);
+      secureStateDatabase(this.profile.databasePath);
       this.db.pragma('journal_mode = WAL');
       this.db.pragma('synchronous = FULL');
       this.db.exec(`CREATE TABLE IF NOT EXISTS v2_procurement_profile(id INTEGER PRIMARY KEY CHECK(id=1), fingerprint TEXT NOT NULL, catalog_hash TEXT NOT NULL);

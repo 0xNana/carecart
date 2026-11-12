@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { z } from 'zod';
-import { chmodSync } from 'node:fs';
+import { secureStateDatabase } from '../storage/state-database-permissions';
 import { digest } from '../intents/settlement';
 import {Movement,Autonomy,Products,OrderLink,type Product,type TenantBinding} from './model';
 import {migrateInventory} from './migrations';
@@ -26,7 +26,7 @@ export class InventoryLedger {
         this.db.pragma('busy_timeout=3000');
         this.db.pragma('journal_mode=WAL');
         this.db.pragma('synchronous=FULL');
-        chmodSync(path, 0o600);
+        secureStateDatabase(path);
         try {
             Products.parse(products);
             migrateInventory(this.db,fingerprint,products,clock,tenant);
@@ -248,6 +248,7 @@ export class InventoryLedger {
             this.db.prepare("INSERT INTO inventory_sources VALUES('supplier-catalog',?,?,?) ON CONFLICT(id) DO UPDATE SET observed_at=excluded.observed_at,body_json=excluded.body_json,body_hash=excluded.body_hash").run(body.observedAt,JSON.stringify(body),digest(body));
             this.audit('SyntheticCatalogSnapshot',{observedAt:body.observedAt,definitionHash:digest(definition)},actor);
             this.db.prepare('UPDATE inventory_jobs SET next_due=?,generation=generation+1').run(this.clock());
+            if(refresh)this.db.prepare('DELETE FROM inventory_job_failures').run();
         }).immediate();
     }
     refreshCatalog(actor:string){if(this.#trustedCatalog===undefined)throw new Error('Trusted supplier catalog unavailable');this.registerCatalog(this.#trustedCatalog,actor,true);return this.catalogInfo();}

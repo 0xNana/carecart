@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
-import { chmodSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { secureStateDatabase } from '../storage/state-database-permissions';
 import { dirname } from 'node:path';
 import {
   digest,
@@ -39,7 +40,7 @@ export class SettlementJournal {
       throw new Error('Reviewed profile fingerprint required');
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new Database(path);
-    if (path !== ':memory:') chmodSync(path, 0o600);
+    if (path !== ':memory:') secureStateDatabase(path);
     if (
       this.db
         .prepare(

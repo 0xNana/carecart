@@ -1,6 +1,7 @@
 import {assertTenantExecution,type TenantExecutionPermit} from '../tenancy/treasury-authority';
 import Database from 'better-sqlite3';
-import { chmodSync, mkdirSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
+import { secureStateDatabase } from '../storage/state-database-permissions';
 import { dirname } from 'node:path';
 import { digest } from '../intents/settlement';
 import {financialDatabaseOwner} from '../tenancy/treasury';
@@ -19,7 +20,7 @@ export class OperationJournal {
     if (this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='purchase_orders'").get()) {
       this.db.close(); throw new Error('CCTEST database cannot be reused');
     }
-    if (this.persistent) chmodSync(path, 0o600);
+    if (this.persistent) secureStateDatabase(path);
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('synchronous = FULL');
     this.db.exec(`CREATE TABLE IF NOT EXISTS commitment_profile(id INTEGER PRIMARY KEY CHECK(id=1), fingerprint TEXT NOT NULL);
