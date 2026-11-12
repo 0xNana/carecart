@@ -96,9 +96,12 @@ export const SafetyProfileSchema = z
 export type SafetyProfile = z.infer<typeof SafetyProfileSchema>;
 /** A copied database keeps its original profile identity while databasePath points at its current host location. */
 export function profileFingerprint(raw:unknown) {
-  const profile=SafetyProfileSchema.parse(raw),{fingerprintDatabasePath,...identity}=profile;
-  if(identity.network==='mainnet')identity.databasePath=resolve(PROJECT_ROOT,identity.databasePath);
-  if(fingerprintDatabasePath)identity.databasePath=fingerprintDatabasePath;
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('Safety profile required');
+  const profile=raw as Record<string,unknown>,fingerprintDatabasePath=profile.fingerprintDatabasePath;
+  if(typeof fingerprintDatabasePath!=='string')return digest(raw);
+  if(typeof profile.databasePath!=='string')throw new Error('Safety profile database path required');
+  const identity:Record<string,unknown>={};
+  for(const [key,value] of Object.entries(profile))if(key!=='fingerprintDatabasePath')identity[key]=key==='databasePath'?fingerprintDatabasePath:value;
   return digest(identity);
 }
 export function safetyProfile(raw: unknown) {
