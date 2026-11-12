@@ -30,6 +30,11 @@ export function openInventoryOperations(name='inventory-runtime',clock=()=>Date.
  try{
   const catalogDefinition={dataset:clinic?'clinic':'playground',source:'synthetic',offers:quotes};
   inventory.registerCatalog(catalogDefinition,'synthetic-catalog');
+  if(options.testnet){
+   const catalog=inventory.catalogInfo();
+   const catalogAgeSeconds=(clock()-catalog.observedAt)/1000;
+   if(catalogAgeSeconds>inventory.config().maxCatalogAgeSeconds)inventory.refreshCatalog('synthetic-catalog-auto-refresh');
+  }
   const offerFor=(itemId:string,supplierId:string,leadTime:number)=>{
    const p=inventory.product(itemId);const offer=quotes.find(o=>o.productId===itemId&&o.supplierId===supplierId);
    if(!offer||offer.unit!==p.baseUnit||offer.pack!==p.packSize||offer.leadTimeDays!==leadTime)throw new Error('Supplier product units/lead time unavailable');
