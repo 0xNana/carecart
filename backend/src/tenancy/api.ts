@@ -14,7 +14,8 @@ export function operationPermission(method:string,path:string):Permission|null {
 }
 export function createTenantApp(registry:ClinicRegistry,identity:SupabaseIdentity,origin:string,pool=new ClinicRuntimePool(),walletConfig?:{network:'testnet';rpcUrl:string}){
  const wallets=new WalletBindings(registry,origin,walletConfig);
- const app=Fastify({logger:false,bodyLimit:16384,trustProxy:false});
+ // The server binds to loopback behind Caddy; trust forwarded client IPs only from that proxy.
+ const app=Fastify({logger:false,bodyLimit:16384,trustProxy:['127.0.0.1']});
  app.addHook('onRequest',async(r,reply)=>{registry.limit('network',createHash('sha256').update(r.ip).digest('hex'),600);reply.header('Cache-Control','no-store').header('Vary','Cookie, Authorization').header('X-Content-Type-Options','nosniff');if(header(r,'sec-fetch-site')==='cross-site'||(header(r,'origin')&&header(r,'origin')!==origin)||(r.method==='POST'&&header(r,'origin')!==origin))throw new OperationsError(403,'ORIGIN_FORBIDDEN');});
  app.setErrorHandler((e,_r,reply)=>{const status=e instanceof OperationsError?e.status:e instanceof z.ZodError?400:503;reply.code(status).send({error:{code:e instanceof OperationsError?e.code:e instanceof z.ZodError?'INVALID_INPUT':'TENANT_SERVICE_UNAVAILABLE'}});});
  // Loopback readiness only: no identity, clinic records, keys or RPC are exposed.

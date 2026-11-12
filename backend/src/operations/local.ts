@@ -6,10 +6,9 @@ import { syntheticLocalCatalog } from '../procurement/v2-catalog';
 import { V2ProcurementStore } from '../procurement/v2-store';
 import { ReplenishmentWorkflow } from '../workflow/cases';
 
-/** No human custody or legacy signing credentials. Restricted v2 role keys in a shared .env are ignored by non-signing processes. */
+/** API, inventory, and observer processes must never receive signing credentials. */
 export function assertNoSigningCredentials(env:NodeJS.ProcessEnv) {
   for(const [key,value] of Object.entries(env)) if(value &&
-    key!=='SAFETY_COMMITTER_PRIVATE_KEY' && key!=='SAFETY_REQUESTER_PRIVATE_KEY' &&
     (/PRIVATE_KEY|SECRET_KEY|MNEMONIC|(?:^|_)SEED(?:_|$)/i.test(key) || /(?:ADMIN|GUARDIAN|TREASURY|REQUESTER|COMMITTER|DEPLOYER|RECOVERY).*(?:SECRET|SEED)/i.test(key)))
       throw new Error('Signing/custody credentials are forbidden in the operations process');
 }

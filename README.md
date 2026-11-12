@@ -69,6 +69,8 @@ Key environment settings in `.env`:
 - `CARECART_TESTNET_WORKSPACE_FILE=../profiles/testnet.demo.json`
 - `CARECART_TESTNET_PAYMENTS_FILE=../profiles/testnet.payments.json`
 
+Keep signing credentials out of this shared `.env`. The API, inventory worker, and web server reject them at startup. If you enable a payment signer, provision a protected role-specific environment for that signer with only its own key.
+
 ### 2. Install & Run Automated Verification
 ```bash
 nvm use

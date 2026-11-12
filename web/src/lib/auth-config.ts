@@ -1,4 +1,6 @@
-export function supabaseMode(env:Record<string,string|undefined>=process.env){if(env.CARECART_AUTH_MODE&&!['supabase','legacy-local'].includes(env.CARECART_AUTH_MODE))throw new Error('Unsupported CareCart authentication profile');return env.CARECART_AUTH_MODE==='supabase';}
+const signingCredentialName=/(?:PRIVATE_KEY|SECRET_KEY|MNEMONIC|(?:^|_)SEED(?:_|$))/i;
+export function assertNoSigningCredentials(env:Record<string,string|undefined>=process.env){if(Object.entries(env).some(([name,value])=>!!value&&signingCredentialName.test(name)))throw new Error('Web process must not receive signing credentials.');}
+export function supabaseMode(env:Record<string,string|undefined>=process.env){assertNoSigningCredentials(env);if(env.CARECART_AUTH_MODE&&!['supabase','legacy-local'].includes(env.CARECART_AUTH_MODE))throw new Error('Unsupported CareCart authentication profile');return env.CARECART_AUTH_MODE==='supabase';}
 export function authConfiguration(env:Record<string,string|undefined>=process.env){
  if(!supabaseMode(env))throw new Error('Supabase authentication is not configured. Set the explicit Supabase profile before using these forms.');
  const url=new URL(env.SUPABASE_URL??''),site=new URL(env.CARECART_PUBLIC_ORIGIN??'');const key=env.SUPABASE_PUBLISHABLE_KEY??'';

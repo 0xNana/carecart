@@ -47,7 +47,7 @@ it('rejects oversized input, invalid identifiers, case corruption and financial 
 it('rejects live profile activation and signing credentials in the separate service boundary',async()=>{
  const {local}=await fixture();
 
- expect(()=>assertNoSigningCredentials({SAFETY_REQUESTER_PRIVATE_KEY:'fixture-secret'})).not.toThrow();
+ expect(()=>assertNoSigningCredentials({SAFETY_REQUESTER_PRIVATE_KEY:'fixture-secret'})).toThrow(/forbidden/);
  expect(()=>assertNoSigningCredentials({PO_COMMITTER_PRIVATE_KEY:'fixture-secret'})).toThrow(/forbidden/);
  expect(()=>assertNoSigningCredentials({ADMIN_SEED_PHRASE:'fixture-secret'})).toThrow(/forbidden/);
  const fake={procurement:{profile:{...local.store.profile,vault:'operational.near'}}};
