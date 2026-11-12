@@ -9,6 +9,7 @@ import { useApplication } from "./application-shell";
 import {ClinicAccess} from './clinic-access';
 import {InventoryRuntimePanel} from './inventory-runtime-panel';
 import {ApplicationCase} from './application-case';
+import {PaymentAccountPanel} from './payment-account-panel';
 import {statusLabel as stateText,actionError} from '@/lib/product-copy';
 import styles from "./application-view.module.css";
 
@@ -22,7 +23,7 @@ const headings: Record<Section, { eyebrow: string; title: string; description: s
   inventory: { eyebrow: "SUPPLY OPERATIONS", title: "Inventory", description: "Record supplies received, dispensed, consumed or adjusted." },
   replenishment: { eyebrow: "PROCUREMENT WORKFLOW", title: "Replenishment", description: "Review supply needs, selected offers and the next action." },
   suppliers: { eyebrow: "SOURCING", title: "Suppliers", description: "Compare approved sample suppliers and their offers." },
-  payments: { eyebrow: "FINANCIAL CONTROLS", title: "Payments", description: "Review payment authorizations, status and transaction evidence." },
+  payments: { eyebrow: "FINANCIAL CONTROLS", title: "Payments", description: "Check the payment balance, add treasury funds, and review payment activity." },
   activity: { eyebrow: "AUDIT TRAIL", title: "Activity", description: "Recent replenishment and payment activity." },
   settings: { eyebrow: "WORKSPACE", title: "Settings", description: "Clinic access, monitoring and payment configuration." },
 };
@@ -135,6 +136,8 @@ export function ApplicationView({ section }: { section: Section }) {
       </header>
 
       {['suppliers','payments'].includes(section)&&<p className={styles.demoNotice}>{section==='suppliers'?'Synthetic suppliers · sample offers for evaluation':'NEAR Testnet · synthetic CCUSD test token, not Circle USDC'}</p>}
+
+      {section==='payments'&&session?.deployment==='public-testnet'&&<PaymentAccountPanel client={client} canFund={role==='operator'&&(tenant?tenant.clinic.permissions.includes('finance'):session.permissions?.includes('finance')===true)} />}
 
       {error && <p className={styles.error} role="alert">{actionError(new Error(error),"Records could not be loaded. Refresh to try again.")}</p>}
       {loading && <p className={styles.loading} role="status" aria-busy="true">Loading records…</p>}

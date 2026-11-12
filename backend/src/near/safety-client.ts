@@ -71,6 +71,31 @@ export class SafetyVaultClient {
       throw new Error('Operation journal profile mismatch');
   }
   async verify(){await this.verifyProfile();}
+  /** Canonical public testnet balances used by the Payments funding screen. Read-only; wallet signs deposits. */
+  async fundingSnapshot(){
+    const p=this.profile;
+    if(p.network!=='testnet'||!p.testToken)throw new Error('Funding is available only for the reviewed public test token');
+    await this.verifyProfile();
+    const [rawState,treasuryToken,vaultToken,treasuryAccount,vaultAccount]=await Promise.all([
+      this.view<Record<string,unknown>>('get_state',{}),
+      this.provider.callFunction<string>({contractId:p.token,method:'ft_balance_of',args:{account_id:p.treasury},blockQuery:{finality:'final'}}),
+      this.provider.callFunction<string>({contractId:p.token,method:'ft_balance_of',args:{account_id:p.vault},blockQuery:{finality:'final'}}),
+      this.provider.viewAccount({accountId:p.treasury,blockQuery:{finality:'final'}}),
+      this.provider.viewAccount({accountId:p.vault,blockQuery:{finality:'final'}}),
+    ]);
+    const atomic=z.string().regex(/^(0|[1-9][0-9]*)$/);
+    const state=z.object({profile:z.string(),treasury:z.string(),token:z.string(),paused:z.boolean(),policy:z.object({accepted_deposit_ceiling:atomic}),
+      accounted_balance:atomic,reserved_payment:atomic,reserved_withdrawal:atomic,spendable:atomic}).passthrough().parse(rawState);
+    if(state.profile!==p.network||state.treasury!==p.treasury||state.token!==p.token)throw new Error('Funding snapshot profile mismatch');
+    const treasuryBalance=atomic.parse(treasuryToken),vaultBalance=atomic.parse(vaultToken);
+    const treasuryNear=treasuryAccount.amount-treasuryAccount.locked;
+    const vaultNear=vaultAccount.amount-vaultAccount.locked;
+    return {profileFingerprint:profileFingerprint(p),network:p.network,asset:{symbol:p.testToken.symbol,decimals:p.decimals},
+      accounts:{treasury:p.treasury,vault:p.vault,token:p.token},balances:{treasuryToken,vaultToken,treasuryNearYocto:atomic.parse((treasuryNear>BigInt(0)?treasuryNear:BigInt(0)).toString()),
+        vaultNearYocto:atomic.parse((vaultNear>BigInt(0)?vaultNear:BigInt(0)).toString()),accounted:state.accounted_balance,spendable:state.spendable,
+        reservedPayment:state.reserved_payment,reservedWithdrawal:state.reserved_withdrawal},
+      policy:{paused:state.paused,acceptedDepositCeiling:state.policy.accepted_deposit_ceiling},observedAt:new Date().toISOString()};
+  }
   async ownerAccessKey(accountId:string,publicKey:string){await this.verifyProfile();return this.provider.viewAccessKey({accountId,publicKey,finalityQuery:{finality:'final'}});}
   private async verifyProfile() {
     const p = this.profile;

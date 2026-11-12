@@ -7,6 +7,7 @@ import {SupabaseIdentity,type VerifiedIdentity} from './identity';import {Clinic
 const header=(r:FastifyRequest,k:string)=>typeof r.headers[k]==='string'?r.headers[k] as string:undefined;
 const cookie=(r:FastifyRequest,name:string)=>{const v=(header(r,'cookie')??'').split(';').map(x=>x.trim()).filter(x=>x.startsWith(name+'='));if(v.length!==1)return '';return v[0].slice(name.length+1);};
 export function operationPermission(method:string,path:string):Permission|null {
+ if(method==='GET'&&path==='/api/operations/funding')return 'finance';
  if(method==='GET'||method==='HEAD')return null;
  if(method!=='POST')return 'admin';
  if(path.endsWith('/stock/autonomy'))return 'admin';if(path.endsWith('/stock/catalog-refresh'))return 'procurement';if(path.endsWith('/stock/movements'))return 'inventory';
