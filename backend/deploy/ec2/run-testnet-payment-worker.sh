@@ -16,6 +16,11 @@ export NVM_DIR
 # an interactive login shell. Each systemd unit supplies only its own role key.
 # shellcheck disable=SC1090
 . "$NVM_DIR/nvm.sh"
-exec nvm exec default "$PWD/node_modules/.bin/tsx" \
+node_bin="$(nvm which default)"
+if [[ ! -x "$node_bin" ]]; then
+  echo 'Default Node runtime is unavailable' >&2
+  exit 69
+fi
+exec "$node_bin" "$PWD/node_modules/tsx/dist/cli.mjs" \
   "$PWD/src/ops/testnet-payment-worker.ts" \
   "$role" "$CARECART_TENANT_REGISTRY_FILE" "$CARECART_TESTNET_PAYMENTS_FILE"
