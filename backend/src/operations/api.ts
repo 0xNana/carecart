@@ -15,6 +15,7 @@ import {HumanReviews,type HumanReviewBinding} from './human-reviews';
 import {isSandboxProfile} from '../sandbox/profile';
 import {InventoryLedger,Movement,Autonomy} from '../inventory/ledger';
 import {FinancialAuthorizations,FinancialInput,type FinancialBinding} from './financial-authorizations';
+import {SafetyVaultClient} from '../near/safety-client';
 const page=z.object({limit:z.coerce.number().int().min(1).max(50).default(20),offset:z.coerce.number().int().min(0).max(10000).default(0)}).strict();
 const header=(r:FastifyRequest,name:string)=>typeof r.headers[name]==='string'?r.headers[name] as string:undefined;
 const caseId=(r:FastifyRequest)=>Identity.shape.caseId.parse((r.params as {id:string}).id);
@@ -76,6 +77,12 @@ export function createOperationsApp(options:{workflow:ReplenishmentWorkflow;orig
  app.post('/api/operations/logout',async(request,reply)=>{const {s,nonce}=mutation(request,false);z.object({}).strict().parse(request.body);
   auth.claimNonce(s,nonce,'logout',digest({action:'logout'}));auth.revoke(s);reply.header('Set-Cookie',auth.cookie('',0));return {authenticated:false};});
  app.get('/api/operations/inventory',async()=>({items:workflow.procurement.registeredInventory(),dataOrigin:'synthetic'}));
+ app.get('/api/operations/funding',async()=>{
+  const client=options.financial?.client;
+  if(!publicTestnet||options.financial?.kind!=='public-rpc'||!(client instanceof SafetyVaultClient)||client.injectedReads)
+   throw new OperationsError(503,'FUNDING_UNAVAILABLE');
+  return client.fundingSnapshot();
+ });
  app.get('/api/operations/catalog',async()=>({configured:!!workflow.procurement.registeredCatalog,...workflow.procurement.registeredCatalog?.(),dataOrigin:'synthetic',profileFingerprint:workflow.procurement.fingerprint}));
  app.get('/api/operations/playground',async()=>{throw new OperationsError(410,'PLAYGROUND_RETIRED');});
  app.post('/api/operations/playground/runs',async request=>{mutation(request);throw new OperationsError(410,'PLAYGROUND_RETIRED');});

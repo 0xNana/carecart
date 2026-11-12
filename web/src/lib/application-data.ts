@@ -3,9 +3,12 @@ import { OperatorApiError, type OperatorClient } from './operator-client.ts';
 type ApplicationClient = Pick<OperatorClient, 'session'|'cases'|'inventory'|'recent'|'catalog'>;
 
 export function applicationErrorText(cause: unknown) {
-  return cause instanceof OperatorApiError && cause.status === 401
-    ? 'AUTH_EXPIRED: sign in again to continue.'
-    : cause instanceof Error ? cause.message : 'WORKSPACE_UNAVAILABLE';
+  if (cause instanceof OperatorApiError) {
+    if (cause.status === 401) return 'Your session has expired. Sign in again to continue.';
+    if (cause.status === 403) return 'Your clinic role does not allow you to view these records.';
+    if (cause.status === 503 || cause.status >= 500) return 'This service is temporarily unavailable. Refresh to try again.';
+  }
+  return 'These records are temporarily unavailable. Refresh to try again.';
 }
 
 /** A failed refresh replaces its source with an explicit unavailable state. */

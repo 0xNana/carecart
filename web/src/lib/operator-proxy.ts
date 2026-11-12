@@ -30,6 +30,6 @@ export async function proxyOperatorRequest(request:Request,path:string[],upstrea
 }
 
 export function operationsRouteAllowed(method:string,route:string){return method==='GET'
-  ? /^(session|inventory|catalog|stock|cases|runs|cases\/[A-Za-z0-9_-]{1,64}(?:\/(?:events|runs|financial-review))?|runs\/[a-f0-9-]{36}|wallet-reviews\/[a-f0-9-]{36})$/.test(route)
+  ? /^(session|inventory|catalog|stock|funding|cases|runs|cases\/[A-Za-z0-9_-]{1,64}(?:\/(?:events|runs|financial-review))?|runs\/[a-f0-9-]{36}|wallet-reviews\/[a-f0-9-]{36})$/.test(route)
   : method==='POST'&&(/^(login|logout|runs)$/.test(route)||/^runs\/[a-f0-9-]{36}\/reconcile$/.test(route)||
     /^cases\/[A-Za-z0-9_-]{1,64}\/(wallet-reviews|financial-authorizations)$/.test(route)||/^wallet-reviews\/[a-f0-9-]{36}\/(handoff|report|reconcile|mock-wallet)$/.test(route)||/^stock\/(movements|autonomy|catalog-refresh)$/.test(route)||/^financial-authorizations\/[a-f0-9-]{36}\/(simulate|reconcile)$/.test(route));}

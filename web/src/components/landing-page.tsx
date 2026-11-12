@@ -10,16 +10,16 @@ const navigation = [
   { label: "Product", href: "#product" },
   { label: "How it works", href: "#how-it-works" },
   { label: "Security", href: "#security" },
-  { label: "Technology", href: "#technology" },
+  { label: "Payments", href: "#technology" },
 ];
 
 const workflow = [
-  ["01", "Monitor inventory", "Track stock, use and incoming supply."],
-  ["02", "Detect shortage", "Compare coverage with lead times and safety stock."],
-  ["03", "Evaluate suppliers", "Review eligible suppliers, quotes and terms."],
-  ["04", "Prepare procurement", "Prepare a purchase order from the selected quote."],
-  ["05", "Authorize and pay", "Review payment requirements and spending limits."],
-  ["06", "Verify and reconcile", "Verify payment, then record goods received."],
+  ["01", "Track supplies", "Record stock received and used."],
+  ["02", "Spot low stock", "See which supplies are due for reorder."],
+  ["03", "Compare offers", "Review supplier prices and delivery times."],
+  ["04", "Prepare an order", "Create a draft for your team to review."],
+  ["05", "Review payment", "Check the amount and spending limits."],
+  ["06", "Confirm delivery", "Check payment and record supplies received."],
 ];
 
 function Brand({ footer = false }: { footer?: boolean }) {
@@ -137,7 +137,7 @@ export function LandingPage() {
               <p className={styles.heroDescription}>
                 Record stock as it arrives and is used. CareCart checks for shortages, compares approved offers and prepares the next order.
               </p>
-              <p>NEAR Testnet MVP · synthetic suppliers and CCUSD test tokens, not Circle USDC. Signing requires separate owner activation.</p>
+              <p>Preview with sample suppliers and demo credits. No real money is involved.</p>
               <div className={styles.heroActions}>
                 <a className={styles.buttonPrimary} href="#interactive-demo">
                   Explore demo <Arrow />
@@ -167,7 +167,7 @@ export function LandingPage() {
                     <span className={styles.windowWorkspace}>Inventory</span>
                   </div>
                   <span className={styles.syntheticBadge}>
-                    <span /> Synthetic preview
+                    <span /> Demo preview
                   </span>
                 </div>
                 <div className={styles.productContent}>
@@ -176,7 +176,7 @@ export function LandingPage() {
                       <p className={styles.microLabel}>CLINIC WORKSPACE</p>
                       <h2>Northside Community Clinic</h2>
                     </div>
-                    <span className={styles.avatar} aria-label="Synthetic clinic">
+                    <span className={styles.avatar} aria-label="Example clinic">
                       NC
                     </span>
                   </div>
@@ -284,8 +284,8 @@ export function LandingPage() {
                 </div>
                 <p className={styles.srOnly} aria-live="polite" role="status">
                   {poPrepared
-                    ? "Synthetic purchase order prepared. 36 boxes suggested. Payment review is pending. No transaction was initiated."
-                    : "Synthetic shortage detected. Medical gloves are below the reorder point. No transaction was initiated."}
+                    ? "Example order prepared. 36 boxes suggested. Ready for review."
+                    : "Stock is low. Medical gloves are below the reorder level."}
                 </p>
               </div>
               <p className={styles.visualCaption}>
@@ -325,7 +325,7 @@ export function LandingPage() {
             <article className={styles.problemCard}>
               <span className={styles.problemNumber}>03</span>
               <span className={styles.problemSymbol} aria-hidden="true">↔</span>
-              <h3>Money is hard to reconcile</h3>
+              <h3>Payments are hard to track</h3>
               <p>Approvals, payments, invoices and deliveries are difficult to connect.</p>
             </article>
           </div>
@@ -353,14 +353,14 @@ export function LandingPage() {
           </ol>
           <p className={styles.workflowNote}>
             <span aria-hidden="true">↳</span>
-            Payments follow vault policy. Public human purchase approval is still in development.
+            Every payment follows clinic spending rules. Online clinic approval is still being added.
           </p>
         </section>
 
         <section className={styles.productSection} id="product" aria-labelledby="product-title">
           <div className={styles.productIntro}>
             <div className={styles.sectionIntro}>
-              <p className={styles.eyebrow}>A connected operations layer</p>
+              <p className={styles.eyebrow}>STOCK, ORDERS AND PAYMENTS</p>
               <h2 id="product-title">One clear path from stockroom to supplier.</h2>
             </div>
             <p>
@@ -418,7 +418,7 @@ export function LandingPage() {
                   <span><strong>Incoming inventory</strong><small>Gauze pads · 240 units expected Jun 18</small></span>
                   <span className={styles.incomingState}>IN TRANSIT</span>
                 </div>
-                <p className={styles.mockDisclosure}>Illustrative interface · synthetic supplies and values</p>
+                <p className={styles.mockDisclosure}>Example screen · sample supplies and prices</p>
               </div>
             </div>
           </article>
@@ -428,30 +428,29 @@ export function LandingPage() {
               <span className={styles.showcaseIndex}>02 / TURN SIGNALS INTO A CASE</span>
               <h3>Autonomous replenishment</h3>
               <p>
-                Shortage detection opens a replenishment request, compare eligible supplier
-                options and prepare a purchase order with a traceable decision history.
+                When stock runs low, CareCart opens a request, compares supplier offers and prepares an order for review.
               </p>
               <ul>
-                <li><Check /> Supplier eligibility and quote comparison</li>
-                <li><Check /> Purchase orders with clear approval requirements</li>
-                <li><Check /> Decision trace with accountable next steps</li>
+                <li><Check /> Approved supplier checks</li>
+                <li><Check /> Clear order review requirements</li>
+                <li><Check /> A visible next step for every request</li>
               </ul>
             </div>
             <div className={styles.showcaseVisual}>
               <div className={styles.caseMock}>
                 <div className={styles.caseTop}>
-                  <span className={styles.caseLabel}><span /> REPLENISHMENT CASE</span>
+                  <span className={styles.caseLabel}><span /> RESTOCK REQUEST</span>
                   <span className={styles.caseRef}>CASE · CC-2048</span>
                 </div>
                 <h4>Medical gloves</h4>
-                <p className={styles.caseSubhead}>Northside Community Clinic <span>·</span> Synthetic data</p>
+                <p className={styles.caseSubhead}>Northside Community Clinic <span>·</span> Example data</p>
                 <div className={styles.caseProgress}>
                   <div><span className={styles.progressComplete}><Check /></span><span><strong>Shortage detected</strong><small>12 on hand · reorder point 28</small></span><i>DONE</i></div>
                   <div><span className={styles.progressComplete}><Check /></span><span><strong>Supplier evaluated</strong><small>2 eligible options compared</small></span><i>DONE</i></div>
-                  <div><span className={styles.progressCurrent}>03</span><span><strong>Purchase order draft</strong><small>36 boxes suggested · policy check pending</small></span><i className={styles.progressReview}>REVIEW</i></div>
+                  <div><span className={styles.progressCurrent}>03</span><span><strong>Order draft</strong><small>36 boxes suggested · spending check pending</small></span><i className={styles.progressReview}>REVIEW</i></div>
                 </div>
                 <div className={styles.caseBottom}>
-                  <span><span className={styles.caseAvatar}>AI</span> Procurement coordination</span>
+                  <span><span className={styles.caseAvatar}>AI</span> Purchase planning</span>
                   <span className={styles.caseApproval}>Payment review required</span>
                 </div>
                 <p className={styles.mockDisclosure}>Illustrative case · no supplier order or payment created</p>
@@ -461,41 +460,39 @@ export function LandingPage() {
 
           <article className={`${styles.showcase} ${styles.showcasePayments}`}>
             <div className={styles.showcaseCopy}>
-              <span className={styles.showcaseIndex}>03 / KEEP FINANCIAL AUTHORITY BOUNDED</span>
-              <h3>Policy-controlled payments</h3>
+              <span className={styles.showcaseIndex}>03 / PAYMENT REVIEW</span>
+              <h3>Payments with clear safeguards</h3>
               <p>
-                Before settlement, validate the supplier and recipient, check
-                configured limits, collect human approval where required and verify
-                the transaction independently.
+                Check supplier details and spending limits before payment. Track each payment through confirmation.
               </p>
               <ul>
-                <li><Check /> Approved-supplier and recipient checks</li>
-                <li><Check /> NEAR policy vault, spend limits and human review</li>
-                <li><Check /> Testnet transaction evidence and payment status</li>
+                <li><Check /> Approved supplier checks</li>
+                <li><Check /> Spending limits and clinic review</li>
+                <li><Check /> Clear payment status</li>
               </ul>
             </div>
             <div className={styles.showcaseVisual}>
               <div className={styles.paymentMock}>
                 <div className={styles.paymentHeader}>
                   <div>
-                    <span className={styles.mockKicker}>PAYMENT CONTROL PREVIEW</span>
-                    <strong>Supplier settlement</strong>
+                  <span className={styles.mockKicker}>PAYMENT REVIEW</span>
+                    <strong>Supplier payment</strong>
                   </div>
                   <span className={styles.previewTag}>ILLUSTRATIVE</span>
                 </div>
                 <div className={styles.paymentAmount}>
                   <span>Purchase order · PO-1042</span>
-                  <strong>1.50 <small>CCUSD</small></strong>
+                  <strong>1.50 <small>demo credits</small></strong>
                   <span>Northstar Medical Supply · Example terms</span>
                 </div>
                 <div className={styles.paymentChecks}>
                   <div><span className={styles.checkPassed}><Check /></span><span><strong>Supplier &amp; recipient</strong><small>Must match approved records</small></span><span className={styles.checkState}>CHECKED</span></div>
                   <div><span className={styles.checkPassed}><Check /></span><span><strong>Spending policy</strong><small>Configured caps and permissions</small></span><span className={styles.checkState}>CHECKED</span></div>
-                  <div><span className={styles.checkPending}>03</span><span><strong>Human authorization</strong><small>Public wallet approval not yet available</small></span><span className={styles.checkWaiting}>REQUIRED</span></div>
+                  <div><span className={styles.checkPending}>03</span><span><strong>Clinic approval</strong><small>Online approval is not available yet</small></span><span className={styles.checkWaiting}>REQUIRED</span></div>
                 </div>
                 <div className={styles.settlementNotice}>
                   <span className={styles.settlementPulse} />
-                  <span><strong>Payment not initiated</strong><small>Independent verification is required before confirmation.</small></span>
+                  <span><strong>No payment sent</strong><small>This example is waiting for review.</small></span>
                 </div>
                 <p className={styles.mockDisclosure}>Illustrative controls · not a live payment</p>
               </div>
@@ -509,36 +506,31 @@ export function LandingPage() {
               <p className={styles.eyebrowLight}>Financial authority, by design</p>
               <h2 id="security-title">Give AI a budget, not your wallet.</h2>
               <p>
-                CareCart prepares purchasing work while the policy vault checks eligible suppliers and spending limits. Separate role workers handle authorized testnet payments.
+                CareCart prepares orders and checks suppliers and spending limits. Payments follow a separate review and approval process.
               </p>
               <Link className={styles.securityLink} href="/app/payments">
                 Review payments <Arrow />
               </Link>
             </div>
             <ul className={styles.securityList}>
-              <li><span><Check /></span><span><strong>Contract-enforced spending caps</strong><small>Configured limits constrain eligible payouts.</small></span></li>
-              <li><span><Check /></span><span><strong>Approved supplier restrictions</strong><small>Recipient checks tie payment terms to trusted records.</small></span></li>
-              <li><span><Check /></span><span><strong>Immutable purchase-order commitments</strong><small>Reviewed obligations are bound before execution.</small></span></li>
-              <li><span><Check /></span><span><strong>Restricted worker permissions</strong><small>Procurement workers cannot sign, approve or pay.</small></span></li>
-              <li><span><Check /></span><span><strong>Human purchase approval · planned</strong><small>Public wallet approval is not yet connected.</small></span></li>
-              <li><span><Check /></span><span><strong>Independent payment verification</strong><small>Submission is not the same as confirmed settlement.</small></span></li>
+              <li><span><Check /></span><span><strong>Spending limits</strong><small>Payments stay within clinic-approved amounts.</small></span></li>
+              <li><span><Check /></span><span><strong>Approved suppliers</strong><small>Supplier details are checked before payment.</small></span></li>
+              <li><span><Check /></span><span><strong>Order review</strong><small>See the order and amount before it moves forward.</small></span></li>
+              <li><span><Check /></span><span><strong>Separate payment permissions</strong><small>Planning access does not include payment access.</small></span></li>
+              <li><span><Check /></span><span><strong>Clinic approval</strong><small>Online approval is still being added.</small></span></li>
+              <li><span><Check /></span><span><strong>Payment confirmation</strong><small>Track whether the payment is complete.</small></span></li>
             </ul>
-            <p className={styles.securityCaveat}>
-              Contract and local Sandbox evidence are available in the technical notes. Custody, upgrade authority and anti-splitting remain under review.
-            </p>
           </div>
         </section>
 
         <section className={styles.technologySection} id="technology" aria-labelledby="technology-title">
           <div className={styles.technologyIntro}>
             <div>
-              <p className={styles.eyebrow}>Programmable financial infrastructure</p>
-              <h2 id="technology-title">Built on NEAR. Designed around real obligations.</h2>
+              <p className={styles.eyebrow}>HOW PAYMENTS WORK</p>
+              <h2 id="technology-title">Clear checks before every payment.</h2>
             </div>
             <p>
-              NEAR smart contracts provide the policy boundary between procurement
-              coordination and financial execution. The chain provides transaction
-              evidence; CareCart connects it back to the order.
+              CareCart checks the order against clinic rules, records the decision and tracks the payment through confirmation.
             </p>
           </div>
           <div className={styles.technologyGrid}>
@@ -546,37 +538,37 @@ export function LandingPage() {
               <span className={styles.techIcon} aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" /><path d="m4.5 7.8 7.5 4.4 7.5-4.4M12 12.2V21" /></svg>
               </span>
-              <h3>NEAR smart contracts</h3>
-              <p>Encode spending rules and purchase-order commitments on-chain.</p>
+              <h3>Spending limits</h3>
+              <p>Keep each payment within the clinic&apos;s approved amount.</p>
             </div>
             <div className={styles.techFeature}>
               <span className={styles.techIcon} aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 5 6v5c0 4.5 2.8 8.2 7 10 4.2-1.8 7-5.5 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg>
               </span>
-              <h3>Policy-controlled treasury</h3>
-              <p>Restrict execution roles and keep sensitive actions reviewable.</p>
+              <h3>Approved suppliers</h3>
+              <p>Check supplier details against the clinic&apos;s approved list.</p>
             </div>
             <div className={styles.techFeature}>
               <span className={styles.techIcon} aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M12 6v12m4-8a3 3 0 0 0-3-2h-2a3 3 0 0 0 0 6h2a3 3 0 0 1 0 6h-2a3 3 0 0 1-3-2" /></svg>
               </span>
-              <h3>Testnet token payments</h3>
-              <p>Use explicitly configured CCUSD test tokens for the current MVP.</p>
+              <h3>Payment review</h3>
+              <p>Show the order and amount before a payment can move forward.</p>
             </div>
             <div className={styles.techFeature}>
               <span className={styles.techIcon} aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h8" /><path d="m14 13 2 2 4-4" /></svg>
               </span>
-              <h3>Verifiable transaction evidence</h3>
-              <p>Distinguish a submitted transaction from an independently observed outcome.</p>
+              <h3>Payment confirmation</h3>
+              <p>See whether a payment has been sent and confirmed.</p>
             </div>
           </div>
           <div className={styles.techBottom}>
             <span>
-              Current MVP: clinic stock records, background replenishment, live NEAR AI Cloud procurement evaluation, and scoped NEAR testnet payments.
+              CareCart connects stock updates, purchase requests and payment status in one clinic workspace.
             </span>
             <a href={`${githubUrl}#readme`} target="_blank" rel="noreferrer">
-              Explore technical notes <Arrow diagonal />
+              View product details <Arrow diagonal />
             </a>
           </div>
         </section>
@@ -631,7 +623,6 @@ export function LandingPage() {
         </div>
         <div className={styles.footerBottom}>
           <span>© CareCart. All rights reserved.</span>
-          <span className={styles.footerDisclosure}>NEAR Testnet MVP · sample suppliers</span>
           <span className={styles.nearAttribution}><span aria-hidden="true">◈</span> Built on NEAR</span>
         </div>
       </footer>
