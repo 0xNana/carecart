@@ -4,7 +4,7 @@ CareCart helps clinics keep reliable supply records and replenish essential item
 
 ![CareCart clinic overview showing stock counts, expected deliveries, monitoring status and quick inventory actions.](web/public/screenshots/carecart-product-preview.png)
 
-*Clinic overview with synthetic inventory and example supplier offers. [Explore CareCart](https://carecart.xyz) · [Read the product guides](https://carecart.xyz/docs) · [View the verified 1.5 CCUSD test payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD).*
+*Clinic overview with synthetic inventory and example supplier offers. [Explore CareCart](https://carecart.xyz) · [Open the clinic app](https://app.carecart.xyz) · [Read the product guides](https://carecart.xyz/docs) · [View the verified 1.5 CCUSD test payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD).*
 
 CareCart manages inventory and procurement records; it does not make clinical decisions or provide medical advice.
 
@@ -129,6 +129,17 @@ Keep real credentials in local environment files. Do not put signing keys in the
 The testnet profile files require database paths under the active checkout. Before using them from another clone or host, update each profile's `databasePath` to that checkout's absolute `backend/data/testnet-v2/...` path; the payment profile's `fingerprintDatabasePath` preserves its reviewed identity across that relocation. The offline judge walkthrough does not read either profile or require these service settings.
 
 The local synthetic walkthrough above is the recommended judge path when hosted identity credentials are unavailable.
+
+### Hosted domains
+
+The website and product guides are served at `carecart.xyz` and `carecart.xyz/docs`. The signed-in clinic workspace lives at `app.carecart.xyz`, with clean paths such as `/inventory`, `/payments` and `/settings`. The backend remains at `api.carecart.xyz`. One Next.js project serves both website and app; host routing preserves the protected application layout. Existing `/app` and sign-in links on the website redirect to the app subdomain.
+
+Set `CARECART_PUBLIC_ORIGIN=https://app.carecart.xyz` in both the deployed web app and backend, and `CARECART_OPERATIONS_API_URL=https://api.carecart.xyz` in the web deployment. Attach both public domains to the Vercel project. Local development and preview hosts retain `/app` routes.
+
+In Supabase **Authentication → URL Configuration**, set **Site URL** to `https://app.carecart.xyz` and allow `https://app.carecart.xyz/auth/callback**`. The suffix covers the callback's validated `next` query parameter, including password recovery. Update any custom email templates that hardcode the former domain to use the configured redirect URL. [Supabase redirect configuration](https://supabase.com/docs/guides/auth/redirect-urls) documents the allowlist matching rules.
+
+Cookies remain scoped to their issuing host. Users must sign in again on the new subdomain; clinic records and accounts do not move. For a rollback, restore the prior web deployment and set the web and backend public origin back to `https://carecart.xyz` together.
+
 
 ## NEAR integration and evidence limits
 

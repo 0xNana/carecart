@@ -1,7 +1,7 @@
 import 'server-only';
-import {cookies} from 'next/headers';
+import {cookies,headers} from 'next/headers';
 import {redirect} from 'next/navigation';
-import {supabaseMode,authConfiguration} from './auth-config';
+import {supabaseMode,authConfiguration,safeAuthNext} from './auth-config';
 import {identityContext,type ClinicContext} from './identity-backend';
 import {verifyAppSession} from './app-access';
 
@@ -9,7 +9,7 @@ import {verifyAppSession} from './app-access';
 export async function requireApplicationAccess():Promise<{role:'operator'|'viewer';tenant?:{clinic:ClinicContext;clinics:ClinicContext[];email:string}}|null>{
  if(supabaseMode()){
   try{authConfiguration();}catch{return null;}
-  let context;try{context=await identityContext();}catch{redirect('/login?next=%2Fapp');}
+  let context;try{context=await identityContext();}catch{const config=authConfiguration();const path=safeAuthNext((await headers()).get('x-carecart-application-path'),config.cleanPaths?'/':'/app',config.cleanPaths);redirect('/login?next='+encodeURIComponent(path));}
   const active=(await cookies()).get('carecart_clinic')?.value;
   const clinic=context.clinics.find(c=>c.id===active);
   if(!clinic)redirect('/onboarding');

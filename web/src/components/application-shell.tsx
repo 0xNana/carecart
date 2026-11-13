@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import {ApplicationRoutingContext,ApplicationLink as Link} from "./application-link";
+import {applicationInternalPath} from '../lib/application-routing';
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type {ClinicContext} from '@/lib/identity-backend';
@@ -31,13 +32,14 @@ export function useApplication() {
   return context;
 }
 
-export function ApplicationShell({ role, children,tenant }: { role: OperatorRole; children: ReactNode;tenant?:{clinic:ClinicContext;clinics:ClinicContext[];email:string} }) {
+export function ApplicationShell({ role, children,tenant,cleanPaths=false,siteOrigin='' }: { role: OperatorRole; children: ReactNode;cleanPaths?:boolean;siteOrigin?:string;tenant?:{clinic:ClinicContext;clinics:ClinicContext[];email:string} }) {
   const [client] = useState(() => new OperatorClient(undefined,tenant?.clinic.id));
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState("");
   const menuToggle = useRef<HTMLButtonElement>(null);
-  const pathname = usePathname();
+  const publicPathname = usePathname();
+  const pathname = cleanPaths?applicationInternalPath(publicPathname):publicPathname;
   const router = useRouter();
   const items = dashboardNavigation;
 
@@ -68,7 +70,7 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
   }
 
   return (
-    <ApplicationContext.Provider value={{ role, client,tenant }}>
+    <ApplicationRoutingContext.Provider value={cleanPaths}><ApplicationContext.Provider value={{ role, client,tenant }}>
       <div className={styles.app}>
         <a className={styles.skipLink} href="#application-main">Skip to application</a>
         <header className={styles.header}>
@@ -88,7 +90,7 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
             </div>
             <div className={styles.headerActions}>
               {tenant&&<ClinicSwitcher clinics={tenant.clinics} active={tenant.clinic.id}/>}
-              <Link className={styles.attentionLink} href="/docs">Product guide <span aria-hidden="true">↗</span></Link>
+              <Link className={styles.attentionLink} href={siteOrigin+"/docs"}>Product guide <span aria-hidden="true">↗</span></Link>
               <div className={styles.account}>
                 <span className={styles.accountAvatar} aria-hidden="true">{tenant?.email.slice(0,2).toUpperCase()??(role==='operator'?'CC':'VW')}</span>
                 <span className={styles.accountRole}>{tenant?.clinic.role??(role==='operator'?'Clinic staff':'Viewer')}</span>
@@ -156,6 +158,6 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
           {items.filter(item=>['overview','inventory','replenishment','payments'].includes(item.icon)).map(item=><Link key={item.href} href={item.href} aria-current={pathname===item.href?'page':undefined} onClick={()=>setMenuOpen(false)}><WorkspaceIcon name={item.icon as WorkspaceIconName}/><span>{item.icon==='replenishment'?'Orders':item.label}</span></Link>)}
         </nav>
       </div>
-    </ApplicationContext.Provider>
+    </ApplicationContext.Provider></ApplicationRoutingContext.Provider>
   );
 }

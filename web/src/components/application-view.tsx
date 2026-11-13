@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import {ApplicationLink as Link} from "./application-link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AgentRun, OperatorSession, SupplierCatalog } from "@/lib/operator-client";
 import { caseStateLabel, terminalStates, usdc, type WorkspaceCase } from "@/lib/workflow";

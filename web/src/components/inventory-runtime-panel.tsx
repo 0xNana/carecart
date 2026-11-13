@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import {ApplicationLink as Link} from './application-link';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {OperatorClient,OperatorSession} from '../lib/operator-client';
 import type {StockDashboard,AutonomyConfig} from '../lib/inventory';

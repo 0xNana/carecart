@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import {ApplicationLink as Link} from './application-link';
 import type {StockDashboard} from '@/lib/inventory';
 import {displayTime,unitLabel} from '@/lib/product-copy';
 

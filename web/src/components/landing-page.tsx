@@ -65,7 +65,8 @@ function Check() {
   );
 }
 
-export function LandingPage() {
+export function LandingPage({appOrigin=''}:{appOrigin?:string}) {
+  const appPath=(path:string)=>appOrigin?appOrigin+(path.slice(4)||'/'):path;
   const menuToggle=useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [poPrepared, setPoPrepared] = useState(false);
@@ -118,7 +119,7 @@ export function LandingPage() {
               <a className={styles.navDemo} href="#interactive-demo" onClick={closeMenu}>
                 Explore demo
               </a>
-              <Link className={styles.navApp} href="/app" onClick={closeMenu}>
+              <Link className={styles.navApp} href={appPath("/app")} onClick={closeMenu}>
                 Open app <Arrow />
               </Link>
             </div>
@@ -511,7 +512,7 @@ export function LandingPage() {
               <p>
                 CareCart prepares orders and checks suppliers and spending limits. A clinic approver authorizes each purchase before payment is requested.
               </p>
-              <Link className={styles.securityLink} href="/app/payments">
+              <Link className={styles.securityLink} href={appPath("/app/payments")}>
                 Review payments <Arrow />
               </Link>
             </div>
@@ -589,7 +590,7 @@ export function LandingPage() {
             <a className={styles.buttonLight} href="#interactive-demo">
               Explore demo <Arrow />
             </a>
-            <Link className={styles.buttonOutlineLight} href="/app">
+            <Link className={styles.buttonOutlineLight} href={appPath("/app")}>
               Open app <Arrow />
             </Link>
           </div>
@@ -613,7 +614,7 @@ export function LandingPage() {
             <div>
               <span className={styles.footerLabel}>EXPLORE</span>
               <a href="#interactive-demo">Interactive demo</a>
-              <Link href="/app">Open app</Link>
+              <Link href={appPath("/app")}>Open app</Link>
               <Link href="/docs">Documentation</Link>
             </div>
             <div>

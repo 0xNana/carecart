@@ -27,7 +27,9 @@ test('RENDERED UI / SYNTHETIC: shows worker, inventory, incoming stock and unobs
     const folder = mkdtempSync(join(tmpdir(), 'carecart-stock-ui-'));
     try {
         symlinkSync(resolve('node_modules'), join(folder, 'node_modules'), 'dir');
-        const code = ts.transpileModule(readFileSync('src/components/inventory-operations.tsx', 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText.replaceAll('../lib/product-copy', pathToFileURL(resolve('src/lib/product-copy.ts')).href).replaceAll('../lib/operator-client', pathToFileURL(resolve('src/lib/operator-client.ts')).href);
+        const linkCode=ts.transpileModule(readFileSync('src/components/application-link.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText.replaceAll('../lib/application-routing',pathToFileURL(resolve('src/lib/application-routing.ts')).href).replaceAll("'next/link'","'next/link.js'");
+        writeFileSync(join(folder,'application-link.mjs'),linkCode);
+        const code = ts.transpileModule(readFileSync('src/components/inventory-operations.tsx', 'utf8'), { compilerOptions: { module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText.replaceAll('./application-link','./application-link.mjs').replaceAll('../lib/product-copy', pathToFileURL(resolve('src/lib/product-copy.ts')).href).replaceAll('../lib/operator-client', pathToFileURL(resolve('src/lib/operator-client.ts')).href);
         writeFileSync(join(folder, 'inventory.mjs'), code);
         const { InventorySummary } = await import(pathToFileURL(join(folder, 'inventory.mjs')).href);
         const data=fixture();

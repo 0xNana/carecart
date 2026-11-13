@@ -14,7 +14,7 @@ test('overview projects real stock and incoming quantities, respects recording p
  try{
   symlinkSync(resolve('node_modules'),join(folder,'node_modules'),'dir');
   const source=ts.transpileModule(readFileSync('src/components/clinic-overview.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText
-   .replace(/import Link from ['"]next\/link['"];?/,'import {createElement} from "react"; const Link=({children,...props})=>createElement("a",props,children);')
+   .replace(/import \{ ApplicationLink as Link \} from ['"]\.\/application-link['"];?/,'import {createElement} from "react"; const Link=({children,...props})=>createElement("a",props,children);')
    .replaceAll('@/lib/product-copy',pathToFileURL(resolve('src/lib/product-copy.ts')).href);
   writeFileSync(join(folder,'overview.mjs'),source);
   const {ClinicOverview}=await import(pathToFileURL(join(folder,'overview.mjs')).href);

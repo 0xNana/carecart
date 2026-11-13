@@ -4,7 +4,7 @@ export interface AuthState {message:string;error:boolean}
 export async function authAction(_previous:AuthState,form:FormData):Promise<AuthState>{
  let destination:string|undefined;
  try{const config=authConfiguration();if(!allowedOrigin((await headers()).get('origin'),config.origin))throw new Error('Origin');
-  const mode=String(form.get('mode')),email=String(form.get('email')??'').trim(),password=String(form.get('password')??''),next=safeAuthNext(form.get('next'));
+  const mode=String(form.get('mode')),email=String(form.get('email')??'').trim(),password=String(form.get('password')??''),next=safeAuthNext(form.get('next'),'/onboarding',config.cleanPaths);
   if(!['login','signup','forgot-password','reset-password'].includes(mode))throw new Error('Invalid mode');
   if(mode!=='reset-password'&&(email.length>254||!/^\S+@\S+\.\S+$/.test(email)))return {message:'Enter a valid email address.',error:true};
   if(mode!=='forgot-password'&&(password.length<(mode==='login'?1:12)||password.length>128))return {message:'Use a password between 12 and 128 characters.',error:true};
