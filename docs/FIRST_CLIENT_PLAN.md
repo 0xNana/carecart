@@ -1,6 +1,6 @@
 # First-client plan
 
-**Status:** Proposed customer-discovery and pilot plan. No clinic, buyer, price or pilot commitment is recorded here.  
+**Status:** Proposed customer-discovery and pilot plan. No clinic, buyer, price or pilot commitment is recorded here.
 **Objective:** Secure one clinic as a design partner, validate a costly inventory workflow, and earn a paid pilot or a clear decision not to proceed.
 
 ## 1. Start with a customer hypothesis
@@ -119,4 +119,3 @@ Use this as a starting funnel for the first two weeks of customer discovery; adj
 5. Offer a pilot only if one clinic has a sponsor, an operational lead, a feasible data boundary and an agreed decision path.
 
 If the first conversations do not confirm the problem, revise the segment or problem statement before adding product features.
-

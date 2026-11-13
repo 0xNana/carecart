@@ -1,6 +1,6 @@
 # CareCart product roadmap
 
-**Status:** Proposed; no delivery dates or customer commitments have been approved.  
+**Status:** Proposed; no delivery dates or customer commitments have been approved.
 **Goal:** Validate a useful, safe inventory and replenishment workflow with one clinic, then decide whether to make it repeatable.
 
 This is a product roadmap, not the engineering task list. Engineering work already in progress remains tracked in [`tasks/todo.md`](../tasks/todo.md); this roadmap does not close, replace or reorder those tasks.
@@ -70,4 +70,3 @@ Consider multi-site operations, supplier integrations, broader product categorie
 - How the clinic currently receives supplier prices and availability.
 - Data residency, privacy, security, retention and support expectations.
 - Pilot duration, success thresholds and paid-conversion terms.
-

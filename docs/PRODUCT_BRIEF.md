@@ -1,6 +1,6 @@
 # CareCart product brief
 
-**Status:** Current product description with unvalidated customer hypotheses.  
+**Status:** Current product description with unvalidated customer hypotheses.
 **Purpose:** Keep product, sales and implementation language aligned with what CareCart can demonstrate today.
 
 ## Product
@@ -45,4 +45,3 @@ The archived reviewed source was rebuilt and matched the deployed vault byte for
 - Keep approval and payment authority explicit; do not imply that an agent can spend without clinic authorization.
 - Minimize data. Do not collect patient information for inventory replenishment.
 - Keep synthetic, local Sandbox, testnet and real-customer evidence clearly distinguished.
-
