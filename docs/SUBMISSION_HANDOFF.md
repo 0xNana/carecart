@@ -37,7 +37,7 @@
 | `cargo clippy --manifest-path contracts/Cargo.toml --locked --workspace --all-targets -- -D warnings` | Pass. |
 | `node --test scripts/*.test.mjs`; Python backup and hosted-preflight tests | Pass: 5/5 JavaScript tests, 2/2 backup tests and 3/3 preflight-input tests. |
 | `npm audit --prefix backend`; `npm audit --prefix web` | Pass: zero vulnerabilities in both dependency trees. |
-| `node scripts/security-check.mjs` | No findings: 421 current text files and 1,179 reachable Git-history blobs, including the current working-tree changes. This scanner is heuristic, not a substitute for owner review. |
+| `node scripts/security-check.mjs` | Final post-commit scan found no issues across current source files and reachable Git history. This scanner is heuristic, not a substitute for owner review. |
 
 The completed browser report and screenshots are in `/tmp/carecart-mvp-browser-rXOMzj/`; they are local evidence, not checked-in files. The latest verified production snapshot is `/tmp/carecart-phase2-verify.O67GzU` and is specific to this working environment.
 
