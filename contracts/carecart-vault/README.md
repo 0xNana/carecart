@@ -8,7 +8,7 @@ The human-controlled admin can fund `fund_commit_storage` and read `get_commit_s
 
 The reserve field changes contract state serialization. No public contract has been deployed; initialize older disposable local fixtures from the updated artifact rather than reusing their state.
 
-CC-14 disables the pinned SDK's default `wee_alloc` feature in both contracts and the unit-test dependency, using Rust's standard Wasm allocator. This removes an unmaintained runtime dependency without upgrading crate versions or changing contract state/API. Rebuild and review the current binary size/gas for deployment. Remaining RustSec findings are in local test dependencies; see the [security report](../../docs/security-release.md) for the audit, deferrals and verification scope.
+CC-14 disables the pinned SDK's default `wee_alloc` feature in both contracts and the unit-test dependency, using Rust's standard Wasm allocator. This removes an unmaintained runtime dependency without upgrading crate versions or changing contract state/API. Rebuild and review the current binary size/gas before deployment. This README is not a security audit or deployment approval; run a fresh RustSec review against the locked workspace before using a contract in production.
 
 ## Local checks
 

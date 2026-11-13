@@ -1,106 +1,152 @@
 # CareCart
 
-**Autonomous Clinic Inventory, Live NEAR AI Cloud Procurement Specialist & Policy-Guarded NEAR Testnet Payments**
+CareCart helps clinics keep reliable supply records and replenish essential items. Staff record stock received, consumed, dispensed or adjusted. A background monitor can detect shortages, compare approved supplier offers and prepare a purchase order.
 
-CareCart is an autonomous medical inventory and procurement system built on **NEAR Testnet** and **NEAR AI Cloud (`z-ai/glm-5.3-flash`)**. Clinic staff record stock movements in an append-only ledger; an independent background monitor detects shortages, evaluates allowlisted supplier quotes, drafts canonical purchase orders, and hands off to a bounded NEAR AI Cloud procurement specialist and a Rust on-chain safety vault (`safety-v2.carecart.testnet`).
+CareCart manages inventory and procurement records; it does not make clinical decisions or provide medical advice.
 
-> **Scope:** CareCart operates exclusively on **NEAR Testnet** using the six-decimal **`CCUSD`** test token (`token-v2.carecart.testnet`) and live **NEAR AI Cloud** tool-calling inference (`https://cloud-api.near.ai/v1`).
+> **Current scope:** Inventory monitoring and purchase-order preparation can run automatically. The current clinic workflow still requires a person to authorize each order and payment request. The NEAR safety vault can enforce its configured supplier and spending policy, but this release does not demonstrate unattended end-to-end purchasing.
 
----
+## Hackathon project
 
-## Architecture Overview
+CareCart is a testnet-first medical inventory and procurement project for the [NEAR Hackathon 2026](https://nearhackathon.com/HACKATHON.md). The project addresses stockouts and manual purchasing work in clinics. NEAR provides a programmable vault for supplier allowlists, payment roles, spending limits, pause controls and payment records.
+
+The payment examples use CareCart demonstration tokens such as **CCUSD**. They are test assets with no cash value and are not Circle USDC. This submission does not claim a completed NEAR Intents settlement.
+
+### Hackathon contribution and attribution
+
+The available Git history begins on November 1, 2026. Relevant commits in that history include:
+
+- `79c04e3` — guarded CareCart vault payments
+- `b38b2be` — NEP-141 vault tests in NEAR Sandbox
+- `03b073b`, `af14a45`, `65cf766` — procurement data, inventory forecasting, supplier offers and purchase orders
+- `d801c1e` — constrained agent tools
+- `bbefbe1` — vault safety and treasury recovery
+- `e9978a6` — procurement dashboard and reviewed testnet wallet actions
+- `45c0fd3` — payment-account deposit flow
+
+This describes the history present in this repository. It cannot establish whether CareCart or related product work existed outside this Git history before November 1. The owner should add any known earlier work and attribution before submission.
+
+The project uses Next.js, React, TypeScript, `near-api-js`, `@hot-labs/near-connect`, Rust `near-sdk`, SQLite and local NEAR Sandbox tests. Versions are pinned in the package manifests and lockfiles. The available repository history does not identify an external starter template; add any separately used templates, copied components or third-party work that is not represented there.
+
+## How it works
 
 ```mermaid
 flowchart LR
-  A["Clinic Staff (/app)<br/>Receive · Dispense · Consume · Adjust"] --> B["Append-Only Inventory Ledger<br/>(Per-Clinic SQLite)"]
-  B --> C["Autonomous Inventory Monitor<br/>(Forecast + Reorder Point)"]
-  C --> D["NEAR AI Cloud Specialist<br/>(z-ai/glm-5.3-flash · 4 Bounded Tools)"]
-  D --> E["Canonical PO Commitment<br/>(safety-v2.carecart.testnet)"]
-  E -->|"≤ 10 CCUSD (Auto Cap)"| F["Automatic Same-Chain Payout<br/>(Verified on NEAR Testnet)"]
-  E -->|"10–25 CCUSD"| G["Pending Admin Approval"]
-  E -->|"> 25 CCUSD or Unlisted Supplier"| H["Hard Blocked On-Chain"]
+  A[Clinic staff record stock activity] --> B[Clinic inventory ledger]
+  B --> C[Background stock monitor]
+  C --> D[Shortage case and supplier-offer comparison]
+  D --> E[Prepared purchase order]
+  E --> F[Clinic approval for this order and payment]
+  F --> G[Role-limited payment worker]
+  G --> H[NEAR safety vault]
+  H --> I[Policy checks and test-token transfer]
+  I --> J[Independent payment observation and audit record]
+  J --> K[Staff record physical delivery]
+  K --> B
 ```
 
-| Domain | Implementation | Responsibility |
-|---|---|---|
-| **Inventory** | [`backend/src/inventory`](backend/src/inventory) | Append-only stock ledger (units/packs, receipts, dispensing, direct consumption, reasoned adjustments, batch/expiry tracking) and headless [`InventoryMonitor`](backend/src/inventory/monitor.ts) with lease-based crash recovery. |
-| **Procurement** | [`backend/src/procurement`](backend/src/procurement) & [`backend/src/workflow`](backend/src/workflow) | Exact integer reorder forecasting (`reorderPoint + leadTimeDemand - inventoryPosition`), deterministic quote selection (`lowest-total-then-supplier-id-v1`), and durable replenishment cases. |
-| **Live AI Specialist** | [`backend/src/operations/runs.ts`](backend/src/operations/runs.ts) & [`backend/src/agent/live.ts`](backend/src/agent/live.ts) | Live **NEAR AI Cloud** (`z-ai/glm-5.3-flash`) procurement specialist operating under a strict 4-turn tool budget (`get_inventory_forecast`, `prepare_replenishment_case`, `evaluate_supplier_quotes`, `explain_procurement_decision`, `get_required_human_actions`, `propose_next_action`). The AI cannot alter prices, select unapproved suppliers, or sign transactions. |
-| **On-Chain Safety Vault** | [`contracts/carecart-safety-vault`](contracts/carecart-safety-vault/src/lib.rs) | Rust NEAR smart contract enforcing immutable PO commitments, supplier allowlists, pause-only guardian, treasury recovery, and six-decimal spending caps (**10 CCUSD auto / 25 CCUSD hard PO / 25 CCUSD daily / 5 CCUSD initial accepted deposit**). |
-| **Identity & Multi-Tenancy** | [`backend/src/tenancy`](backend/src/tenancy) | Supabase SSR authentication, clinic-scoped RBAC (`Admin`, `InventoryManager`, `ProcurementReviewer`, `Viewer`), per-clinic isolated SQLite databases, and NEP-413 wallet ownership verification. |
-| **Web Application** | [`web/src/app`](web/src/app) | Next.js 16 / React 19 interface with landing page (`/`) and authenticated clinic workspace (`/app`: Overview, Inventory, Replenishment, Suppliers, Payments, Activity, Settings). |
+The inventory worker can monitor stock and prepare replenishment work. It is not authorized to spend funds. Restricted payment services process an order only after the required clinic authorization; the safety vault checks the saved order, approved supplier, payment limits and pause state. A recorded transaction submission is not treated as payment success until the configured observer verifies it. Staff record physical delivery separately from payment.
 
----
+## Repository layout
 
-## Live NEAR Testnet Deployment
+| Path | Contents |
+| --- | --- |
+| `web/` | Clinic workspace and public product pages. |
+| `backend/` | TypeScript API, tenant services, inventory monitor and restricted payment services. |
+| `contracts/carecart-safety-vault/` | NEAR contract with supplier and spending controls. |
+| `contracts/` | Contract workspace and local test-token fixtures. |
+| `profiles/` | Example runtime profiles. They are configuration, not proof of live account state. |
+| `scripts/` | Verification, isolated demo, build and deployment utilities. |
+| `docs/` | Judge walkthrough and submission handoff. |
 
-| Role / Contract | NEAR Testnet Account |
-|---|---|
-| **Safety Vault v2** | `safety-v2.carecart.testnet` |
-| **Test Token (`CCUSD`, 6 decimals)** | `token-v2.carecart.testnet` |
-| **Admin Controller** | `admin.carecart.testnet` |
-| **Pause Guardian** | `guardian.carecart.testnet` |
-| **Treasury Owner** | `treasury.carecart.testnet` |
-| **Restricted PO Committer** | `committer-v2.carecart.testnet` |
-| **Restricted Payment Requester** | `agent-v2.carecart.testnet` |
-| **Allowlisted Testnet Suppliers** | `medsupply-a.carecart.testnet`, `medsupply-b.carecart.testnet`, `medsupply-c.carecart.testnet` |
+## Quick start: offline demo
 
----
-
-## Quick Start & Verification
+The reproducible demo uses synthetic clinic data and local services. It does not require Supabase, an AI API key, a wallet, testnet funds or a public network transaction.
 
 ### Prerequisites
-- **Node.js:** `v24.21.0` (`nvm use`)
-- **Rust:** `1.93.0` with `wasm32-unknown-unknown` target
 
-### 1. Configure Environment
-Copy [`.env.example`](.env.example) to `.env` in the repository root and symlink `web/.env.local -> ../.env`:
+- Node.js **24.21.0**, selected by `.nvmrc`.
+- npm **12.2.1**, declared by the web and backend packages. If needed, install it after selecting Node with `npm install --global npm@12.2.1`.
+- Rust **1.93.0** with `wasm32-unknown-unknown` for contract checks.
+- Chromium for the browser walkthrough. Set `CARECART_CHROMIUM_BIN` if Chromium is installed somewhere other than `/snap/bin/chromium`.
 
-```bash
-cp .env.example .env
-ln -sf ../.env web/.env.local
-```
+### Install and verify
 
-Key environment settings in `.env`:
-- `CARECART_AI_MODE=near-ai-cloud`
-- `NEAR_CLOUD_BASE_URL=https://cloud-api.near.ai/v1`
-- `NEAR_CLOUD_MODEL=z-ai/glm-5.3-flash`
-- `NEAR_CLOUD_API_KEY=<your-near-ai-cloud-key>`
-- `CARECART_TESTNET_WORKSPACE_FILE=../profiles/testnet.demo.json`
-- `CARECART_TESTNET_PAYMENTS_FILE=../profiles/testnet.payments.json`
+From the repository root:
 
-Keep signing credentials out of this shared `.env`. The API, inventory worker, and web server reject them at startup. If you enable a payment signer, provision a protected role-specific environment for that signer with only its own key.
-
-When moving an existing testnet clinic database to another host, update the profile's `databasePath` to the new absolute path and retain `fingerprintDatabasePath` as the original path. Both paths must end in the same `backend/data/testnet-v2/...` location. This keeps the profile identity stable while the database uses its new host path.
-
-### 2. Install & Run Automated Verification
 ```bash
 nvm use
-npm ci --prefix backend --no-audit --no-fund
-npm ci --prefix web --no-audit --no-fund
+npm ci --prefix backend
+npm ci --prefix web
 bash scripts/verify-phase2.sh
 ```
 
-Run individual test suites directly:
+Expected result: all backend and web tests, TypeScript checks, lint and the isolated production build exit successfully. The script prints the location of its source-only verification snapshot under `/tmp/carecart-phase2-verify.*`.
+
+### Run the judge walkthrough
+
+Pass the snapshot path printed by the previous command:
+
 ```bash
-# Rust smart contract unit & sandbox tests
-cargo test --manifest-path contracts/Cargo.toml --locked -p carecart-safety-vault
-
-# Backend typecheck & Vitest suite
-cd backend && npx tsc --noEmit && npx vitest run
-
-# Web typecheck & node:test suite
-cd web && npx tsc --noEmit && npm test
+node scripts/mvp-browser-acceptance.mjs /tmp/carecart-phase2-verify.REPLACE_WITH_PRINTED_SUFFIX
 ```
 
-### 3. Run the Application Services
+Expected result: the final JSON report contains `"status": "passed"`, stock movements, a background-created purchase order, one recorded delivery, a successful worker restart, no browser errors, no payment actions and no public-chain calls. Screenshot files are saved in the temporary output directory named in the report. Replace the example suffix with the exact path printed by the verifier.
+
+The walkthrough starts an isolated local API, web app and inventory worker using synthetic data. It records a receipt, dispensing, consumption and adjustment; lets the worker detect a shortage and prepare an order; records delivery once; restarts the worker; and checks that the order is not duplicated. The payment state remains **Unobserved** because this demo does not send a payment.
+
+See [`docs/JUDGE_WALKTHROUGH.md`](docs/JUDGE_WALKTHROUGH.md) for expected steps and troubleshooting.
+
+## Authenticated clinic workspace
+
+The authenticated app requires a Supabase project. Copy `.env.example` to `.env`, set the Supabase URL and publishable key, and link it for Next.js:
+
 ```bash
-# 1. Start the multi-tenant operations & identity API (:3002)
-cd backend && npx tsx src/tenancy/server.ts
-
-# 2. Start the background autonomous inventory monitor worker
-cd backend && npx tsx src/tenancy/worker.ts
-
-# 3. Start the Next.js web application (:3000)
-cd web && npm run dev
+cp .env.example .env
+ln -s ../.env web/.env.local
 ```
+
+Keep real credentials in local environment files. Do not put signing keys in the shared `.env`; the API, inventory worker and web server refuse those keys. Payment signing belongs in protected, role-specific environments with only the key required by that service.
+
+The testnet profile files require database paths under the active checkout. Before using them from another clone or host, update each profile's `databasePath` to that checkout's absolute `backend/data/testnet-v2/...` path; the payment profile's `fingerprintDatabasePath` preserves its reviewed identity across that relocation. The offline judge walkthrough does not read either profile or require these service settings.
+
+The local synthetic walkthrough above is the recommended judge path when hosted identity credentials are unavailable.
+
+## NEAR integration and evidence limits
+
+The safety vault is designed to enforce an allowlisted supplier, separate roles, a per-order automatic limit, a hard payout limit, a daily limit and a pause control. The application still requires per-order clinic authorization before payment processing, so the presence of a capped contract path does not prove autonomous purchasing.
+
+At `2026-11-13T06:48:08Z`, read-only RPC checks at finalized block `EKi9urzVA9Af64i8LTcwPBQFdrrpQukcjQ6D2wsH148T` (height `277475353`) found that `safety-v2.carecart.testnet` and `token-v2.carecart.testnet` matched the code hashes in `profiles/testnet.payments.json`. The token's on-chain metadata reported `CCUSD`, six decimals and `ft-1.0.0`. This verifies deployed code and token metadata only; it does not demonstrate role setup, spendable balance, a supplier payment or payment observation. The separate `profiles/testnet.demo.json` is an offline proposal profile tied to the checked-in artifact hashes, not evidence for the deployed contracts. A source review also found that fresh Wasm builds were not byte-identical across the recorded environments; this submission does not claim reproducible byte-for-byte contract artifacts. No verified public supplier-payment receipt is attached to this release. Do not present local fixtures or Sandbox runs as public testnet transactions. Do not describe CCUSD as native Circle USDC.
+
+The repository includes cross-chain and NEAR Intents related code, but the current product does not demonstrate a completed public Intents settlement. Do not use an offline preview or test fixture as settlement evidence.
+
+## Verification
+
+Run the complete backend and web verification workflow:
+
+```bash
+bash scripts/verify-phase2.sh
+```
+
+Run the contract workspace tests, including local NEAR Sandbox tests:
+
+```bash
+cargo test --manifest-path contracts/Cargo.toml --locked --workspace
+```
+
+Build the safety vault for WebAssembly:
+
+```bash
+cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked
+```
+
+The Sandbox tests use local synthetic accounts and token fixtures. They do not sign public transactions, deploy contracts or move real funds. See the contract READMEs for contract-specific commands and scope.
+
+## Security
+
+- Never commit `.env` files, private keys, account credentials, real clinic databases or customer records.
+- Local environment files, database files, build output and `internal-docs/` are ignored by Git.
+- Public testnet configuration is not a production deployment or proof of payment.
+- The current submission handoff records the checks actually run and the remaining owner actions: [`docs/SUBMISSION_HANDOFF.md`](docs/SUBMISSION_HANDOFF.md).
+
+CareCart is provided under the [MIT License](LICENSE).
