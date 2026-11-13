@@ -125,11 +125,18 @@ The final checked results and exact implementation commit are recorded in [verif
 
 ### Git and PR status
 
-The previous [PR #3](https://github.com/0xNana/carecart/pull/3) was merged on November 13 at 08:40:40 UTC. The new branch is `codex/final-payment-proof`. The repository remains private. No new push, PR, merge, visibility change, social post or hackathon submission is claimed until separately recorded here. Unstaged deletions of `tasks/plan.md` and `tasks/todo.md` are outside this release; their origin was not established, so they were left unchanged and excluded from sprint commits.
+The previous [PR #3](https://github.com/0xNana/carecart/pull/3) was merged on November 13 at 08:40:40 UTC. The new branch is `codex/final-payment-proof`. The repository remains private. The owner chose “Keep commits local; I will push.” No new push, PR, merge, visibility change, social post or hackathon submission has been performed. Unstaged deletions of `tasks/plan.md` and `tasks/todo.md` are outside this release; their origin was not established, so they were left unchanged and excluded from sprint commits.
 
 ## OWNER MUST DO
 
-1. **Approve the final Git publication step.** Review the local commits and scan results, then approve `git push -u origin codex/final-payment-proof` and a new private draft PR to `main`. No force push or repository visibility change is included.
+1. **Push the release and open the draft PR yourself**, as requested. The final committed source/history scan passed with zero findings (455 text files and 1,241 historical blobs; heuristic scan). Run these commands from the repository root; the repository stays private and nothing is merged:
+
+   ```bash
+   git push -u origin codex/final-payment-proof
+   gh pr create --base main --head codex/final-payment-proof --draft \
+     --title "Complete bounded automatic testnet purchasing and publish payment proof" \
+     --body-file docs/PR_DESCRIPTION.md
+   ```
 2. **Review and merge the new PR.** The agent must not merge it. If using the hosted app for judging, deploy the reviewed release and keep the existing signer environments separate. Local reproduction and public evidence are already available without a new payment.
 3. **Approve repository exposure last.** Earlier `internal-docs/` content and Git author metadata remain in reachable history. The heuristic secret scan passed; review those historical disclosures before setting public visibility.
 4. **Record/publish the demo.** Use the expected-result steps and 90–150-second script in the judge walkthrough. Do not portray the offline fixture as the public payment or CCUSD as real USDC.
