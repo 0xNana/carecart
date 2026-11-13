@@ -25,6 +25,8 @@ node scripts/mvp-browser-acceptance.mjs /tmp/carecart-phase2-verify.REPLACE_WITH
 
 Expected: Chromium opens the built app in headless mode, the runner exercises the application at desktop and mobile widths, and the final JSON report says `"status": "passed"`. The report lists screenshot files and the per-step inventory balance.
 
+For an owner-recorded video, start a local screen recorder and add `--headed` to the same command. Visible mode pauses at each main step for about seven seconds; set `CARECART_DEMO_PAUSE_MS` between `2000` and `15000` milliseconds to adjust narration time. The runner still uses synthetic data and makes no payment.
+
 If Chromium is installed somewhere other than `/snap/bin/chromium`, set its path for this command:
 
 ```bash

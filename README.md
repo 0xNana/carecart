@@ -18,6 +18,7 @@ The available Git history begins on November 1, 2026. Relevant commits in that h
 
 - `79c04e3` — guarded CareCart vault payments
 - `b38b2be` — NEP-141 vault tests in NEAR Sandbox
+- `54fbdd5` — add the repository metadata needed for a pinned reproducible safety-vault build
 - `03b073b`, `af14a45`, `65cf766` — procurement data, inventory forecasting, supplier offers and purchase orders
 - `d801c1e` — constrained agent tools
 - `bbefbe1` — vault safety and treasury recovery
@@ -95,6 +96,14 @@ Expected result: the final JSON report contains `"status": "passed"`, stock move
 
 The walkthrough starts an isolated local API, web app and inventory worker using synthetic data. It records a receipt, dispensing, consumption and adjustment; lets the worker detect a shortage and prepare an order; records delivery once; restarts the worker; and checks that the order is not duplicated. The payment state remains **Unobserved** because this demo does not send a payment.
 
+For a screen recording, start your screen recorder and run the same flow in a visible Chromium window:
+
+```bash
+node scripts/mvp-browser-acceptance.mjs /tmp/carecart-phase2-verify.REPLACE_WITH_PRINTED_SUFFIX --headed
+```
+
+Replace the snapshot suffix with the verifier's exact output. The visible mode pauses at each main step for about seven seconds; set `CARECART_DEMO_PAUSE_MS` to a value from 2,000 to 15,000 milliseconds if you need more narration time. It still uses synthetic local data, and payment stays **Unobserved**. See [`docs/SUBMISSION_HANDOFF.md`](docs/SUBMISSION_HANDOFF.md) for the 90–150-second narration outline.
+
 See [`docs/JUDGE_WALKTHROUGH.md`](docs/JUDGE_WALKTHROUGH.md) for expected steps and troubleshooting.
 
 ## Authenticated clinic workspace
@@ -116,7 +125,9 @@ The local synthetic walkthrough above is the recommended judge path when hosted 
 
 The safety vault is designed to enforce an allowlisted supplier, separate roles, a per-order automatic limit, a hard payout limit, a daily limit and a pause control. The application still requires per-order clinic authorization before payment processing, so the presence of a capped contract path does not prove autonomous purchasing.
 
-At `2026-11-13T06:48:08Z`, read-only RPC checks at finalized block `EKi9urzVA9Af64i8LTcwPBQFdrrpQukcjQ6D2wsH148T` (height `277475353`) found that `safety-v2.carecart.testnet` and `token-v2.carecart.testnet` matched the code hashes in `profiles/testnet.payments.json`. The token's on-chain metadata reported `CCUSD`, six decimals and `ft-1.0.0`. This verifies deployed code and token metadata only; it does not demonstrate role setup, spendable balance, a supplier payment or payment observation. The separate `profiles/testnet.demo.json` is an offline proposal profile tied to the checked-in artifact hashes, not evidence for the deployed contracts. A source review also found that fresh Wasm builds were not byte-identical across the recorded environments; this submission does not claim reproducible byte-for-byte contract artifacts. No verified public supplier-payment receipt is attached to this release. Do not present local fixtures or Sandbox runs as public testnet transactions. Do not describe CCUSD as native Circle USDC.
+At `2026-11-13T06:48:08Z`, read-only RPC checks at finalized block `EKi9urzVA9Af64i8LTcwPBQFdrrpQukcjQ6D2wsH148T` (height `277475353`) found that `safety-v2.carecart.testnet` and `token-v2.carecart.testnet` matched the code hashes in `profiles/testnet.payments.json`. The token's on-chain metadata reported `CCUSD`, six decimals and `ft-1.0.0`. This verifies the deployed hashes and token metadata only; it does not demonstrate role setup, spendable balance, a supplier payment or payment observation.
+
+A pinned reproducible build of source commit `54fbdd5` completed with the image digest recorded in the vault manifest. Its safety-vault Wasm hash is `5QUCiYxCP8g3oP6edLzjSvYrKXP7sag4rCozhn1SLyYL`; the deployed vault hash recorded above is `BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3`. These hashes differ, so this release does not claim that the deployed vault is byte-identical to the reproducible source artifact. The separate `profiles/testnet.demo.json` is an offline proposal profile tied to checked-in artifact hashes, not evidence for the deployed contracts. No verified public supplier-payment receipt is attached to this release. Do not present local fixtures or Sandbox runs as public testnet transactions. Do not describe CCUSD as native Circle USDC.
 
 The repository includes cross-chain and NEAR Intents related code, but the current product does not demonstrate a completed public Intents settlement. Do not use an offline preview or test fixture as settlement evidence.
 
@@ -139,6 +150,8 @@ Build the safety vault for WebAssembly:
 ```bash
 cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked
 ```
+
+The safety-vault manifest also records the pinned Docker image for a reproducible Wasm build. The build output includes source metadata and is tied to the source commit; see [`docs/SUBMISSION_HANDOFF.md`](docs/SUBMISSION_HANDOFF.md) for the artifact hash and comparison with the deployed testnet code.
 
 The Sandbox tests use local synthetic accounts and token fixtures. They do not sign public transactions, deploy contracts or move real funds. See the contract READMEs for contract-specific commands and scope.
 
