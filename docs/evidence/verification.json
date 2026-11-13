@@ -1,0 +1,126 @@
+{
+  "verifiedImplementationCommit": "7bce9fda219e7da0c5332465129c9b83feebf119",
+  "branch": "codex/final-payment-proof",
+  "recordedAt": "2026-11-13T15:36:30.993797+00:00",
+  "implementationFrozen": true,
+  "snapshot": "/tmp/carecart-phase2-verify.86nmVt",
+  "runtime": {
+    "node": "24.21.0"
+  },
+  "backend": {
+    "testFiles": 72,
+    "testsPassed": 480,
+    "testsFailed": 0,
+    "typescript": "passed"
+  },
+  "web": {
+    "testsPassed": 72,
+    "testsFailed": 0,
+    "routeTypes": "passed",
+    "typescript": "passed",
+    "eslintErrors": 0,
+    "eslintWarnings": 3,
+    "productionWebpackBuild": "passed"
+  },
+  "contracts": {
+    "testsPassed": 66,
+    "testsFailed": 0,
+    "genuineSandboxTests": 3,
+    "workspaceTests": "passed",
+    "clippy": "passed",
+    "sourceSha256": "61c06308fe1bb97eccd5af201b1d496dd7982449599f5afdaa63fe4c4f6c1d0d"
+  },
+  "scriptTestFiles": {
+    "passed": 6,
+    "failed": 0
+  },
+  "browser": {
+    "status": "passed",
+    "scope": "isolated local synthetic clinic; local workspace auth fixture",
+    "newPaymentPolicyPanelVerified": false,
+    "publicChainExecution": false,
+    "runtimeErrors": 0,
+    "consoleErrors": 0,
+    "consoleWarningCount": 2,
+    "viewportWidths": [
+      1440,
+      1280,
+      768,
+      390,
+      360
+    ],
+    "pageOverflow": false,
+    "fixtureSigningAndExternalSubmission": 0,
+    "artifacts": "/tmp/carecart-mvp-browser-P2RrFZ"
+  },
+  "processChecks": {
+    "treasury": {
+      "status": "passed",
+      "publicChainExecution": false,
+      "scope": "real-local-HTTP-SQLite-independent-worker-processes"
+    },
+    "financial": {
+      "status": "passed",
+      "publicChainExecution": false,
+      "scope": "offline-fixture-real-HTTP-Next-SQLite"
+    },
+    "inventory": {
+      "status": "passed",
+      "publicChainExecution": false,
+      "scope": "real-local-processes; offline fixtures"
+    },
+    "security": {
+      "status": "passed",
+      "publicChainExecution": false,
+      "scope": "real-local-HTTP-production-webpack"
+    }
+  },
+  "npmAudit": {
+    "backend": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "web": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "publicReadOnlyProofRecheck": {
+    "status": "passed",
+    "input": "docs/evidence/testnet/autonomous-payment.json",
+    "needsPrivateDatabase": false,
+    "newPublicTransactions": 0
+  },
+  "automaticEvaluatorSmoke": {
+    "status": "passed",
+    "finalPolicy": "disabled",
+    "newPublicTransactions": 0
+  },
+  "sourceVerification": {
+    "status": "passed",
+    "deployedCodeHash": "BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3",
+    "wasmSha256": "979c178881f12ce6694ea804d9374af3606b55dbb0b8074434e791d5c9b0b71e"
+  },
+  "secretScan": {
+    "status": "passed",
+    "scope": "current non-ignored source and reachable history",
+    "findings": 0,
+    "limitation": "Heuristic patterns; final documentation-only commit is scanned again before publication."
+  },
+  "limits": [
+    "Browser stock acceptance uses isolated offline fixtures; it makes no public payment.",
+    "The new automatic-policy panel has an owner-run browser procedure but no hosted browser capture.",
+    "The financial testnet run used deterministic policy, with no live LLM inference.",
+    "Normal public tenant admin-wallet handoff remains disabled; above-threshold app orders remain held.",
+    "Three existing lint navigation warnings and two browser CSS preload warnings remain.",
+    "No mainnet, Circle USDC, Intents settlement or real distributor integration is claimed."
+  ]
+}
