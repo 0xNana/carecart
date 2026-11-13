@@ -77,6 +77,21 @@ export function createOperationsApp(options:{workflow:ReplenishmentWorkflow;orig
  app.post('/api/operations/logout',async(request,reply)=>{const {s,nonce}=mutation(request,false);z.object({}).strict().parse(request.body);
   auth.claimNonce(s,nonce,'logout',digest({action:'logout'}));auth.revoke(s);reply.header('Set-Cookie',auth.cookie('',0));return {authenticated:false};});
  app.get('/api/operations/inventory',async()=>({items:workflow.procurement.registeredInventory(),dataOrigin:'synthetic'}));
+ app.get('/api/operations/automatic-purchasing',async()=>{
+  if(!options.treasuryAuthority)throw new OperationsError(503,'AUTOMATIC_POLICY_UNAVAILABLE');
+  return options.treasuryAuthority.automatic.snapshot();
+ });
+ app.post('/api/operations/automatic-purchasing/pause',async request=>{
+  const {s,nonce}=mutation(request);if(!s.userId||s.clinicRole!=='Clinic Admin'||!options.treasuryAuthority)throw new OperationsError(403,'CURRENT_CLINIC_ADMIN_REQUIRED');
+  const body=z.object({requestId:z.uuid()}).strict().parse(request.body);auth.claimNonce(s,nonce,body.requestId,digest(body));
+  return options.treasuryAuthority.automatic.pause(s.userId);
+ });
+ app.post('/api/operations/automatic-purchasing',async request=>{
+  const {s,nonce}=mutation(request);if(s.clinicRole!=='Clinic Admin'||!options.treasuryAuthority||!options.treasuryApproval)throw new OperationsError(403,'CURRENT_CLINIC_ADMIN_REQUIRED');
+  const body=z.object({requestId:z.uuid(),policy:z.unknown(),walletBindingId:z.uuid()}).strict().parse(request.body);
+  auth.claimNonce(s,nonce,body.requestId,digest(body));
+  return options.treasuryAuthority.automatic.configure(body.policy,options.treasuryApproval(request,body.walletBindingId));
+ });
  app.get('/api/operations/funding',async()=>{
   const client=options.financial?.client;
   if(!publicTestnet||options.financial?.kind!=='public-rpc'||!(client instanceof SafetyVaultClient)||client.injectedReads)

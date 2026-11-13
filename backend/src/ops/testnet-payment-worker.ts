@@ -10,11 +10,12 @@ import {tenantFinancialMain} from './tenant-financial';
 /** One role per process; independent key-free observer. Consumed/uncertain intents never return to the send queue. */
 async function main(){
  const [mode,registryPath,activationPath]=process.argv.slice(2);
- if(!['committer','requester','observe'].includes(mode)||!registryPath||!activationPath||process.env.CARECART_TENANT_FINANCIAL_MODE!=='near-testnet')throw new Error('Exact testnet worker mode required');
- if(mode==='observe')assertNoSigningCredentials(process.env);else roleCredentials(mode as 'committer'|'requester');
+ if(!['committer','requester','observe','authorize'].includes(mode)||!registryPath||!activationPath||process.env.CARECART_TENANT_FINANCIAL_MODE!=='near-testnet')throw new Error('Exact testnet worker mode required');
+ if(mode==='observe'||mode==='authorize')assertNoSigningCredentials(process.env);else roleCredentials(mode as 'committer'|'requester');
  const grant=testnetPayments(JSON.parse(readFileSync(activationPath,'utf8')));let stopped=false,running=false;
  const tick=async()=>{if(stopped||running)return;running=true;let db:Database.Database|undefined;
   try{
+   if(mode==='authorize'){console.info(JSON.stringify(await tenantFinancialMain(['authorize',registryPath,grant.clinicId,'near-testnet',activationPath])));return;}
    db=new Database(grant.profile.databasePath,{readonly:true,fileMustExist:true});
    if(!db.prepare("SELECT 1 FROM sqlite_master WHERE name='financial_authorizations'").get())return;
    const rows=mode==='observe'?db.prepare("SELECT id,role FROM financial_authorizations WHERE state='Submitted' ORDER BY created_at LIMIT 5").all():db.prepare("SELECT id,role FROM financial_authorizations WHERE state='Authorized' AND role=? AND expires>? ORDER BY created_at LIMIT 1").all(mode,Date.now());

@@ -33,7 +33,7 @@ task_registry="$task_repo/backend/data/tenancy/registry.sqlite"
 task_activation="$task_repo/profiles/testnet.payments.json"
 if [[ "$task_mode" == --dry-run ]]; then
   printf '%s\n' 'Starts the key-free API, inventory monitor, separate observer, committer/requester workers, and production web on loopback.'
-  printf '%s\n' 'Uses only .env.identity for web/API/observer and one .env.testnet-ROLE per signing process. No unpause, funding, deployment or automatic reauthorization.'
+  printf '%s\n' 'Uses only .env.identity for web/API/observer and one .env.testnet-ROLE per signing process. No unpause, funding or deployment. Automatic authorization requires an explicit clinic policy.'
   exit 0
 fi
 python3 - <<'PY'
@@ -55,6 +55,7 @@ start_backend(){
 }
 start_backend .env.identity src/tenancy/server.ts
 start_backend .env.identity src/tenancy/worker.ts
+start_backend .env.identity src/ops/testnet-payment-worker.ts authorize "$task_registry" "$task_activation"
 start_backend .env.identity src/ops/testnet-payment-worker.ts observe "$task_registry" "$task_activation"
 start_backend .env.testnet-committer src/ops/testnet-payment-worker.ts committer "$task_registry" "$task_activation"
 start_backend .env.testnet-requester src/ops/testnet-payment-worker.ts requester "$task_registry" "$task_activation"

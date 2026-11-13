@@ -48,3 +48,28 @@ it('concurrent public role consumers and restarts cannot submit the same operati
  const outcomes=await Promise.allSettled([f.finance.executeTestnet(ticket.id,'committer',f.env('committer')),f.finance.executeTestnet(ticket.id,'committer',f.env('committer'))]);
  expect(outcomes.filter(r=>r.status==='fulfilled')).toHaveLength(1);expect(f.effects()).toBe(1);await f.finance.reconcile(ticket.id);await expect(f.finance.executeTestnet(ticket.id,'committer',f.env('committer'))).rejects.toThrow();expect(f.effects()).toBe(1);
 });
+it('MOCKED RPC: glove consumption runs monitor, supplier selection, standing policy, both restricted roles and independent receipt verification without per-order approval',async()=>{
+ const f=await fixture(),authority=f.finance.tenantAuthority!;
+ await authority.automatic.configure({expectedVersion:0,enabled:true,suppliers:[f.grant.suppliers[0]],itemIds:['mn-item-1'],maxAutomaticAmount:'3000000',walletBindingId:f.approval.walletBindingId},f.approval);
+ f.registry.logout(f.session); // The administrator's standing consent survives their interactive login.
+ const onHand=f.local.inventory.balance('mn-item-1').onHand;
+ for(const role of ['committer','requester'] as const){
+  const ticket=await f.finance.authorizeAutomatic(f.c.caseId);expect(ticket.role).toBe(role);
+  await f.finance.executeTestnet(ticket.id,role,f.env(role));await f.finance.reconcile(ticket.id);
+ }
+ const c=f.local.workflow.get(f.c.caseId);expect(c.paymentState).toBe('Paid');expect(f.effects()).toBe(2);
+ expect(f.local.inventory.balance('mn-item-1').onHand).toBe(onHand);
+ const receipt={id:'automatic-goods-receipt',productId:'mn-item-1',kind:'Receive' as const,quantity:c.domain!.quote.quantity,unit:'base' as const,source:'manual' as const,orderId:c.poId!,supplierId:c.domain!.quote.supplierId,batch:'TEST-LOT',receivedAt:new Date().toISOString(),receiptReference:'DELIVERY-AUTO-1'};
+ f.local.inventory.move(receipt,'clinic-staff');f.local.inventory.move(receipt,'clinic-staff');
+ expect(f.local.inventory.balance('mn-item-1').onHand).toBe(onHand+receipt.quantity);
+});
+it('MOCKED RPC: the approved host sprint grant binds one synthetic canonical PO and cannot be renewed or invoked with a wider envelope',async()=>{
+ const f=await fixture(),a=f.finance.tenantAuthority!;
+ expect(()=>a.automatic.configureSprintGrant(f.c.caseId,'operator:other','BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3:3000000')).toThrow('APPROVAL_REQUIRED');
+ expect(()=>a.automatic.configureSprintGrant(f.c.caseId,'operator:owner-approved-sprint','any-amount')).toThrow('APPROVAL_REQUIRED');
+ a.automatic.configureSprintGrant(f.c.caseId,'operator:owner-approved-sprint','BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3:3000000');
+ expect(()=>a.automatic.configureSprintGrant(f.c.caseId,'operator:owner-approved-sprint','BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3:3000000')).toThrow('ALREADY_RECORDED');
+ f.registry.logout(f.session);
+ for(const role of ['committer','requester'] as const){const ticket=await f.finance.authorizeAutomatic(f.c.caseId);expect(ticket.terms.tenantScope.user).toBeNull();await f.finance.executeTestnet(ticket.id,role,f.env(role));await f.finance.reconcile(ticket.id);}
+ expect(f.effects()).toBe(2);expect(f.local.workflow.get(f.c.caseId).paymentState).toBe('Paid');
+});

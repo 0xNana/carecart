@@ -21,6 +21,7 @@ export class SandboxProcurementStore implements WorkflowProcurement {
   this.db.prepare('INSERT OR IGNORE INTO sandbox_domain VALUES(1,?)').run(this.fingerprint);
  }
  close(){if(this.db.open)this.db.close();}
+ registeredCatalog(){return {suppliers:[{id:'sb-supplier-1',account:this.supplier,destination:'Near' as const}],entries:[{itemId:this.item.id,supplierId:'sb-supplier-1',unitPriceAtomic:'100000',leadTimeDays:1}]};}
  registeredInventory(){return [structuredClone(this.item)];}
  inventoryForecast(id:unknown){if(id!==this.item.id)throw new Error('Registered Sandbox inventory required');return {item:structuredClone(this.item),usageWindowDays:30,
   suppliers:[{supplierId:'sb-supplier-1',leadTimeDays:1,...forecastQuantity(this.item.onHand,this.item.reorderPoint,this.item.usageUnits,1)}]};}
