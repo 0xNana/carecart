@@ -1,0 +1,95 @@
+{
+  "observedAt": "2026-11-13T15:14:18.699Z",
+  "readOnly": true,
+  "publicTransactionsSubmitted": 0,
+  "historicalBalances": {
+    "beforeBlockHeight": 277525442,
+    "afterBlockHeight": 277525443,
+    "supplierBefore": "1500000",
+    "supplierAfter": "3000000",
+    "vaultBefore": "3500000",
+    "vaultAfter": "2000000",
+    "deltaVerified": true
+  },
+  "paymentTimestamp": "2026-11-13T14:59:52.515Z",
+  "evidenceLevel": "public-testnet-final-receipts",
+  "proof": {
+    "kind": "near-native-payment",
+    "transactionHash": "EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD",
+    "poId": "tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804",
+    "canonicalHash": "b1ace883ac67ca9968922c57b529e47bc4c6e585ef1cca32e2df2ccec2ff1756",
+    "network": "testnet",
+    "token": "token-v2.carecart.testnet",
+    "recipient": "medsupply-a.carecart.testnet",
+    "amount": "1500000",
+    "signer": "agent-v2.carecart.testnet",
+    "finalized": true,
+    "nativeSettlementVerified": true,
+    "receiptIds": [
+      "APrRCxNbE2fLHPGffaaq5yehDvQ5QjAP2kLbf32dAfBN",
+      "F4oPLEQuTrMxgTtqRfVFu8FGNrJRW47BZBcjLiJ2gFyG",
+      "J2bHfALpGSm343WjLFnzWrPzB7ZM3m8gnaw3MkhHtpso",
+      "5WVRNCGxAeo1vVtLDGrCUHHEv8SskPjKmeQmvwaw9ANM",
+      "YgsenrNpfhcywd9iXUxv4yxbtGtxx1WnDsbFGvdh5kH",
+      "CoucxP3rnS2JgsNJ2BUJs2cHuAngDhDZ1PY8byCzXBA5"
+    ],
+    "transferReceiptIds": [
+      "YgsenrNpfhcywd9iXUxv4yxbtGtxx1WnDsbFGvdh5kH"
+    ]
+  },
+  "canonicalOrder": {
+    "po_id": "tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804",
+    "profile": "testnet",
+    "supplier": "medsupply-a.carecart.testnet",
+    "token": "token-v2.carecart.testnet",
+    "amount": "1500000",
+    "invoice_digest": "8d14ad2d2ccef96efd7211fd878a9042f0da1ba3aa3022b4e54f5383669dbd94",
+    "destination": "Near"
+  },
+  "payment": {
+    "status": "Paid",
+    "reason": "None",
+    "reserved_day": 20770,
+    "attempt_id": ""
+  },
+  "explorer": "https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD",
+  "vaultExplorer": "https://testnet.nearblocks.io/address/safety-v2.carecart.testnet",
+  "journalLookup": {
+    "transactionHash": "EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD",
+    "canonicalHash": "b1ace883ac67ca9968922c57b529e47bc4c6e585ef1cca32e2df2ccec2ff1756",
+    "source": "Published lookup terms; public receipts are verified independently of a private journal"
+  },
+  "supplierBalanceAtObservation": "3000000",
+  "receiptLogs": [
+    {
+      "id": "APrRCxNbE2fLHPGffaaq5yehDvQ5QjAP2kLbf32dAfBN",
+      "blockHash": "CchuzvDGGWkwHxWy9LBc8VsgywJvvSbfK5iunn9AUDjD",
+      "executor": "safety-v2.carecart.testnet",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"carecart_safety_vault\",\"version\":\"1.0.0\",\"event\":\"payment_state\",\"data\":[{\"po_id\":\"tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804\",\"payment\":{\"status\":\"Dispatching\",\"reason\":\"None\",\"reserved_day\":20770,\"attempt_id\":\"\"}}]}",
+        "EVENT_JSON:{\"standard\":\"carecart_safety_vault\",\"version\":\"1.0.0\",\"event\":\"payment_dispatching\",\"data\":[{\"po_id\":\"tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804\",\"payment\":{\"status\":\"Dispatching\",\"reason\":\"None\",\"reserved_day\":20770,\"attempt_id\":\"\"},\"token\":\"token-v2.carecart.testnet\",\"amount\":\"1500000\",\"supplier\":\"medsupply-a.carecart.testnet\"}]}"
+      ]
+    },
+    {
+      "id": "YgsenrNpfhcywd9iXUxv4yxbtGtxx1WnDsbFGvdh5kH",
+      "blockHash": "7UwiHTAoHLg36RCkx7Wtms1cYvnpqq7nKwvFbqoPw6aw",
+      "executor": "token-v2.carecart.testnet",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"nep141\",\"version\":\"1.0.0\",\"event\":\"ft_transfer\",\"data\":[{\"old_owner_id\":\"safety-v2.carecart.testnet\",\"new_owner_id\":\"medsupply-a.carecart.testnet\",\"amount\":\"1500000\",\"memo\":\"tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804\"}]}"
+      ]
+    },
+    {
+      "id": "J2bHfALpGSm343WjLFnzWrPzB7ZM3m8gnaw3MkhHtpso",
+      "blockHash": "8oRAnApn2q6Xxw6ynpootUB5XPvkt3x3kRBMdhUTNXNT",
+      "executor": "safety-v2.carecart.testnet",
+      "logs": [
+        "EVENT_JSON:{\"standard\":\"carecart_safety_vault\",\"version\":\"1.0.0\",\"event\":\"payment_state\",\"data\":[{\"po_id\":\"tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804\",\"payment\":{\"status\":\"Paid\",\"reason\":\"None\",\"reserved_day\":20770,\"attempt_id\":\"\"}}]}",
+        "EVENT_JSON:{\"standard\":\"carecart_safety_vault\",\"version\":\"1.0.0\",\"event\":\"payment_dispatched\",\"data\":[{\"po_id\":\"tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804\",\"payment\":{\"status\":\"Paid\",\"reason\":\"None\",\"reserved_day\":20770,\"attempt_id\":\"\"},\"token\":\"token-v2.carecart.testnet\",\"amount\":\"1500000\",\"supplier\":\"medsupply-a.carecart.testnet\"}]}"
+      ]
+    }
+  ],
+  "limitations": [
+    "This read-only command does not perform a duplicate request; idempotency evidence is recorded separately.",
+    "Physical delivery is a separate inventory event."
+  ]
+}
