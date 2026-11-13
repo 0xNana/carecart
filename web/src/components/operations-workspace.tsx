@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { caseStateLabel, parseWorkflowProjection, terminalStates, usdc, type WorkflowProjection } from '../lib/workflow';
+import { caseStateLabel, paymentEvidenceLabel, parseWorkflowProjection, terminalStates, usdc, type WorkflowProjection } from '../lib/workflow';
 import {displayTime,statusLabel} from '../lib/product-copy';
 
 export function OperationsWorkspace({initialProjection=null,source='offline',publicPayments=false,testnetAssets=false}:{initialProjection?:WorkflowProjection|null;source?:'offline'|'authenticated';publicPayments?:boolean;testnetAssets?:boolean}) {
@@ -38,8 +38,8 @@ export function OperationsWorkspace({initialProjection=null,source='offline',pub
      <div className="ops-scroll" tabIndex={0} aria-label="Supplier offers"><table><caption>Example supplier offers · amounts in {asset}</caption><thead><tr><th scope="col">Supplier</th><th scope="col">Delivery time</th><th scope="col">Suggested / order quantity</th><th scope="col">Total · {asset}</th><th scope="col">Offer</th></tr></thead><tbody>{current.quotes.map((q,index)=>{const f=current.forecasts.find(f=>f.supplierId===q.supplierId);return <tr key={q.id}><td>Supplier {index+1}</td><td>{f?.leadTimeDays ?? '—'} days</td><td>{f?.leadTimeDemand ?? '—'} / {q.quantity}</td><td>{usdc(q.amountAtomic)}</td><td>{q.id===current.selection?.quoteId?'Selected':'Other offer'}<small>Expires {displayTime(q.expiresAt)}</small></td></tr>;})}</tbody></table></div>
      <p>{current.selection?'An offer has been selected based on the clinic’s settings.':'No supplier offer has been selected yet.'}</p>
     </section>
-    <section className="ops-panel"><h3>Payment status</h3>{current.vault?<><p><strong>{statusLabel(current.vault.status)}</strong></p><p>Last checked {displayTime(current.vault.checkedAt)}</p><details><summary>More payment details</summary><dl><dt>Reason</dt><dd>{current.vault.reason}</dd><dt>Payment attempt</dt><dd>{current.vault.attemptId||'Same account'}</dd><dt>Daily limit date</dt><dd>{current.vault.reservedDay}</dd></dl></details></>:<p>Payment status has not been checked yet.</p>}
-     <h3>Recipient confirmation</h3><p>{current.settlement?statusLabel(current.settlement.state):'No recipient confirmation yet.'}</p>
+    <section className="ops-panel"><h3>Payment status</h3>{current.vault?<><p><strong>{paymentEvidenceLabel(current,current.vault.status)}</strong></p><p>Last checked {displayTime(current.vault.checkedAt)}</p><details><summary>More payment details</summary><dl><dt>Reason</dt><dd>{current.vault.reason}</dd><dt>Payment attempt</dt><dd>{current.vault.attemptId||'Same account'}</dd><dt>Daily limit date</dt><dd>{current.vault.reservedDay}</dd></dl></details></>:<p>Payment status has not been checked yet.</p>}
+     <h3>Recipient confirmation</h3><p>{current.settlement?paymentEvidenceLabel(current,current.settlement.state):'No recipient confirmation yet.'}</p>
      {current.state==='SourceDispatched'&&<p className="ops-attention">Payment sent; recipient confirmation is still pending.</p>}
      {current.settlement?.state==='Refunded'&&<p>{current.settlement.fullRefund?'Full refund recorded.':'Partial refund; clinic review is needed.'}</p>}
      {current.settlementReferences.length>0&&<details><summary>Confirmation references</summary>{current.settlementReferences.map(a=><p key={a.id}>{a.id} · {statusLabel(a.state)}</p>)}</details>}

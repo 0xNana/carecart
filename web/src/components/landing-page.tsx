@@ -129,7 +129,7 @@ export function LandingPage() {
             <div className={styles.heroCopy}>
               <p className={styles.eyebrow}>
                 <span className={styles.eyebrowDot} />
-                Autonomous healthcare procurement
+                Automatic stock monitoring and purchase planning
               </p>
               <h1 id="hero-title">
                 Your medical supplies shouldn&apos;t run out before you notice.
@@ -147,7 +147,7 @@ export function LandingPage() {
                 </a>
               </div>
               <p className={styles.tagline}>
-                <span aria-hidden="true">✳</span> Give AI a budget, not your wallet.
+                <span aria-hidden="true">✳</span> Clinic approval before every supplier payment.
               </p>
             </div>
 
@@ -426,7 +426,7 @@ export function LandingPage() {
           <article className={`${styles.showcase} ${styles.showcaseReplenishment}`}>
             <div className={`${styles.showcaseCopy} ${styles.showcaseCopySecond}`}>
               <span className={styles.showcaseIndex}>02 / TURN SIGNALS INTO A CASE</span>
-              <h3>Autonomous replenishment</h3>
+              <h3>Automatic replenishment planning</h3>
               <p>
                 When stock runs low, CareCart opens a request, compares supplier offers and prepares an order for review.
               </p>
@@ -488,7 +488,7 @@ export function LandingPage() {
                 <div className={styles.paymentChecks}>
                   <div><span className={styles.checkPassed}><Check /></span><span><strong>Supplier &amp; recipient</strong><small>Must match approved records</small></span><span className={styles.checkState}>CHECKED</span></div>
                   <div><span className={styles.checkPassed}><Check /></span><span><strong>Spending policy</strong><small>Configured caps and permissions</small></span><span className={styles.checkState}>CHECKED</span></div>
-                  <div><span className={styles.checkPending}>03</span><span><strong>Clinic approval</strong><small>Online approval is not available yet</small></span><span className={styles.checkWaiting}>REQUIRED</span></div>
+                  <div><span className={styles.checkPending}>03</span><span><strong>Clinic approval</strong><small>Each purchase needs clinic authorization</small></span><span className={styles.checkWaiting}>REQUIRED</span></div>
                 </div>
                 <div className={styles.settlementNotice}>
                   <span className={styles.settlementPulse} />
@@ -504,9 +504,9 @@ export function LandingPage() {
           <div className={styles.securityInner}>
             <div className={styles.securityCopy}>
               <p className={styles.eyebrowLight}>Financial authority, by design</p>
-              <h2 id="security-title">Give AI a budget, not your wallet.</h2>
+              <h2 id="security-title">Clinic approval before every payment.</h2>
               <p>
-                CareCart prepares orders and checks suppliers and spending limits. Payments follow a separate review and approval process.
+                CareCart prepares orders and checks suppliers and spending limits. A clinic approver authorizes each purchase before payment is requested.
               </p>
               <Link className={styles.securityLink} href="/app/payments">
                 Review payments <Arrow />
@@ -517,7 +517,7 @@ export function LandingPage() {
               <li><span><Check /></span><span><strong>Approved suppliers</strong><small>Supplier details are checked before payment.</small></span></li>
               <li><span><Check /></span><span><strong>Order review</strong><small>See the order and amount before it moves forward.</small></span></li>
               <li><span><Check /></span><span><strong>Separate payment permissions</strong><small>Planning access does not include payment access.</small></span></li>
-              <li><span><Check /></span><span><strong>Clinic approval</strong><small>Online approval is still being added.</small></span></li>
+              <li><span><Check /></span><span><strong>Clinic approval</strong><small>A clinic approver authorizes each purchase.</small></span></li>
               <li><span><Check /></span><span><strong>Payment confirmation</strong><small>Track whether the payment is complete.</small></span></li>
             </ul>
           </div>
@@ -597,7 +597,7 @@ export function LandingPage() {
         <div className={styles.footerMain}>
           <div className={styles.footerIdentity}>
             <Brand footer />
-            <p>Give AI a budget, not your wallet.</p>
+            <p>Automatic stock checks. Clinic-approved purchases.</p>
             <span>Healthcare procurement, under control.</span>
           </div>
           <div className={styles.footerNav}>

@@ -29,7 +29,7 @@ test('failed inventory and run reads produce separate unavailable states rather 
   api.recent=async ()=>{throw new Error('RUNS_OFFLINE');};
   const next=await loadApplicationData(api);
   assert.equal(first.inventory.length,1);assert.deepEqual(next.inventory,[]);assert.deepEqual(next.runs,[]);
-  assert.equal(next.errors.inventory,'INVENTORY_OFFLINE');assert.equal(next.errors.runs,'RUNS_OFFLINE');
+  assert.equal(next.errors.inventory,'These records are temporarily unavailable. Refresh to try again.');assert.equal(next.errors.runs,'These records are temporarily unavailable. Refresh to try again.');
   assert.equal(next.errors.cases,'');assert.equal(next.caseReadAt,first.caseReadAt);
 });
 
@@ -38,7 +38,7 @@ test('unavailable cases and catalog clear their evidence instead of reporting an
   api.catalog=async ()=>{throw new Error('CATALOG_OFFLINE');};
   const next=await loadApplicationData(api);
   assert.equal(next.caseReadAt,null);assert.equal(next.catalog,null);assert.equal(next.nextOffset,null);
-  assert.equal(next.errors.cases,'CASES_OFFLINE');assert.equal(next.errors.catalog,'CATALOG_OFFLINE');
+  assert.equal(next.errors.cases,'These records are temporarily unavailable. Refresh to try again.');assert.equal(next.errors.catalog,'These records are temporarily unavailable. Refresh to try again.');
 });
 
 test('expired authentication or mismatched profile on any parallel read rejects the entire view', async () => {

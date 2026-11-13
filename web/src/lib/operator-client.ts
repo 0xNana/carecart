@@ -1,5 +1,5 @@
 import { parseWorkflowProjection,type WorkflowProjection } from './workflow.ts';
-import {parseFundingSnapshot,type FundingSnapshot} from './funding';
+import {parseFundingSnapshot,type FundingSnapshot} from './funding.ts';
 import type {WalletReview,WalletProfile} from './v2-wallet.ts';
 import {parseStockDashboard,type AutonomyConfig} from './inventory.ts';
 import {parseFinancialReview} from './financial-review.ts';

@@ -59,7 +59,16 @@ export function parseWorkflowProjection(raw:unknown):WorkflowProjection {
 }
 export const stateText=(s:string)=>s.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^Po /,'PO ');
 export function caseStateLabel(c:WorkspaceCase) {
- return statusLabel(c.state);
+ return paymentEvidenceLabel(c,c.state);
+}
+export function paymentEvidenceLabel(c:Pick<WorkspaceCase,'evidenceKind'>,value:string) {
+ const labels:Record<WorkspaceCase['evidenceKind'],Record<string,string>>={
+  'local-only':{},
+  'mocked-rpc':{Paid:'Demo payment complete',SameChainConfirmed:'Demo payment complete',Dispatched:'Demo payment sent',SourceDispatched:'Demo payment sent · recipient confirmation pending',Settled:'Demo recipient confirmation',DestinationSettled:'Demo recipient confirmed'},
+  'sandbox-rpc':{Paid:'Local test payment complete',SameChainConfirmed:'Local test payment complete',Dispatched:'Local test payment sent',SourceDispatched:'Local test payment sent · recipient confirmation pending',Settled:'Local recipient confirmation',DestinationSettled:'Local recipient confirmed'},
+  'public-rpc':{Paid:'Testnet payment confirmed',SameChainConfirmed:'Testnet payment confirmed',Dispatched:'Testnet payment sent',SourceDispatched:'Testnet payment sent · recipient confirmation pending',Settled:'Testnet recipient confirmation',DestinationSettled:'Testnet recipient confirmed'},
+ };
+ return labels[c.evidenceKind][value]??statusLabel(value);
 }
 export function usdc(value:string) {const n=BigInt(value);return `${n/BigInt(1_000_000)}.${(n%BigInt(1_000_000)).toString().padStart(6,'0')}`;}
 export const terminalStates=new Set(['SameChainConfirmed','DestinationSettled','Refunded','Rejected','Failed','Expired']);

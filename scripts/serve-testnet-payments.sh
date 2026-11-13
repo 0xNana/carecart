@@ -2,7 +2,13 @@
 # Owner-run local testnet runtime. Existing scoped workers; no deployment/policy/funding operation.
 set -euo pipefail
 task_repo="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-task_node=/home/nana/.nvm/versions/node/v24.21.0/bin/node
+task_node="$(command -v node || true)"
+task_node_version=""
+if [[ -n "$task_node" ]]; then task_node_version="$("$task_node" --version)"; fi
+if [[ "$task_node_version" != "v24.21.0" ]]; then
+  printf '%s\n' 'Node.js 24.21.0 is required; run nvm use from the repository root first.' >&2
+  exit 1
+fi
 task_snapshot="${1:-}"
 task_mode="${2:---start}"
 if [[ $# -gt 2 || -z "$task_snapshot" || ( "$task_mode" != --start && "$task_mode" != --dry-run ) ]]; then

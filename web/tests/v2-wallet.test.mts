@@ -82,13 +82,13 @@ test('RENDERED UI / MOCK DATA: wallet review labels simulation, disables signing
  const {createElement}=await import('react');const {renderToStaticMarkup}=await import('react-dom/server');const folder=mkdtempSync(join(tmpdir(),'carecart-v2-ui-'));
  try{
   symlinkSync(resolve('node_modules'),join(folder,'node_modules'),'dir');
-  const code=ts.transpileModule(readFileSync('src/components/v2-wallet-review.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText
-   .replaceAll('../lib/v2-wallet',pathToFileURL(resolve('src/lib/v2-wallet.ts')).href);
+  let code=ts.transpileModule(readFileSync('src/components/v2-wallet-review.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+  code=code.replaceAll('../lib/v2-wallet',pathToFileURL(resolve('src/lib/v2-wallet.ts')).href).replaceAll('../lib/product-copy',pathToFileURL(resolve('src/lib/product-copy.ts')).href);
   writeFileSync(join(folder,'review.mjs'),code);const {V2WalletReview}=await import(pathToFileURL(join(folder,'review.mjs')).href);
   const f=await fixture();const props={client:{},session:{role:'operator',walletMode:'isolated-mock',walletProfile:profile},caseId:f.review.caseId,revision:1,paymentState:'PendingApproval',reviews:[f.review],onRefresh:async()=>{}};
-  const html=renderToStaticMarkup(createElement(V2WalletReview,props));assert.match(html,/simulated execution only/);assert.match(html,/exactly 1 yoctoNEAR/);assert.match(html,/disabled="">Confirm simulated wallet approval/);
+  const html=renderToStaticMarkup(createElement(V2WalletReview,props));assert.match(html,/Preview only · no money will move/);assert.match(html,/exactly 1 yoctoNEAR/);assert.match(html,/disabled="">Confirm preview/);
   props.paymentState='Rejected';const stale=renderToStaticMarkup(createElement(V2WalletReview,props));assert.match(stale,/<input[^>]*disabled/);props.paymentState='PendingApproval';
-  f.review.state='Ambiguous';const uncertain=renderToStaticMarkup(createElement(V2WalletReview,props));assert.match(uncertain,/Do not resend/);assert.match(uncertain,/verified transaction attribution: false/);
+  f.review.state='Ambiguous';const uncertain=renderToStaticMarkup(createElement(V2WalletReview,props));assert.match(uncertain,/Don’t repeat it yet/);assert.doesNotMatch(uncertain,/Payment confirmed|transactionHash/);
   assert.doesNotMatch(uncertain,/PRIVATE_KEY|OPERATOR_SECRET|NEAR_CLOUD_API_KEY/);
  }finally{rmSync(folder,{recursive:true,force:true});}
 });

@@ -1,7 +1,11 @@
 """Real CLI + HTTP + Next proxy; MOCK wallet/chain only. No external transport or operational credentials."""
-import http.client,http.cookiejar,json,os,secrets,shutil,socket,subprocess,tempfile,time,unittest,urllib.error,urllib.request
+import hashlib,http.client,http.cookiejar,json,os,secrets,shutil,socket,subprocess,sys,tempfile,time,unittest,urllib.error,urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+if len(sys.argv)!=2:raise SystemExit('Usage: python3 scripts/p3b-wallet-process.test.py /tmp/carecart-phase2-verify.SNAPSHOT')
+SNAPSHOT=Path(sys.argv[1]).resolve()
+assert SNAPSHOT.parent==Path('/tmp') and SNAPSHOT.name.startswith('carecart-phase2-verify.') and (SNAPSHOT/'web/.next/BUILD_ID').is_file()
+assert all(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==digest for name,digest in json.loads((SNAPSHOT/'source-hashes.json').read_text()).items()),'Snapshot/source mismatch'
 def port():
  with socket.socket() as s:s.bind(('127.0.0.1',0));return s.getsockname()[1]
 class WalletProcessTest(unittest.TestCase):
@@ -10,19 +14,19 @@ class WalletProcessTest(unittest.TestCase):
   api_port,web_port=port(),port()
   with tempfile.TemporaryDirectory(prefix='carecart-p3b-http-') as directory:
    temp=Path(directory);(temp/'backend').mkdir()
-   shutil.copytree(ROOT/'backend/src',temp/'backend/src');shutil.copy2(ROOT/'backend/package.json',temp/'backend/package.json')
-   (temp/'backend/node_modules').symlink_to(ROOT/'backend/node_modules',target_is_directory=True)
+   shutil.copytree(SNAPSHOT/'backend/src',temp/'backend/src');shutil.copy2(SNAPSHOT/'backend/package.json',temp/'backend/package.json')
+   (temp/'backend/node_modules').symlink_to(SNAPSHOT/'backend/node_modules',target_is_directory=True)
    preload=temp/'no-external.cjs';preload.write_text("""const net=require('node:net');const original=net.Socket.prototype.connect;
 net.Socket.prototype.connect=function(...args){const normalized=Array.isArray(args[0])?args[0]:args;const first=normalized[0];
 const host=typeof first==='object'?first.host:(typeof normalized[1]==='string'?normalized[1]:typeof first==='number'?'localhost':undefined);
 if(!['127.0.0.1','localhost','::1'].includes(host))throw Error('NO_EXTERNAL_NETWORK');return original.apply(this,args);};
 const fetch0=globalThis.fetch;globalThis.fetch=(input,...rest)=>{const u=new URL(typeof input==='object'&&input.url?input.url:String(input));if(!['127.0.0.1','localhost','[::1]'].includes(u.hostname))throw Error('NO_EXTERNAL_NETWORK');return fetch0.call(globalThis,input,...rest);};
-const {Account}=require('/home/nana/projects/carecart/backend/node_modules/near-api-js');Account.prototype.callFunctionRaw=()=>{throw Error('NO_SIGNING');};
+const {Account}=require(process.env.CARECART_NEAR_API);Account.prototype.callFunctionRaw=()=>{throw Error('NO_SIGNING');};
 """)
    node=shutil.which('node');credential=secrets.token_hex(32);origin=f'http://127.0.0.1:{web_port}'
-   base={'PATH':os.environ.get('PATH',''),'HOME':directory,'TMPDIR':directory,'NEXT_TELEMETRY_DISABLED':'1','CARECART_AI_MODE':'deterministic','NODE_OPTIONS':'--require '+str(preload)}
+   base={'PATH':os.environ.get('PATH',''),'HOME':directory,'TMPDIR':directory,'NEXT_TELEMETRY_DISABLED':'1','CARECART_AI_MODE':'deterministic','CARECART_NEAR_API':str(SNAPSHOT/'backend/node_modules/near-api-js'),'NODE_OPTIONS':'--require '+str(preload)}
    env={**base,'CARECART_OPERATIONS_MODE':'local-synthetic','CARECART_OPERATIONS_WALLET_MODE':'isolated-mock','CARECART_OPERATIONS_OPERATOR_SECRET':credential,'CARECART_OPERATIONS_ORIGIN':origin,'CARECART_OPERATIONS_PORT':str(api_port)}
-   command=[node,'--import',str(ROOT/'backend/node_modules/tsx/dist/loader.mjs'),'src/ops/wallet-workspace.ts','--seed']
+   command=[node,'--import',str(SNAPSHOT/'backend/node_modules/tsx/dist/loader.mjs'),'src/ops/wallet-workspace.ts','--seed']
    processes=[];logs=[]
    def start_api():
     log=open(temp/f'api-{len(logs)}.log','w+');logs.append(log)
@@ -54,7 +58,7 @@ const {Account}=require('/home/nana/projects/carecart/backend/node_modules/near-
    try:
     api=start_api();ready(api,api_ready)
     log=open(temp/'next.log','w+');logs.append(log)
-    web=subprocess.Popen([node,str(ROOT/'web/node_modules/next/dist/bin/next'),'start','--hostname','127.0.0.1','--port',str(web_port)],cwd=ROOT/'web',env={**base,'CARECART_OPERATIONS_API_URL':f'http://127.0.0.1:{api_port}'},stdout=log,stderr=log);processes.append(web)
+    web=subprocess.Popen([node,str(SNAPSHOT/'web/node_modules/next/dist/bin/next'),'start','--hostname','127.0.0.1','--port',str(web_port)],cwd=SNAPSHOT/'web',env={**base,'CARECART_OPERATIONS_API_URL':f'http://127.0.0.1:{api_port}'},stdout=log,stderr=log);processes.append(web)
     ready(web,lambda:request('/operations')[0]==200)
     self.assertEqual(request('/api/operations/cases')[0],401)
     status,headers,_=request('/api/operations/login','POST',{'credential':credential},{'Origin':origin});self.assertEqual(status,200)
@@ -97,4 +101,4 @@ const {Account}=require('/home/nana/projects/carecart/backend/node_modules/near-
       try:p.wait(timeout=10)
       except subprocess.TimeoutExpired:p.kill();p.wait(timeout=10)
     for log in logs:log.close()
-if __name__=='__main__':unittest.main()
+if __name__=='__main__':unittest.main(argv=[sys.argv[0]])
