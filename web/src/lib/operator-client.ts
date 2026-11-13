@@ -46,6 +46,9 @@ export class OperatorClient {
   if(!this.#session||result.profileFingerprint!==this.#session.profileFingerprint||result.dataOrigin!=='synthetic')throw new OperatorApiError('PROFILE_MISMATCH',409);return result;}
 
  async stock(){const session=await this.session();return parseStockDashboard(await this.#request('stock'),session.profileFingerprint);}
+ async automaticPurchasing(){return this.#request('automatic-purchasing');}
+ async setAutomaticPurchasing(policy:Record<string,unknown>,walletBindingId:string){return this.#mutation('automatic-purchasing',{requestId:crypto.randomUUID(),policy,walletBindingId});}
+ async pauseAutomaticPurchasing(){return this.#mutation('automatic-purchasing/pause',{requestId:crypto.randomUUID()});}
  async funding():Promise<FundingSnapshot>{const session=await this.session();return parseFundingSnapshot(await this.#request('funding'),session.profileFingerprint);}
  async recordStock(movement:{id:string;productId:string;kind:string;quantity:number;unit:'base'|'pack';source:'synthetic'|'manual';orderId?:string;reason?:string;expiresAt?:string;corrects?:string;receiptReference?:string;confirmationReference?:string;confirmedAt?:string;lotId?:string;supplierId?:string;batch?:string;receivedAt?:string;destination?:string;reference?:string}){
   return this.#mutation('stock/movements',{requestId:crypto.randomUUID(),movement});

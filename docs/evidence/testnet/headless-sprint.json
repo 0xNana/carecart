@@ -1,0 +1,94 @@
+{
+  "network": "testnet",
+  "clinicId": "dfa461bd-16f8-443a-9ca7-13e9b4697940",
+  "caseId": "case-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7",
+  "poId": "tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804",
+  "canonical": {
+    "po_id": "tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804",
+    "profile": "testnet",
+    "supplier": "medsupply-a.carecart.testnet",
+    "token": "token-v2.carecart.testnet",
+    "amount": "1500000",
+    "invoice_digest": "8d14ad2d2ccef96efd7211fd878a9042f0da1ba3aa3022b4e54f5383669dbd94",
+    "destination": "Near"
+  },
+  "canonicalHash": "b1ace883ac67ca9968922c57b529e47bc4c6e585ef1cca32e2df2ccec2ff1756",
+  "inventory": {
+    "beforeConsumption": 54,
+    "consumed": 28,
+    "afterConsumption": 26,
+    "afterConfirmedPayment": 26,
+    "physicalDelivery": 30,
+    "afterPhysicalDelivery": 56,
+    "duplicatePhysicalReceiptAdded": "0"
+  },
+  "policy": {
+    "version": 1,
+    "enabled": true,
+    "policy": {
+      "suppliers": [
+        "medsupply-a.carecart.testnet"
+      ],
+      "itemIds": [
+        "mn-item-1"
+      ],
+      "maxAutomaticAmount": "3000000",
+      "network": "testnet",
+      "token": "token-v2.carecart.testnet",
+      "vault": "safety-v2.carecart.testnet",
+      "hardPerPoLimit": "25000000",
+      "dailyDispatchLimit": "25000000",
+      "expiresAt": "2026-11-13T15:56:16.352Z"
+    }
+  },
+  "maximumTotalTestTokenExposure": "3000000",
+  "publicTransactionsSubmitted": 3,
+  "approvalSource": "Bounded owner consent before execution; deterministic policy issued both role permits without an interactive session",
+  "completedAt": "2026-11-13T15:03:37.996Z",
+  "headless": true,
+  "modelInference": false,
+  "automaticAuthorization": true,
+  "authorizations": [
+    {
+      "role": "committer",
+      "state": "Observed",
+      "automaticPolicyVersion": 1
+    },
+    {
+      "role": "requester",
+      "state": "Observed",
+      "automaticPolicyVersion": 1
+    }
+  ],
+  "policyAfterCompletion": {
+    "version": 2,
+    "enabled": false,
+    "policy": {
+      "suppliers": [
+        "medsupply-a.carecart.testnet"
+      ],
+      "itemIds": [
+        "mn-item-1"
+      ],
+      "maxAutomaticAmount": "3000000",
+      "network": "testnet",
+      "token": "token-v2.carecart.testnet",
+      "vault": "safety-v2.carecart.testnet",
+      "scope": "one-order-sprint",
+      "hardPerPoLimit": "25000000",
+      "dailyDispatchLimit": "25000000",
+      "expiresAt": "2026-11-13T15:56:16.352Z"
+    }
+  },
+  "evidenceLevel": "public-testnet-financial-execution-and-local-synthetic-inventory",
+  "limitations": [
+    "Synthetic clinic, quotes and physical delivery; CCUSD has no cash value.",
+    "One owner-approved test order; no claim of production activation or mainnet settlement."
+  ],
+  "preparationPublicTransactionsSubmitted": 0,
+  "transactionHashes": [
+    "GkenNfSpQq7YeXfUS6fH5rHhEHKo3kkwV3VbAPtwMK9F",
+    "EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD",
+    "CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH"
+  ]
+}

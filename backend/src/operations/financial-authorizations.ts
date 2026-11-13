@@ -1,3 +1,4 @@
+import {randomUUID} from 'node:crypto';
 import {verifyNativePayment} from '../near/human-receipts';
 import {assertTestnetPayments,type TestnetPayments} from '../profiles/testnet-payments';
 import {SafetyVaultClient} from '../near/safety-client';
@@ -69,14 +70,28 @@ export class FinancialAuthorizations {
  }
  #terms(r:Awaited<ReturnType<FinancialAuthorizations['assess']>>,role:string,tenantScope?:TreasuryScope){const hasTenant=this.db.prepare("SELECT 1 FROM sqlite_master WHERE name='inventory_tenant_binding'").get();const owner=hasTenant?this.db.prepare('SELECT clinic_id FROM inventory_tenant_binding WHERE id=1').get() as {clinic_id:string|null}|undefined:undefined;return {...(tenantScope?{tenantScope}:{}),clinicId:owner?.clinic_id??null,signer:role==='committer'?this.workflow.procurement.profile.committer:this.workflow.procurement.profile.requester,profileFingerprint:this.workflow.procurement.fingerprint,caseId:r.caseId,revision:r.revision,role,canonical:r.canonical,canonicalHash:r.canonicalHash,quote:r.quote,policy:r.policy,execution:r.execution};}
  async authorize(caseId:string,raw:unknown,actor:string,claim=()=>{},approval?:TreasuryApproval){
+  return this.#authorize(caseId,raw,actor,claim,approval,false);
+ }
+ /** Internal policy evaluator only. No browser or model route calls this method. */
+ async authorizeAutomatic(caseId:string){
+  if(!this.tenantAuthority)throw new OperationsError(403,'AUTOMATIC_POLICY_UNCONFIGURED');
+  const review=await this.assess(caseId),role=review.requiredAuthority;
+  if(role!=='committer'&&role!=='requester')throw new OperationsError(409,'AUTOMATIC_ACTION_UNAVAILABLE');
+  const policy=this.tenantAuthority.automatic.get();if(!policy)throw new OperationsError(403,'AUTOMATIC_POLICY_UNCONFIGURED');
+  const prior=this.db.prepare('SELECT id FROM financial_authorizations WHERE case_id=? AND role=?').get(caseId,role) as {id:string}|undefined;
+  if(prior)return this.get(prior.id);
+  return this.#authorize(caseId,{requestId:randomUUID(),role,expectedRevision:review.revision,expectedHash:review.canonicalHash},`automatic:${this.tenantAuthority.clinicId}:${policy.version}`,()=>{},undefined,true);
+ }
+ async #authorize(caseId:string,raw:unknown,actor:string,claim:()=>void,approval:TreasuryApproval|undefined,automatic:boolean){
   const input=FinancialInput.parse(raw);if(!this.binding)throw new OperationsError(403,'FINANCIAL_EXECUTION_DISABLED');
   const owner=this.db.prepare("SELECT 1 FROM sqlite_master WHERE name='inventory_tenant_binding'").get()?(this.db.prepare('SELECT clinic_id FROM inventory_tenant_binding WHERE id=1').get() as {clinic_id:string|null}|undefined)?.clinic_id:null;
-  if(owner&&(!this.tenantAuthority||!approval||input.walletBindingId!==approval.walletBindingId))throw new OperationsError(403,'TENANT_FINANCIAL_EXECUTION_DISABLED');
+  if(owner&&(!this.tenantAuthority||(!automatic&&(!approval||input.walletBindingId!==approval.walletBindingId))))throw new OperationsError(403,'TENANT_FINANCIAL_EXECUTION_DISABLED');
   const payload=digest({caseId,input,actor,...(approval?{walletBindingId:approval.walletBindingId}: {})});const prior=this.db.prepare('SELECT id FROM financial_authorizations WHERE id=?').get(input.requestId);
   if(prior){const row=this.#row(input.requestId);if(owner)await this.tenantAuthority!.validate(JSON.parse(row.terms_json).tenantScope);if(row.payload_hash!==payload)throw new OperationsError(409,'AUTHORIZATION_CONFLICT');claim();return this.get(row.id);}
   const review=await this.assess(caseId);
   if(review.revision!==input.expectedRevision||review.canonicalHash!==input.expectedHash||review.requiredAuthority!==input.role||review.policy.blocks.length)throw new OperationsError(409,'FINANCIAL_REVIEW_BLOCKED_OR_STALE');
-  const tenantScope=owner?await this.tenantAuthority!.approve(review,input.role,actor,input.requestId,approval!):undefined;
+  const tenantScope=owner?(automatic?await this.tenantAuthority!.approveAutomatic(review,input.role,input.requestId):await this.tenantAuthority!.approve(review,input.role,actor,input.requestId,approval!)):undefined;
+  if(automatic&&!tenantScope)throw new OperationsError(403,'AUTOMATIC_TENANT_REQUIRED');
   const terms=this.#terms(review,input.role,tenantScope);
   this.db.transaction(()=>{claim();if(tenantScope)this.tenantAuthority!.assertLocal(tenantScope);const c=this.workflow.get(caseId);if(c.version!==review.revision||c.poHash!==input.expectedHash)throw new OperationsError(409,'STALE_CASE');
    if(this.db.prepare('SELECT 1 FROM financial_authorizations WHERE case_id=? AND role=?').get(caseId,input.role))throw new OperationsError(409,'AUTHORIZATION_ALREADY_RECORDED');

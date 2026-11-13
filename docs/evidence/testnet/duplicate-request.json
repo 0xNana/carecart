@@ -1,0 +1,17 @@
+{
+  "state": "Confirmed",
+  "network": "testnet",
+  "evidenceLevel": "public-testnet-onchain-idempotency",
+  "poId": "tn-po-9d89fce0612cd51f625efe1c0a9b87b1b23febd67fbafdb7401de804",
+  "transactionHash": "CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH",
+  "explorer": "https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH",
+  "vault": "safety-v2.carecart.testnet",
+  "token": "token-v2.carecart.testnet",
+  "supplier": "medsupply-a.carecart.testnet",
+  "supplierBefore": "3000000",
+  "supplierAfter": "3000000",
+  "additionalTransferAmount": "0",
+  "finalExecutionStatus": "FINAL",
+  "logs": [],
+  "observedAt": "2026-11-13T15:02:06.538Z"
+}

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { createMDX } from "fumadocs-mdx/next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -16,7 +17,7 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   turbopack: {
     rules: {
-      "globals.css": {
+      "*.css": {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
@@ -24,4 +25,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX();
+
+export default withMDX(nextConfig);

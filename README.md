@@ -1,10 +1,10 @@
 # CareCart
 
-CareCart helps clinics keep reliable supply records and replenish essential items. Staff record stock received, consumed, dispensed or adjusted. A background monitor can detect shortages, compare approved supplier offers and prepare a purchase order.
+CareCart helps clinics keep reliable supply records and replenish essential items. Staff record stock received, consumed, dispensed or adjusted. A background monitor detects shortages, compares approved supplier offers and prepares a canonical purchase order. A deterministic financial policy can authorize eligible testnet purchases for separate restricted payment workers.
 
 CareCart manages inventory and procurement records; it does not make clinical decisions or provide medical advice.
 
-> **Current scope:** Inventory monitoring and purchase-order preparation can run automatically. The current clinic workflow still requires a person to authorize each order and payment request. The NEAR safety vault can enforce its configured supplier and spending policy, but this release does not demonstrate unattended end-to-end purchasing.
+> **Current scope:** A clinic administrator can select suppliers, items and an automatic order limit. Eligible testnet orders can proceed without a separate human signature for each order; other orders remain for review. A bounded synthetic-clinic run completed a genuine 1.5 CCUSD supplier payment on November 13. CCUSD has no cash value. Mainnet, Circle USDC, real clinic deployment and NEAR Intents settlement are outside this release.
 
 ## Hackathon project
 
@@ -27,7 +27,7 @@ The available Git history begins on November 1, 2026. Relevant commits in that h
 
 This describes the history present in this repository. It cannot establish whether CareCart or related product work existed outside this Git history before November 1. The owner should add any known earlier work and attribution before submission.
 
-The project uses Next.js, React, TypeScript, `near-api-js`, `@hot-labs/near-connect`, Rust `near-sdk`, SQLite and local NEAR Sandbox tests. Versions are pinned in the package manifests and lockfiles. The available repository history does not identify an external starter template; add any separately used templates, copied components or third-party work that is not represented there.
+The project uses Next.js, React, Fumadocs/MDX, TypeScript, `near-api-js`, `@hot-labs/near-connect`, Rust `near-sdk`, SQLite and local NEAR Sandbox tests. Versions are pinned in the package manifests and lockfiles. The available repository history does not identify an external starter template; add any separately used templates, copied components or third-party work that is not represented there.
 
 ## How it works
 
@@ -37,16 +37,16 @@ flowchart LR
   B --> C[Background stock monitor]
   C --> D[Shortage case and supplier-offer comparison]
   D --> E[Prepared purchase order]
-  E --> F[Clinic approval for this order and payment]
+  E --> F[Clinic standing policy or explicit order authorization]
   F --> G[Role-limited payment worker]
   G --> H[NEAR safety vault]
-  H --> I[Policy checks and test-token transfer]
+  H --> I[Onchain limits and CCUSD transfer]
   I --> J[Independent payment observation and audit record]
   J --> K[Staff record physical delivery]
   K --> B
 ```
 
-The inventory worker can monitor stock and prepare replenishment work. It is not authorized to spend funds. Restricted payment services process an order only after the required clinic authorization; the safety vault checks the saved order, approved supplier, payment limits and pause state. A recorded transaction submission is not treated as payment success until the configured observer verifies it. Staff record physical delivery separately from payment.
+The inventory worker is key-free and prepares replenishment work. A separate internal evaluator can issue operation-specific authorizations from a clinic standing policy. Separate restricted payment services consume those authorizations; the safety vault checks the saved order, approved supplier, payment limits and pause state. A recorded transaction submission is not treated as payment success until the configured observer verifies it. Staff record physical delivery separately from payment.
 
 ## Repository layout
 
@@ -58,7 +58,7 @@ The inventory worker can monitor stock and prepare replenishment work. It is not
 | `contracts/` | Contract workspace and local test-token fixtures. |
 | `profiles/` | Example runtime profiles. They are configuration, not proof of live account state. |
 | `scripts/` | Verification, isolated demo, build and deployment utilities. |
-| `docs/` | Judge walkthrough and submission handoff. |
+| `docs/` | Product brief, proposed roadmap, first-client plan, engineering guides and hackathon handoff. Start at [`docs/README.md`](docs/README.md). |
 
 ## Quick start: offline demo
 
@@ -102,7 +102,7 @@ For a screen recording, start your screen recorder and run the same flow in a vi
 node scripts/mvp-browser-acceptance.mjs /tmp/carecart-phase2-verify.REPLACE_WITH_PRINTED_SUFFIX --headed
 ```
 
-Replace the snapshot suffix with the verifier's exact output. The visible mode pauses at each main step for about seven seconds; set `CARECART_DEMO_PAUSE_MS` to a value from 2,000 to 15,000 milliseconds if you need more narration time. It still uses synthetic local data, and payment stays **Unobserved**. See [`docs/SUBMISSION_HANDOFF.md`](docs/SUBMISSION_HANDOFF.md) for the 90–150-second narration outline.
+Replace the snapshot suffix with the verifier's exact output. The visible mode pauses at each main step for about seven seconds; set `CARECART_DEMO_PAUSE_MS` to a value from 2,000 to 15,000 milliseconds if you need more narration time. It still uses synthetic local data, and payment stays **Unobserved**. See [`docs/FINAL_HACKATHON_HANDOFF.md`](docs/FINAL_HACKATHON_HANDOFF.md) for the 90–150-second narration outline.
 
 See [`docs/JUDGE_WALKTHROUGH.md`](docs/JUDGE_WALKTHROUGH.md) for expected steps and troubleshooting.
 
@@ -123,13 +123,34 @@ The local synthetic walkthrough above is the recommended judge path when hosted 
 
 ## NEAR integration and evidence limits
 
-The safety vault is designed to enforce an allowlisted supplier, separate roles, a per-order automatic limit, a hard payout limit, a daily limit and a pause control. The application still requires per-order clinic authorization before payment processing, so the presence of a capped contract path does not prove autonomous purchasing.
+The reviewed Rust source at `52060a1626c02f9d8b93538110715f01937e31cb` rebuilt with Rust 1.93.0 and cargo-near 0.22.0 produces SHA-256 `979c178881f12ce6694ea804d9374af3606b55dbb0b8074434e791d5c9b0b71e`, encoded by NEAR as `BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3`. Read-only RPC retrieval of the deployed WASM matched those exact bytes. Current vault Rust source and Cargo.lock match that revision; the later package-metadata/container build is a different artifact, not an unknown deployment. See [source evidence](docs/evidence/testnet/vault-source-verification.json) and `bash scripts/reproduce-deployed-vault.sh`.
 
-At `2026-11-13T06:48:08Z`, read-only RPC checks at finalized block `EKi9urzVA9Af64i8LTcwPBQFdrrpQukcjQ6D2wsH148T` (height `277475353`) found that `safety-v2.carecart.testnet` and `token-v2.carecart.testnet` matched the code hashes in `profiles/testnet.payments.json`. The token's on-chain metadata reported `CCUSD`, six decimals and `ft-1.0.0`. This verifies the deployed hashes and token metadata only; it does not demonstrate role setup, spendable balance, a supplier payment or payment observation.
+The November 13 headless run consumed synthetic gloves, generated a 30-unit PO and automatically authorized both restricted roles from the owner's preapproved one-order policy. It paid **1.5 CCUSD (1,500,000 base units)** to `medsupply-a.carecart.testnet`:
 
-A pinned reproducible build of source commit `54fbdd5` completed with the image digest recorded in the vault manifest. Its safety-vault Wasm hash is `5QUCiYxCP8g3oP6edLzjSvYrKXP7sag4rCozhn1SLyYL`; the deployed vault hash recorded above is `BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3`. These hashes differ, so this release does not claim that the deployed vault is byte-identical to the reproducible source artifact. The separate `profiles/testnet.demo.json` is an offline proposal profile tied to checked-in artifact hashes, not evidence for the deployed contracts. No verified public supplier-payment receipt is attached to this release. Do not present local fixtures or Sandbox runs as public testnet transactions. Do not describe CCUSD as native Circle USDC.
+- [Commitment](https://testnet.nearblocks.io/txns/GkenNfSpQq7YeXfUS6fH5rHhEHKo3kkwV3VbAPtwMK9F)
+- [Confirmed supplier payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD)
+- [Duplicate request: zero additional transfer](https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH)
+- [Independent public receipt and balance evidence](docs/evidence/testnet/autonomous-payment.json)
+- [Headless policy and inventory trace](docs/evidence/testnet/headless-sprint.json)
 
-The repository includes cross-chain and NEAR Intents related code, but the current product does not demonstrate a completed public Intents settlement. Do not use an offline preview or test fixture as settlement evidence.
+Historical block queries show the supplier increasing from 1,500,000 to 3,000,000 base units and the vault decreasing from 3,500,000 to 2,000,000. The duplicate request left the supplier at 3,000,000. Inventory stayed at 26 after payment and increased to 56 only on the separately recorded synthetic delivery. Replaying the delivery added zero units. The one-order policy was then disabled.
+
+Verify the public payment from a clean checkout; no private clinic database, API key or signer is needed:
+
+```bash
+nvm use
+npm ci --prefix backend
+node --import ./backend/node_modules/tsx/dist/loader.mjs backend/src/ops/testnet-payment-evidence.ts \
+  profiles/testnet.payments.json docs/evidence/testnet/autonomous-payment.json
+```
+
+The output must confirm `nativeSettlementVerified: true` and `deltaVerified: true`. The supplier is a controlled test account, not an integrated real medical distributor. A separate November 10 payment was also independently recovered and verified in [historical evidence](docs/evidence/testnet/supplier-payment.json).
+
+Normal automatic policies require a current clinic administrator and verified clinic control wallet; they bind selected items/suppliers, an amount at or below 10 CCUSD, the active treasury, and an expiry of at most 24 hours. The sprint used an explicitly approved host control-plane grant restricted to exactly one synthetic glove PO and at most 3 CCUSD. Both use the same permits, journals, workers and onchain policy. The LLM has no financial authorization or signing tool. See [activation and authority details](docs/carecart-testnet-activation.md).
+
+The unchanged vault policy enforces a 10 CCUSD automatic threshold, 25 CCUSD hard order and daily dispatch caps, and a 5 CCUSD initial accepted deposit ceiling. Above-threshold orders require human review; public tenant admin-wallet handoff is still disabled, so those orders remain held in the current app. Local Sandbox verifies valid human approval and hard-cap enforcement. A vault-account full-access upgrade key remains an owner authority capable of replacing contract code; limits depend on retaining the reviewed deployment. This is disclosed, not a claim of an immutable deployment.
+
+No mainnet transaction or NEAR Intents settlement was performed. NEAR Intents is a separate future integration.
 
 ## Verification
 
@@ -151,7 +172,7 @@ Build the safety vault for WebAssembly:
 cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked
 ```
 
-The safety-vault manifest also records the pinned Docker image for a reproducible Wasm build. The build output includes source metadata and is tied to the source commit; see [`docs/SUBMISSION_HANDOFF.md`](docs/SUBMISSION_HANDOFF.md) for the artifact hash and comparison with the deployed testnet code.
+The safety-vault manifest also records the pinned Docker image for a reproducible Wasm build. The build output includes source metadata and is tied to the source commit; see [`docs/FINAL_HACKATHON_HANDOFF.md`](docs/FINAL_HACKATHON_HANDOFF.md) for the artifact hash and comparison with the deployed testnet code.
 
 The Sandbox tests use local synthetic accounts and token fixtures. They do not sign public transactions, deploy contracts or move real funds. See the contract READMEs for contract-specific commands and scope.
 
@@ -160,6 +181,6 @@ The Sandbox tests use local synthetic accounts and token fixtures. They do not s
 - Never commit `.env` files, private keys, account credentials, real clinic databases or customer records.
 - Local environment files, database files, build output and `internal-docs/` are ignored by Git.
 - Public testnet configuration is not a production deployment or proof of payment.
-- The current submission handoff records the checks actually run and the remaining owner actions: [`docs/SUBMISSION_HANDOFF.md`](docs/SUBMISSION_HANDOFF.md).
+- The current submission handoff records the checks actually run and the remaining owner actions: [`docs/FINAL_HACKATHON_HANDOFF.md`](docs/FINAL_HACKATHON_HANDOFF.md).
 
 CareCart is provided under the [MIT License](LICENSE).

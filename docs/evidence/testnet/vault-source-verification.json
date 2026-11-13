@@ -1,0 +1,185 @@
+{
+  "observedAt": "2026-11-13T15:09:24.733Z",
+  "network": "testnet",
+  "readOnly": true,
+  "block": {
+    "hash": "37akDtdyRrJ9NoLpGANuJf3ShMe9djPb5nETciRM3ahj",
+    "height": 277526433
+  },
+  "vault": "safety-v2.carecart.testnet",
+  "token": "token-v2.carecart.testnet",
+  "artifact": {
+    "sha256": "979c178881f12ce6694ea804d9374af3606b55dbb0b8074434e791d5c9b0b71e",
+    "nearCodeHash": "BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3",
+    "bytes": 288241
+  },
+  "deployed": {
+    "sha256": "979c178881f12ce6694ea804d9374af3606b55dbb0b8074434e791d5c9b0b71e",
+    "nearCodeHash": "BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3",
+    "bytes": 288241
+  },
+  "artifactMatchesDeployment": true,
+  "profileMatchesDeployment": true,
+  "tokenCodeHash": "8SHC5cfTSwdgKTtuCJPnsgNCj8Q9P3LpsAhLNDpMd6FW",
+  "metadata": {
+    "spec": "ft-1.0.0",
+    "name": "CareCart Local Test Token",
+    "symbol": "CCUSD",
+    "icon": null,
+    "reference": null,
+    "reference_hash": null,
+    "decimals": 6
+  },
+  "state": {
+    "profile": "testnet",
+    "admin": "admin.carecart.testnet",
+    "pending_admin": null,
+    "guardian": "guardian-v2.carecart.testnet",
+    "treasury": "treasury.carecart.testnet",
+    "token": "token-v2.carecart.testnet",
+    "paused": false,
+    "policy": {
+      "auto_per_po_limit": "10000000",
+      "hard_payout_limit": "25000000",
+      "daily_dispatch_limit": "25000000",
+      "accepted_deposit_ceiling": "5000000"
+    },
+    "accounted_balance": "2000000",
+    "reserved_payment": "0",
+    "reserved_withdrawal": "0",
+    "spendable": "2000000",
+    "storage_reserve": "85700000000000000000000",
+    "day": "20770",
+    "usage": {
+      "spent": "1500000",
+      "reserved": "0"
+    }
+  },
+  "vaultAccessKeys": [
+    {
+      "access_key": {
+        "nonce": 277057951000001,
+        "permission": "FullAccess"
+      },
+      "public_key": "ed25519:8motr8WLg8XZ8qB8BMn13b7WKVUUnUiZZKpLJqfjSo1W"
+    }
+  ],
+  "treasuryBalance": "95000000",
+  "vaultBalance": "2000000",
+  "suppliers": [
+    {
+      "accountId": "medsupply-a.carecart.testnet",
+      "roles": {
+        "committer": false,
+        "requester": false,
+        "supplier": true
+      },
+      "balance": "3000000"
+    },
+    {
+      "accountId": "medsupply-b.carecart.testnet",
+      "roles": {
+        "committer": false,
+        "requester": false,
+        "supplier": true
+      },
+      "balance": "0"
+    },
+    {
+      "accountId": "medsupply-v2-c.carecart.testnet",
+      "roles": {
+        "committer": false,
+        "requester": false,
+        "supplier": true
+      },
+      "balance": "0"
+    }
+  ],
+  "restrictedRoles": [
+    {
+      "role": "committer",
+      "accountId": "committer-v2.carecart.testnet",
+      "publicKey": "ed25519:BNvE1Cmyr2Tdad2c9wDt2AGk3G33KzSpvFYQ4rto1wpX",
+      "accessKeys": [
+        {
+          "access_key": {
+            "nonce": 277083205000002,
+            "permission": {
+              "FunctionCall": {
+                "allowance": "199501974278095800000000",
+                "method_names": [
+                  "commit_purchase_order"
+                ],
+                "receiver_id": "safety-v2.carecart.testnet"
+              }
+            }
+          },
+          "public_key": "ed25519:BNvE1Cmyr2Tdad2c9wDt2AGk3G33KzSpvFYQ4rto1wpX"
+        },
+        {
+          "access_key": {
+            "nonce": 277058000000001,
+            "permission": "FullAccess"
+          },
+          "public_key": "ed25519:HhZgL18Z9y1vAqYBUmMaVPS7Cj8adrK7rXoA1cJSAJMi"
+        }
+      ],
+      "roles": {
+        "committer": true,
+        "requester": false,
+        "supplier": false
+      },
+      "tokenBalance": "0"
+    },
+    {
+      "role": "requester",
+      "accountId": "agent-v2.carecart.testnet",
+      "publicKey": "ed25519:GdKnGkh7zTevtWR9dt1dzvNMYpW4wfTAS2cUjKAaYews",
+      "accessKeys": [
+        {
+          "access_key": {
+            "nonce": 277058017000001,
+            "permission": "FullAccess"
+          },
+          "public_key": "ed25519:9hsynzNzWcmtXH4BJ98bo17vQ436u37ujxd3zZZMuTLt"
+        },
+        {
+          "access_key": {
+            "nonce": 277083220000003,
+            "permission": {
+              "FunctionCall": {
+                "allowance": "198236103261640400000000",
+                "method_names": [
+                  "request_payment"
+                ],
+                "receiver_id": "safety-v2.carecart.testnet"
+              }
+            }
+          },
+          "public_key": "ed25519:GdKnGkh7zTevtWR9dt1dzvNMYpW4wfTAS2cUjKAaYews"
+        }
+      ],
+      "roles": {
+        "committer": false,
+        "requester": true,
+        "supplier": false
+      },
+      "tokenBalance": "0"
+    }
+  ],
+  "publicTransactionsSubmitted": 0,
+  "sourceBuild": {
+    "reviewedCommit": "52060a1626c02f9d8b93538110715f01937e31cb",
+    "rustc": "1.93.0 (254b59607 2026-01-19)",
+    "cargoNear": "0.22.0",
+    "target": "wasm32-unknown-unknown",
+    "command": "cargo near build non-reproducible-wasm --locked --manifest-path contracts/carecart-safety-vault/Cargo.toml --out-dir OUTPUT",
+    "reproductionScript": "scripts/reproduce-deployed-vault.sh",
+    "sourceHashes": {
+      "contracts/carecart-safety-vault/src/lib.rs": "61c06308fe1bb97eccd5af201b1d496dd7982449599f5afdaa63fe4c4f6c1d0d",
+      "contracts/Cargo.lock": "5921eb6e574a341507575fcc07f0129dad60160898d8df890874fed2db037177",
+      "rust-toolchain.toml": "7040fc9211f3b49abb1d81745309729f983a286f122b7aba1a82c50727859def"
+    },
+    "explanation": "Archived release reproduced byte-for-byte; the later repository metadata and Rust 1.96 container build produce a different artifact. No redeployment was needed."
+  }
+}

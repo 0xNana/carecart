@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use carecart_safety_vault::{Payment, Policy, Status};
+use carecart_safety_vault::{Payment, Policy, Reason, Status};
 use near_api::{Account, AccountId, NearGas, NearToken, NetworkConfig, Signer};
 use near_sdk::json_types::U128;
 use near_sdk::serde_json::json;
@@ -215,6 +215,89 @@ async fn safety_vault_real_receipts() -> testresult::TestResult<()> {
             .await?
             .0,
         1_000_000
+    );
+    // Real Wasm/receipt negative paths; no public network or policy-cap changes.
+    let before_defenses =
+        view::<U128>(&token, &n, "ft_balance_of", balance(vault.account_id())).await?;
+    for (po_id, recipient, amount, reason) in [
+        (
+            "defense-unknown",
+            guardian.account_id(),
+            "1000000",
+            Reason::UnknownSupplier,
+        ),
+        (
+            "defense-cap",
+            supplier.account_id(),
+            "25000001",
+            Reason::OverHardLimit,
+        ),
+        (
+            "defense-paused",
+            supplier.account_id(),
+            "1000000",
+            Reason::Paused,
+        ),
+    ] {
+        call(&vault, committer.account_id(), &signer, &n, "commit_purchase_order",
+            json!({"order":{"po_id":po_id,"profile":"testnet","supplier":recipient,"token":token.account_id(),"amount":amount,"invoice_digest":"f".repeat(64),"destination":"Near"}}), zero).await?;
+        if po_id == "defense-paused" {
+            call(
+                &vault,
+                guardian.account_id(),
+                &signer,
+                &n,
+                "pause",
+                json!({}),
+                one,
+            )
+            .await?;
+        }
+        call(
+            &vault,
+            agent.account_id(),
+            &signer,
+            &n,
+            "request_payment",
+            json!({"po_id":po_id}),
+            zero,
+        )
+        .await?;
+        let payment = view::<Payment>(&vault, &n, "get_payment", json!({"po_id":po_id})).await?;
+        assert_eq!(payment.status, Status::Blocked);
+        assert_eq!(payment.reason, reason);
+        vault
+            .call_function(
+                "approve_payment",
+                json!({"po_id":po_id,"expected_quote_hash":null,"expected_commitment_hash":null}),
+            )
+            .transaction()
+            .deposit(one)
+            .gas(NearGas::from_tgas(120))
+            .with_signer(admin.account_id().clone(), signer.clone())
+            .send_to(&n)
+            .await?
+            .assert_failure();
+        println!(
+            "CARECART_DEFENSE {}",
+            json!({"execution":"genuine-local-sandbox","publicChainExecution":false,"scenario":po_id,"status":payment.status,"reason":payment.reason,"adminOverrideRejected":true})
+        );
+        if po_id == "defense-paused" {
+            call(
+                &vault,
+                admin.account_id(),
+                &signer,
+                &n,
+                "unpause",
+                json!({}),
+                one,
+            )
+            .await?;
+        }
+    }
+    assert_eq!(
+        view::<U128>(&token, &n, "ft_balance_of", balance(vault.account_id())).await?,
+        before_defenses
     );
     // Isolated receipt fixture only: exercise human same-chain review below the initial
     // accepted balance ceiling. This is not the approved mainnet automatic threshold.

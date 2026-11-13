@@ -1,3 +1,4 @@
+import {assertNoSigningCredentials} from '../operations/local';
 import {testnetPayments} from '../profiles/testnet-payments';
 import {openInventoryOperations} from '../inventory/local';
 import {SafetyVaultClient} from '../near/safety-client';
@@ -30,8 +31,8 @@ async function sandboxFinancialMain(args=process.argv.slice(2),env:NodeJS.Proces
 export async function tenantFinancialMain(args=process.argv.slice(2),env:NodeJS.ProcessEnv=process.env){
  if(args[3]==='local-sandbox')return sandboxFinancialMain(args,env);
  const [action,registryPath,clinicId,environment,activationPath,authorizationId,roleText]=args;
- if(!['execute','observe'].includes(action)||environment!=='near-testnet'||env.CARECART_TENANT_FINANCIAL_MODE!=='near-testnet'||!registryPath||!activationPath)throw new Error('Explicit scoped testnet mode required; public execution disabled');
- z.uuid().parse(clinicId);z.uuid().parse(authorizationId);const role=FinancialRole.parse(roleText),grant=testnetPayments(JSON.parse(readFileSync(activationPath,'utf8')));
+ if(!['execute','observe','authorize'].includes(action)||environment!=='near-testnet'||env.CARECART_TENANT_FINANCIAL_MODE!=='near-testnet'||!registryPath||!activationPath)throw new Error('Explicit scoped testnet mode required; public execution disabled');
+ z.uuid().parse(clinicId);if(action!=='authorize')z.uuid().parse(authorizationId);const role=action==='authorize'?'committer':FinancialRole.parse(roleText),grant=testnetPayments(JSON.parse(readFileSync(activationPath,'utf8')));
  if(grant.clinicId!==clinicId)throw new Error('Exact activation clinic required');
  const registry=new ClinicRegistry(registryPath);let local:ReturnType<typeof openInventoryOperations>|undefined,financial:FinancialAuthorizations|undefined;
  try{
@@ -40,6 +41,16 @@ export async function tenantFinancialMain(args=process.argv.slice(2),env:NodeJS.
   const client=new SafetyVaultClient(local.store.profile),binding:FinancialBinding={kind:'public-rpc',client,verify:()=>client.verify(),testnet:grant};
   const wallets=new WalletBindings(registry,env.CARECART_PUBLIC_ORIGIN??'',walletConfiguration(env));
   const authority=new TenantTreasuryAuthority(registry,wallets,local.workflow,binding,clinicId,'near-testnet');financial=new FinancialAuthorizations(local.workflow,binding,undefined,Date.now,authority);
+  if(action==='authorize'){
+   assertNoSigningCredentials(env);
+   if(!authority.automatic.snapshot().enabled)return {clinicId,state:'AutomaticPolicyDisabled',publicChainExecution:false};
+   const cases=local.workflow.page({filter:'active',limit:50}).cases,results=[];
+   for(const c of cases){if(!['AuthorizeCommitment','AuthorizePaymentRequest'].includes(c.nextAction))continue;
+    try{const ticket=await financial.authorizeAutomatic(c.caseId);results.push({caseId:c.caseId,authorizationId:ticket.id,state:ticket.state});}
+    catch{results.push({caseId:c.caseId,state:'HeldForReview'});}
+   }
+   return {clinicId,results,publicChainExecution:false};
+  }
   const ticket=financial.get(authorizationId);if(ticket.terms.clinicId!==clinicId||ticket.role!==role||!ticket.terms.tenantScope||ticket.terms.profileFingerprint!==profileFingerprint(grant.profile))throw new Error('Exact tenant/role authorization required');
   const result=action==='observe'?await financial.reconcile(authorizationId):await financial.executeTestnet(authorizationId,role,env);
   return {authorizationId:result.id,clinicId,role,state:result.state,publicChainExecution:action==='execute'};

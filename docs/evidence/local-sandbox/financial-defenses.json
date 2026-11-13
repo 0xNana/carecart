@@ -1,0 +1,34 @@
+{
+  "execution": "genuine-local-sandbox",
+  "publicChainExecution": false,
+  "contractSourceSha256": "61c06308fe1bb97eccd5af201b1d496dd7982449599f5afdaa63fe4c4f6c1d0d",
+  "command": "cargo test --manifest-path contracts/Cargo.toml --locked -p carecart-safety-vault --test sandbox safety_vault_real_receipts -- --nocapture",
+  "result": "passed",
+  "scenarios": [
+    {
+      "execution": "genuine-local-sandbox",
+      "publicChainExecution": false,
+      "scenario": "defense-unknown",
+      "status": "Blocked",
+      "reason": "UnknownSupplier",
+      "adminOverrideRejected": true
+    },
+    {
+      "execution": "genuine-local-sandbox",
+      "publicChainExecution": false,
+      "scenario": "defense-cap",
+      "status": "Blocked",
+      "reason": "OverHardLimit",
+      "adminOverrideRejected": true
+    },
+    {
+      "execution": "genuine-local-sandbox",
+      "publicChainExecution": false,
+      "scenario": "defense-paused",
+      "status": "Blocked",
+      "reason": "Paused",
+      "adminOverrideRejected": true
+    }
+  ],
+  "additionalAssertions": "The same genuine Sandbox test verifies automatic payment, human approval/rejection, callback privacy, treasury-only exit and unchanged vault token balance across these negative requests. The human fixture lowers its local automatic threshold to 0.5 CCUSD for a 1 CCUSD order; deployed public limits are unchanged."
+}

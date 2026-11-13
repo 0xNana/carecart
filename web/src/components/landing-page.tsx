@@ -107,6 +107,9 @@ export function LandingPage() {
                   {item.label}
                 </a>
               ))}
+              <Link href="/docs" onClick={closeMenu}>
+                Documentation
+              </Link>
               <a href={githubUrl} target="_blank" rel="noreferrer">
                 GitHub <Arrow diagonal />
               </a>
@@ -567,9 +570,9 @@ export function LandingPage() {
             <span>
               CareCart connects stock updates, purchase requests and payment status in one clinic workspace.
             </span>
-            <a href={`${githubUrl}#readme`} target="_blank" rel="noreferrer">
-              View product details <Arrow diagonal />
-            </a>
+            <Link href="/docs">
+              Read product docs <Arrow />
+            </Link>
           </div>
         </section>
 
@@ -611,7 +614,7 @@ export function LandingPage() {
               <span className={styles.footerLabel}>EXPLORE</span>
               <a href="#interactive-demo">Interactive demo</a>
               <Link href="/app">Open app</Link>
-              <a href={`${githubUrl}#readme`} target="_blank" rel="noreferrer">Documentation</a>
+              <Link href="/docs">Documentation</Link>
             </div>
             <div>
               <span className={styles.footerLabel}>ECOSYSTEM</span>

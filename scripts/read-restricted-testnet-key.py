@@ -15,6 +15,8 @@ def main():
     methods = {
         'committer.carecart.testnet': 'commit_purchase_order',
         'agent.carecart.testnet': 'request_payment',
+        'committer-v2.carecart.testnet': 'commit_purchase_order',
+        'agent-v2.carecart.testnet': 'request_payment',
     }
     account, public = request['accountId'], request['publicKey']
     if account not in methods or not public.startswith('ed25519:'):
@@ -36,8 +38,10 @@ def main():
     if not isinstance(permission, dict):
         raise RuntimeError()
     fc = permission.get('FunctionCall', {})
-    if (fc.get('receiver_id') != 'vault.carecart.testnet' or fc.get('method_names') != [methods[account]]
+    if (fc.get('receiver_id') != ('safety-v2.carecart.testnet' if account in ['committer-v2.carecart.testnet','agent-v2.carecart.testnet'] else 'vault.carecart.testnet') or fc.get('method_names') != [methods[account]]
             or fc.get('allowance') is None or int(fc['allowance']) <= 0):
+        raise RuntimeError()
+    if account in ['committer-v2.carecart.testnet','agent-v2.carecart.testnet'] and int(fc['allowance']) > 200000000000000000000000:
         raise RuntimeError()
 
     import gi

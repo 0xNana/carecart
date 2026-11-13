@@ -9,6 +9,7 @@ import { useApplication } from "./application-shell";
 import {ClinicAccess} from './clinic-access';
 import {InventoryRuntimePanel} from './inventory-runtime-panel';
 import {ApplicationCase} from './application-case';
+import {AutomaticPurchasingPanel} from './automatic-purchasing-panel';
 import {PaymentAccountPanel} from './payment-account-panel';
 import {statusLabel as stateText,actionError} from '@/lib/product-copy';
 import styles from "./application-view.module.css";
@@ -139,6 +140,7 @@ export function ApplicationView({ section }: { section: Section }) {
       {section==='suppliers'&&<p className={styles.demoNotice}>Sample suppliers and offers for comparison.</p>}
       {section==='payments'&&session?.deployment==='testnet-preparation'&&<p className={styles.demoNotice}>Demo amounts only · no real money is involved.</p>}
 
+      {section==='payments'&&session?.deployment==='public-testnet'&&<AutomaticPurchasingPanel client={client} canManage={session.clinicRole==='Clinic Admin'} />}
       {section==='payments'&&session?.deployment==='public-testnet'&&<PaymentAccountPanel client={client} canFund={role==='operator'&&(tenant?tenant.clinic.permissions.includes('finance'):session.permissions?.includes('finance')===true)} />}
 
       {error && <p className={styles.error} role="alert">{actionError(new Error(error),"Records could not be loaded. Refresh to try again.")}</p>}

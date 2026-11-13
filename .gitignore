@@ -7,6 +7,7 @@
 
 # JavaScript dependencies and build output
 node_modules/
+web/.source/
 .next/
 out/
 dist/
@@ -39,3 +40,6 @@ __pycache__/
 
 # Internal planning and implementation notes
 internal-docs/
+
+# Operational databases, activation grants, private backups and journals.
+backend/data/
