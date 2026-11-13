@@ -1,0 +1,25 @@
+---
+title: Safety and data
+description: Understand the approval boundary, demo data and current payment evidence.
+---
+
+CareCart is an inventory and procurement record tool. It does not provide medical advice, recommend treatment or need patient records for stock replenishment.
+
+## Clinic approval stays explicit
+
+Monitoring and purchase preparation can run automatically when configured. An administrator can select an automatic purchasing policy for test payments. Eligible orders proceed within that policy; other orders stay for review. Mainnet and real-money purchasing are not enabled.
+
+## What the preview uses
+
+- Sample inventory and supplier offers are synthetic. No supplier is contacted from the preview.
+- CCUSD is a CareCart test token with no cash value; it is not Circle USDC.
+- Contract payment tests run in local NEAR Sandbox. They are not public testnet supplier payments.
+- A bounded testnet run paid 1.5 CCUSD to an approved test supplier. A duplicate request sent no additional tokens. The supplier is a controlled test account; live distributor integration is not claimed.
+
+## Data for a clinic pilot
+
+Start with no patient data. Before a clinic uses real inventory records, agree the data scope, access roles, hosting, backup and restore, retention, support and incident process. Confirm applicable local requirements with the clinic and qualified advisers.
+
+## Evidence limits
+
+The public browser demo uses synthetic records and makes no payment. The archived reviewed source was rebuilt and matched the deployed vault byte for byte. The [confirmed test payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD) is independently verifiable; CCUSD has no cash value.

@@ -1,0 +1,30 @@
+---
+title: How CareCart works
+description: Follow a stock update from the clinic ledger through an order prepared for approval.
+---
+
+CareCart connects inventory records with replenishment work. Staff can see how a low-stock signal becomes a purchase order and where a clinic representative must make a decision.
+
+## The workflow
+
+1. **Record stock activity.** Staff record what arrived, was used, dispensed or adjusted.
+2. **Review inventory position.** CareCart evaluates recorded stock, usage, incoming deliveries and configured reorder levels.
+3. **Prepare replenishment work.** The monitor can create a shortage case and prepare an order using configured supplier information.
+4. **Apply the clinic policy.** Selected items and suppliers within the automatic limit can proceed to a test payment. Purchases outside that policy remain for review.
+5. **Observe payment separately.** A submitted transaction is not reported as paid until the configured observer verifies its outcome.
+6. **Confirm physical delivery.** Staff compare the received goods with the order and record the stock receipt. Payment status alone does not change on-hand inventory.
+
+## Who does what
+
+| Role | Responsibility |
+| --- | --- |
+| Inventory staff | Keep stock movements and physical counts current. |
+| Replenishment worker | Monitor stock and prepare a case or order within configured rules. |
+| Purchasing approver | Review the canonical order and approve or reject the request. |
+| Payment service and vault | Process an already-authorized request and enforce configured controls. |
+
+CareCart does not make clinical decisions. A bounded headless testnet run demonstrated automatic purchasing within an owner-approved policy. Production activation remains separate.
+
+## Supplier information
+
+The public preview uses synthetic offers. It does not contact a supplier or establish current prices, availability or delivery dates. A clinic pilot must use a clearly identified, clinic-approved source and show when its information was last checked.

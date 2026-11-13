@@ -17,9 +17,9 @@ git -C "$task_repo" rev-parse HEAD > "$task_output/source-head.txt"
 python3 - "$task_repo" "$task_output" <<'PY'
 import hashlib,json,pathlib,shutil,sys
 root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2]);web=root/'web'
-for name in ['src','public']:
-    shutil.copytree(web/name,out/'web'/name)
-for pattern in ['package*.json','tsconfig.json','next-env.d.ts','next.config.*','eslint.config.*','postcss.config.*']:
+for name in ['src','public','content']:
+    if (web/name).exists():shutil.copytree(web/name,out/'web'/name)
+for pattern in ['package*.json','tsconfig.json','next-env.d.ts','next.config.*','eslint.config.*','postcss.config.*','source.config.*']:
     for source in web.glob(pattern):shutil.copy2(source,out/'web'/source.name)
 (out/'web'/'node_modules').symlink_to(web/'node_modules',target_is_directory=True)
 backend=root/'backend'
