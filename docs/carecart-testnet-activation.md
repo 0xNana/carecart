@@ -48,10 +48,10 @@ The evaluator is the key-free process `src/ops/testnet-payment-worker.ts authori
 | Scenario | Evidence |
 | --- | --- |
 | Eligible supplier payout | Public testnet final receipts and exact historical token balance deltas. |
-| Unknown supplier | Vault unit test `four_usdc_unknown_supplier_is_blocked_with_sufficient_initial_funds_and_no_limit_excess`. This specific assertion is a contract unit test, not a new public rejection. |
-| Immutable hard payout/daily cap | Vault boundary and approval tests. Admin approval cannot bypass the deployed code's hard caps. |
-| Human approval | Genuine local Sandbox admin approval and over-automatic-threshold tests. Public tenant admin-wallet handoff remains disabled; such app orders stay held. |
-| Emergency pause | Vault tests and genuine local Sandbox pause behavior; no public pause transaction was performed in this sprint. |
+| Unknown supplier | Genuine local Sandbox request returns Blocked/UnknownSupplier; an admin override fails. Also covered by the focused contract unit test. [Receipt-test evidence](evidence/local-sandbox/financial-defenses.json). |
+| Immutable hard payout/daily cap | Genuine local Sandbox request returns Blocked/OverHardLimit for 25,000,001 base units and its admin override fails; boundary unit tests also cover daily limits. |
+| Human approval | Genuine local Sandbox admin approval above the fixture threshold (0.5 CCUSD, order 1 CCUSD); unit boundary tests cover the actual 10 CCUSD threshold. Deployed public policy remains 10 CCUSD. Public tenant admin-wallet handoff remains disabled; such app orders stay held. |
+| Emergency pause | Genuine local Sandbox request returns Blocked/Paused, including rejected admin override; no public pause transaction was performed in this sprint. |
 | Duplicate payout | [Public duplicate request](https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH): final success, no transfer event, supplier balance unchanged. |
 
 The policy thresholds remain 10 CCUSD automatic, 25 CCUSD hard per order, 25 CCUSD per UTC day and the existing 5 CCUSD accepted deposit ceiling. CCUSD is not Circle USDC.
@@ -61,3 +61,5 @@ The admin can manage allowed suppliers, roles and bounded policy, approve eligib
 Full-access owner keys remain separate authorities. In particular the vault account's full-access upgrade key can replace the contract code and thereby alter its protections. Safety claims assume the verified code remains deployed and those owner keys stay protected. The host operator can change backend configuration or code but has no treasury signing key in these worker environments. A compromised committer plus requester is still constrained by the deployed vault's supplier, payout, daily, balance and pause checks, not by an assertion that those roles are harmless.
 
 Prompt injection cannot select a signing tool, token or recipient: the LLM's registered tools end at proposals; trusted catalog/PO resolution and deterministic policy supply financial terms. A forged JSON permit cannot cross the nonserializable execution boundary. This is backend/tool isolation plus onchain policy, not TEE attestation or automatic supplier reputation scoring.
+
+The test token account also retains owner upgrade authority; replacing its code can change token behavior or minting. Full-access admin, guardian and treasury account owners control their respective human roles. Full-access owners of the backend role accounts can add or revoke access keys, but those accounts do not acquire vault-admin powers. Only the finite scoped function-call keys are supplied to backend signing processes.
