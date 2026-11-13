@@ -24,13 +24,22 @@ export function secureStateDatabase(path: string): void {
   if (!Number.isSafeInteger(groupId))
     throw new Error('Shared state database group is unavailable');
 
-  if (!process.getgid || !process.getgroups)
+  if (!process.getuid || !process.getgid || !process.getgroups)
     throw new Error('Shared state database group checks require POSIX process groups');
   const memberships = new Set([process.getgid(), ...process.getgroups()]);
   if (!memberships.has(groupId))
     throw new Error('Process is not a member of the shared state database group');
-  if (statSync(path).gid !== groupId)
-    throw new Error('State database group ownership mismatch');
+  const state = statSync(path);
+  if (state.gid !== groupId) {
+    // New clinics are private, even when the same host runs shared payment DBs.
+    // Never reassign them to the payment group or change another user's files.
+    if (state.uid !== process.getuid())
+      throw new Error('State database group ownership mismatch');
+    if ((state.mode & 0o7777) !== 0o600) chmodSync(path, 0o600);
+    return;
+  }
 
-  chmodSync(path, 0o660);
+  // A restricted service can open correctly secured group-owned files without
+  // needing the owner's permission to run chmod on every connection.
+  if ((state.mode & 0o7777) !== 0o660) chmodSync(path, 0o660);
 }
