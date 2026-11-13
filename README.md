@@ -58,7 +58,8 @@ The inventory worker is key-free and prepares replenishment work. A separate int
 | `contracts/` | Contract workspace and local test-token fixtures. |
 | `profiles/` | Example runtime profiles. They are configuration, not proof of live account state. |
 | `scripts/` | Verification, isolated demo, build and deployment utilities. |
-| `docs/` | Product brief, proposed roadmap, first-client plan, engineering guides and hackathon handoff. Start at [`docs/README.md`](docs/README.md). |
+| `web/content/docs/` | Public MDX product guides, mainnet readiness, clinic pilot, first-customer plan and supplier integrations, served at [carecart.xyz/docs](https://carecart.xyz/docs). |
+| `docs/` | Public [judge walkthrough](docs/JUDGE_WALKTHROUGH.md) and recorded verification evidence. Internal release notes are kept locally and ignored. |
 
 ## Quick start: offline demo
 
@@ -102,7 +103,7 @@ For a screen recording, start your screen recorder and run the same flow in a vi
 node scripts/mvp-browser-acceptance.mjs /tmp/carecart-phase2-verify.REPLACE_WITH_PRINTED_SUFFIX --headed
 ```
 
-Replace the snapshot suffix with the verifier's exact output. The visible mode pauses at each main step for about seven seconds; set `CARECART_DEMO_PAUSE_MS` to a value from 2,000 to 15,000 milliseconds if you need more narration time. It still uses synthetic local data, and payment stays **Unobserved**. See [`docs/FINAL_HACKATHON_HANDOFF.md`](docs/FINAL_HACKATHON_HANDOFF.md) for the 90–150-second narration outline.
+Replace the snapshot suffix with the verifier's exact output. The visible mode pauses at each main step for about seven seconds; set `CARECART_DEMO_PAUSE_MS` to a value from 2,000 to 15,000 milliseconds if you need more narration time. It still uses synthetic local data, and payment stays **Unobserved**. See the [judge walkthrough](docs/JUDGE_WALKTHROUGH.md) for the 90–150-second narration outline.
 
 See [`docs/JUDGE_WALKTHROUGH.md`](docs/JUDGE_WALKTHROUGH.md) for expected steps and troubleshooting.
 
@@ -146,7 +147,7 @@ node --import ./backend/node_modules/tsx/dist/loader.mjs backend/src/ops/testnet
 
 The output must confirm `nativeSettlementVerified: true` and `deltaVerified: true`. The supplier is a controlled test account, not an integrated real medical distributor. A separate November 10 payment was also independently recovered and verified in [historical evidence](docs/evidence/testnet/supplier-payment.json).
 
-Normal automatic policies require a current clinic administrator and verified clinic control wallet; they bind selected items/suppliers, an amount at or below 10 CCUSD, the active treasury, and an expiry of at most 24 hours. The sprint used an explicitly approved host control-plane grant restricted to exactly one synthetic glove PO and at most 3 CCUSD. Both use the same permits, journals, workers and onchain policy. The LLM has no financial authorization or signing tool. See [activation and authority details](docs/carecart-testnet-activation.md).
+Normal automatic policies require a current clinic administrator and verified clinic control wallet; they bind selected items/suppliers, an amount at or below 10 CCUSD, the active treasury, and an expiry of at most 24 hours. The sprint used an explicitly approved host control-plane grant restricted to exactly one synthetic glove PO and at most 3 CCUSD. Both use the same permits, journals, workers and onchain policy. The LLM has no financial authorization or signing tool. See the public [safety and authority guide](https://carecart.xyz/docs/safety-and-data).
 
 The unchanged vault policy enforces a 10 CCUSD automatic threshold, 25 CCUSD hard order and daily dispatch caps, and a 5 CCUSD initial accepted deposit ceiling. Above-threshold orders require human review; public tenant admin-wallet handoff is still disabled, so those orders remain held in the current app. Local Sandbox verifies valid human approval and hard-cap enforcement. A vault-account full-access upgrade key remains an owner authority capable of replacing contract code; limits depend on retaining the reviewed deployment. This is disclosed, not a claim of an immutable deployment.
 
@@ -172,15 +173,15 @@ Build the safety vault for WebAssembly:
 cargo check --target wasm32-unknown-unknown --manifest-path contracts/Cargo.toml --workspace --locked
 ```
 
-The safety-vault manifest also records the pinned Docker image for a reproducible Wasm build. The build output includes source metadata and is tied to the source commit; see [`docs/FINAL_HACKATHON_HANDOFF.md`](docs/FINAL_HACKATHON_HANDOFF.md) for the artifact hash and comparison with the deployed testnet code.
+The safety-vault manifest also records the pinned Docker image for a reproducible Wasm build. The build output includes source metadata and is tied to the source commit. For the exact historical artifact hash and its comparison with the deployed testnet code, see the [source verification evidence](docs/evidence/testnet/vault-source-verification.json) and `bash scripts/reproduce-deployed-vault.sh`.
 
 The Sandbox tests use local synthetic accounts and token fixtures. They do not sign public transactions, deploy contracts or move real funds. See the contract READMEs for contract-specific commands and scope.
 
 ## Security
 
 - Never commit `.env` files, private keys, account credentials, real clinic databases or customer records.
-- Local environment files, database files, build output and `internal-docs/` are ignored by Git.
+- Local environment files, database files, build output, `internal-docs/`, `tasks/` and internal notes in `docs/` are ignored by Git. The public walkthrough, verification evidence and MDX product guides remain tracked.
 - Public testnet configuration is not a production deployment or proof of payment.
-- The current submission handoff records the checks actually run and the remaining owner actions: [`docs/FINAL_HACKATHON_HANDOFF.md`](docs/FINAL_HACKATHON_HANDOFF.md).
+- Recorded implementation checks are in [verification evidence](docs/evidence/verification.json). Production release requirements are described in the [mainnet readiness guide](https://carecart.xyz/docs/mainnet-readiness).
 
 CareCart is provided under the [MIT License](LICENSE).

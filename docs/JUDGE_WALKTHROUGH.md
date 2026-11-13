@@ -29,7 +29,7 @@ This is a genuine public testnet payment with synthetic inventory/quotes and a c
 bash scripts/reproduce-deployed-vault.sh
 ```
 
-Expected: Rust 1.93.0/cargo-near 0.22.0 rebuild the exact archived revision, SHA-256 hex `979c178881f12ce6694ea804d9374af3606b55dbb0b8074434e791d5c9b0b71e`, NEAR Base58 code hash `BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3`, and byte-for-byte agreement with independently retrieved public code. The script performs no deployment. The different later metadata/container build is explained in [activation details](carecart-testnet-activation.md).
+Expected: Rust 1.93.0/cargo-near 0.22.0 rebuild the exact archived revision, SHA-256 hex `979c178881f12ce6694ea804d9374af3606b55dbb0b8074434e791d5c9b0b71e`, NEAR Base58 code hash `BCpcRunpuzhjrshyq1yrKtsmABrAAPy6ZFmMrUvUUqK3`, and byte-for-byte agreement with independently retrieved public code. The script performs no deployment. The current Rust source and Cargo.lock match the archived revision; later package-metadata/container builds produce a different artifact. See the [source verification evidence](evidence/testnet/vault-source-verification.json).
 
 ## 3. Reproduce the stock workflow offline
 
@@ -66,7 +66,7 @@ npm test --prefix backend -- src/tenancy/automatic-purchasing.test.ts src/tenanc
 
 Expected: allowed requests pay, an unknown supplier is blocked, hard/daily caps cannot be overridden by admin approval, eligible above-automatic-threshold orders wait for a human, pause prevents dispatch, duplicates cannot pay again, and queued automatic permits fail after revocation/change. The Rust suite includes genuine local Sandbox receipt execution. Backend RPC fixtures are explicitly mocked; do not label them public chain effects. Public supplier success and duplicate idempotency are the two public scenarios executed in this sprint.
 
-The normal public tenant admin-wallet handoff remains disabled; above-threshold app orders are held. Valid human approval is demonstrated in local Sandbox. The one-order owner grant is a disclosed host control-plane authority, not a forged clinic login. The vault full-access upgrade key can replace code; see [the authority assessment](carecart-testnet-activation.md).
+The normal public tenant admin-wallet handoff remains disabled; above-threshold app orders are held. Valid human approval is demonstrated in local Sandbox. The one-order owner grant is a disclosed host control-plane authority, not a forged clinic login. The vault full-access upgrade key can replace code; see the public [safety and authority guide](https://carecart.xyz/docs/safety-and-data).
 
 ## 6. A 90–150-second presentation
 

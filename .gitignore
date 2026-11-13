@@ -40,6 +40,11 @@ __pycache__/
 
 # Internal planning and implementation notes
 internal-docs/
+/tasks/
+/docs/*
+!/docs/JUDGE_WALKTHROUGH.md
+!/docs/evidence/
+!/docs/evidence/**
 
 # Operational databases, activation grants, private backups and journals.
 backend/data/
