@@ -21,7 +21,7 @@ async function duplicate(){
  const provider=new JsonRpcProvider({url:p.rpcUrl},{retries:1,wait:0,backoff:1});
  const access=await provider.viewAccessKey({accountId:p.requester,publicKey:p.requesterPublicKey,finalityQuery:{finality:'final'}});
  const permission=typeof access.permission==='string'?null:access.permission.FunctionCall;
- if(!permission||permission.receiver_id!==p.vault||permission.method_names.length!==1||permission.method_names[0]!=='request_payment'||!permission.allowance||BigInt(permission.allowance)>BigInt(p.maxKeyAllowanceYocto))throw new Error('Exact finite request_payment key required');
+ if(!permission||permission.receiver_id!==p.vault||permission.method_names.length!==1||permission.method_names[0]!=='request_payment'||!permission.allowance||BigInt(permission.allowance)<=0n||BigInt(permission.allowance)>BigInt(p.maxKeyAllowanceYocto))throw new Error('Exact finite request_payment key required');
  const balance=()=>provider.callFunction<string>({contractId:p.token,method:'ft_balance_of',args:{account_id:order.supplier},blockQuery:{finality:'final'}});
  const before=await balance();writeFileSync(marker,JSON.stringify({state:'Sending',poId:order.po_id,supplierBefore:before}),{mode:0o600,flag:'wx'});
  try{
