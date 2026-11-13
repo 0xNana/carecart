@@ -1,0 +1,64 @@
+---
+title: Supplier integrations
+description: The path from verified supplier offers to accepted orders, settlement and delivery reconciliation.
+---
+
+CareCart's current supplier catalog contains synthetic offers. No medical distributor API, live catalog, bank payout or fulfillment connection is active. Our first integration should serve the first clinic's actual purchasing needs and connect the whole order lifecycle.
+
+## Choose the first supplier with the clinic
+
+Start with a distributor the pilot clinic already uses for the selected consumables. Confirm that it serves the clinic's location, can supply the agreed products and has an operational contact who can resolve orders and delivery issues.
+
+Agree its commercial identity, product identifiers, pack sizes, minimum quantities, prices, taxes, delivery charges, lead times, payment terms, returns and settlement method. The clinic must approve the supplier and the recipient account. Catalog ingestion alone must never grant payment permission.
+
+## Stage 1: use verified catalog information
+
+A supplier-approved file or a manually checked quote can establish the first workflow while an API connection is assessed. This is a proposed onboarding method, not a ready-made public import API.
+
+| Information | Why it matters |
+| --- | --- |
+| Supplier and product identifiers | Match the offer to the clinic's item without confusing similar products. |
+| Unit and pack size | Prevent a box, pack or individual item being ordered at the wrong quantity or price. |
+| Price, currency and total charges | Establish the actual payable amount, including agreed tax and delivery costs. |
+| Availability and lead time | Avoid treating catalog presence as a promise of stock or delivery. |
+| Quote reference and expiry | Identify the terms being accepted and stop use of stale offers. |
+| Source and last verification time | Make freshness and provenance visible. |
+
+Map each selected item with clinic staff. Keep unmatched products unavailable for automatic purchase. A revised price or recipient requires review through the approved update process; it cannot silently change an existing order.
+
+## Stage 2: establish order acceptance
+
+Agree how CareCart sends a purchase order and how the supplier acknowledges, rejects or revises it. Begin with a documented manual exchange if necessary. Add an API only when the supplier provides a supported interface and the workflow is understood.
+
+The connection needs stable order references, duplicate protection, authenticated messages and a recoverable record of each outcome. If the supplier cannot confirm an order, hold the workflow for resolution. Do not infer acceptance from a successful message send or a payment transaction.
+
+Changes to items, quantities or invoice totals must produce a reviewed order revision and a fresh policy check before payment. They cannot reuse approval for the old terms.
+
+## Stage 3: agree how the supplier is paid
+
+| Settlement option | Required agreement | CareCart status |
+| --- | --- | --- |
+| Stablecoin to the supplier | Exact token and network, verified recipient, invoice currency, conversion terms where needed and a receipt the supplier accepts. | Test-token transfer demonstrated; live stablecoin settlement not activated. |
+| Fiat through a payment provider | A suitable provider, supported geography and currency, onboarding, fees, payout confirmation and reconciliation. | Provider selection and integration remain open. |
+| Clinic's existing payment process | Staff pay through the established method and reconcile the supplier's confirmation. | Proposed starting boundary for the inventory pilot; an external payment must not be shown as vault-verified. |
+
+A supplier must explicitly accept the chosen settlement method. Receiving a token does not establish receipt of fiat. Do not advertise automatic conversion, cash withdrawal or cross-chain payout until the chosen provider and route have been integrated and verified. NEAR Intents remains a separate roadmap option.
+
+## Stage 4: reconcile fulfillment and exceptions
+
+Connect the supplier's order reference, invoice, payment reference and delivery record. Staff must check physical goods before stock is increased. Agree how partial delivery, substitutions, cancellations, returns and refunds are handled; those workflows are not completed supplier integrations today.
+
+Settlement and fulfillment are different evidence: a payment receipt shows funds moved, while a goods receipt shows the clinic accepted stock. Preserve both, and identify the person responsible for resolving differences.
+
+## Acceptance before automatic live orders
+
+The first supplier connection is ready for bounded automation only after the clinic and supplier have verified:
+
+- A real quote with correct item mapping, units, total cost and expiry.
+- Order acceptance and a safe response to unavailable stock or changed terms.
+- An independently verified payment to the agreed recipient and an invoice marked settled by the supplier.
+- Delivery reconciliation, including a partial or incorrect delivery exercise.
+- Safe handling of duplicates, timeouts, expired quotes and a changed recipient.
+- A supported exception, cancellation and refund process with named owners.
+
+Begin with one supervised order and then a small, approved automatic scope. Supplier acceptance does not replace the [mainnet financial gates](/docs/mainnet-readiness), and passing those gates does not prove a distributor integration exists.

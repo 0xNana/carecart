@@ -1,0 +1,48 @@
+---
+title: Inventory guide
+description: Record stock accurately, review replenishment and reconcile deliveries.
+---
+
+CareCart's purchasing decisions depend on the stock records your team maintains. Start with a small, counted item list and consistent units. The public preview contains sample records; importing a clinic's real opening inventory is part of pilot onboarding.
+
+## Set up the working inventory
+
+Agree the site and storeroom, the person responsible for counts, and the items in scope. For each item, confirm its name, unit, opening quantity and reorder level. Check whether a quantity means individual items, packs or boxes before recording movements.
+
+Keep patient names, diagnoses and treatment details out of inventory notes. Stock replenishment does not require them.
+
+## Record daily activity
+
+Open **Inventory** and choose the stock action that matches what happened.
+
+| Action | When to use it |
+| --- | --- |
+| Receive Stock | Goods have physically arrived and the quantity has been checked. |
+| Dispense Stock | Supplies leave the storeroom for use elsewhere. |
+| Record Consumption | Supplies are used from the stock being tracked. |
+| Adjust Stock (increase or decrease) | A physical count or correction explains a difference in the recorded balance. |
+| Mark unusable | Stock is present but cannot be used. Record the reason. |
+| Reserve stock or Release reservation | Set aside available stock for a purpose, or return it to availability. |
+| Confirm expected delivery or Cancel expected delivery | Update an incoming delivery expectation; this does not record physical receipt. |
+
+Select the item, enter the quantity and add the reference or reason requested by the form. Check the saved activity and resulting balance. Record a movement once: dispensing a box and then recording the same box as consumption from the same storeroom would count it twice.
+
+## Review a shortage
+
+When monitoring is configured and running, it evaluates recorded stock, reservations, usage and expected deliveries against replenishment rules. Open **Replenishment** to inspect the resulting request and order.
+
+Check the quantity, selected offer, supplier, price and next action. If a stock mistake caused the shortage, correct the underlying record and review the case before authorizing further work. A correction cannot reverse a payment that has already completed.
+
+## Receive an ordered delivery
+
+Compare the shipment with the purchase order. Confirm the item, unit, quantity and condition before saving a receipt. Use the order-linked receipt controls and a distinct delivery reference where available, then inspect the activity history.
+
+A paid order does not mean goods have arrived. An expected delivery does not increase on-hand stock. Record only what has actually been accepted; flag missing, damaged or incorrect goods with the purchasing lead. Supplier return and refund handling must be agreed during onboarding and is not an automated integration today.
+
+## Resolve a record problem
+
+If a save times out, refresh and check the activity history before repeating it. A saved receipt reference cannot be used to add the same delivery twice. If the quantity is wrong, document the correction rather than entering an unexplained receipt.
+
+If the screen cannot load records, verify the selected clinic and sign-in status. A service error does not mean the stock balance is zero. Keep the clinic's agreed fallback record until access is restored and reconcile it once.
+
+Use the [pilot guide](/docs/clinic-pilot) to agree stock-count checks, training and recovery responsibilities before relying on the system for live operations.

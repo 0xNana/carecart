@@ -3,8 +3,13 @@
   "pages": [
     "index",
     "how-it-works",
+    "inventory-guide",
+    "purchasing-and-payments",
     "safety-and-data",
-    "product-roadmap",
-    "clinic-pilot"
+    "mainnet-readiness",
+    "clinic-pilot",
+    "first-paying-client",
+    "supplier-integrations",
+    "product-roadmap"
   ]
 }

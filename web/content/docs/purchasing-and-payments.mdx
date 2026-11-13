@@ -1,0 +1,67 @@
+---
+title: Purchasing and payments
+description: Set purchasing authority, understand payment status and distinguish token settlement from supplier fulfillment.
+---
+
+CareCart is designed to purchase approved supplies within a budget set by the clinic. An administrator grants a standing permission covering selected items, suppliers and amounts. Eligible orders can then proceed without asking a person to approve every purchase.
+
+The current execution path is limited to test payments. The public preview does not place a real order with a distributor or move real money.
+
+## Configure automatic purchasing
+
+In an activated clinic environment, a **Clinic Admin** opens **Payments → Automatic purchasing** and:
+
+1. Selects the items that may be bought automatically.
+2. Chooses from the configured approved suppliers.
+3. Sets a maximum automatic order amount, up to the vault's automatic threshold.
+4. Selects the verified clinic control wallet.
+5. Reviews the consent and enables the policy.
+
+The current permission lasts for up to 24 hours, or until the wallet verification expires if earlier. It must be renewed explicitly. The service checks the current clinic, policy version, order details, offer validity and payment authority before execution.
+
+These controls require an activated treasury, current administrator access and a verified control wallet; the public preview is not a self-service funding environment. The new policy panel still needs a hosted browser acceptance check before pilot activation.
+
+## Know the limits
+
+The demonstrated vault has these limits, expressed in CCUSD, the test asset:
+
+| Control | Current limit |
+| --- | --- |
+| Automatic payment per order | Up to 10; the clinic can choose a lower limit. |
+| Hard payment limit per order | 25; human approval cannot override it. |
+| Total dispatch per UTC day | 25, subject to the contract's reservation and dispatch checks. |
+| Accepted deposit balance ceiling | 5; the vault also checks its available funds. |
+
+The deposit ceiling is smaller than the payment caps, so the caps are not a promise that a 10- or 25-unit order can be funded. These are demonstration settings, not published commercial limits. Mainnet parameters require a separate reviewed release.
+
+Orders above the clinic's permission are held. The current public app does not complete the human wallet approval handoff for held payments; that is a mainnet readiness gap. Being eligible for review is different from being authorized to pay, and a hard-blocked order cannot be rescued by an approval.
+
+## Read the purchase status
+
+Order progress and payment progress are separate. Depending on the stage, the app may show:
+
+| Status | Meaning and next step |
+| --- | --- |
+| Order prepared | The item, quantity, offer and payment details are fixed for review and policy evaluation. |
+| Approved | Permission exists for the indicated step; it does not prove payment. |
+| Waiting for payment review | Human action is required. The order has not completed payment. |
+| Processing or Submitted · awaiting verification | A request is being executed or has been submitted. Wait for independent observation. |
+| Payment confirmed | The configured observer verified the payment outcome. Inspect its receipt and explorer link. |
+| Check payment status | The outcome needs reconciliation. Do not create a replacement payment or blindly retry. |
+| Declined, Failed, Paused or a limit message | Inspect the specific reason. Resolve it through the approved process before further action. |
+
+An approval event or transaction submission is not a supplier receipt. Financial confirmation also does not create a stock receipt.
+
+## Pause purchasing
+
+A clinic administrator can choose **Pause automatic purchasing**. This invalidates queued automatic permissions under that policy. The vault has a separate pause control for authorized operators. Neither action recalls a transfer already executed or guarantees cancellation of a transaction already submitted; those outcomes must be reconciled.
+
+## What suppliers receive
+
+The completed demonstration paid **CCUSD tokens on NEAR testnet** to a controlled supplier account. CCUSD has no cash value and is not Circle USDC. No bank payout occurred.
+
+For live operation, a supplier would need to agree either to receive the reviewed stablecoin on the selected network or to use an approved payment provider that settles its invoice in fiat. A token transfer does not automatically become a bank payment. CareCart has not activated either live arrangement. See [supplier integrations](/docs/supplier-integrations).
+
+## Funding a live purchasing balance
+
+Mainnet funding is not open. Before it becomes available, the clinic must be shown the exact network, token, destination account, funding limits and fees, along with an independently checked deposit result. Do not send real assets to the demo accounts. The [mainnet readiness guide](/docs/mainnet-readiness) covers the release requirements.

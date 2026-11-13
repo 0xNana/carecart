@@ -1,17 +1,17 @@
 ---
 title: How CareCart works
-description: Follow a stock update from the clinic ledger through an order prepared for approval.
+description: How stock records become automatic purchases within clinic-approved limits.
 ---
 
-CareCart connects inventory records with replenishment work. Staff can see how a low-stock signal becomes a purchase order and where a clinic representative must make a decision.
+CareCart manages the clinic's inventory directly. It connects staff stock updates with replenishment, purchasing controls and delivery records, so the team can follow why an order was created and what happened next.
 
 ## The workflow
 
 1. **Record stock activity.** Staff record what arrived, was used, dispensed or adjusted.
 2. **Review inventory position.** CareCart evaluates recorded stock, usage, incoming deliveries and configured reorder levels.
-3. **Prepare replenishment work.** The monitor can create a shortage case and prepare an order using configured supplier information.
-4. **Apply the clinic policy.** Selected items and suppliers within the automatic limit can proceed to a test payment. Purchases outside that policy remain for review.
-5. **Observe payment separately.** A submitted transaction is not reported as paid until the configured observer verifies its outcome.
+3. **Select an approved offer.** CareCart evaluates saved supplier offers and creates a fixed purchase order with the selected item, quantity, supplier and amount. The current catalog is synthetic; live connections are a separate milestone.
+4. **Apply the purchasing policy.** Eligible items and suppliers within the clinic's automatic limit can proceed without approval for each order. Purchases outside that authority are held. A human cannot approve a payment beyond the vault's hard limits.
+5. **Verify payment independently.** Separate payment services submit permitted requests. CareCart reports confirmation only after checking the payment outcome; a submitted request alone is insufficient.
 6. **Confirm physical delivery.** Staff compare the received goods with the order and record the stock receipt. Payment status alone does not change on-hand inventory.
 
 ## Who does what
@@ -19,12 +19,20 @@ CareCart connects inventory records with replenishment work. Staff can see how a
 | Role | Responsibility |
 | --- | --- |
 | Inventory staff | Keep stock movements and physical counts current. |
-| Replenishment worker | Monitor stock and prepare a case or order within configured rules. |
-| Purchasing approver | Review the canonical order and approve or reject the request. |
-| Payment service and vault | Process an already-authorized request and enforce configured controls. |
+| Clinic administrator | Choose purchasing permissions, approved items, suppliers and limits; pause automation. |
+| Replenishment service | Monitor recorded stock, compare configured offers and create the purchase order. |
+| Purchasing policy | Decide whether the order has permission to proceed automatically or must be held. |
+| Payment service and vault | Execute permitted requests, enforce spending controls and preserve payment evidence. |
+| Purchasing approver | Resolve held orders where approval is permitted and available. |
 
-CareCart does not make clinical decisions. A bounded headless testnet run demonstrated automatic purchasing within an owner-approved policy. Production activation remains separate.
+AI can help interpret supply needs and propose a next step. Trusted purchasing rules decide whether money may move; model output cannot grant financial permission. The recorded automatic payment used deterministic rules and did not demonstrate a live AI inference run.
 
-## Supplier information
+## An example from the working demonstration
 
-The public preview uses synthetic offers. It does not contact a supplier or establish current prices, availability or delivery dates. A clinic pilot must use a clearly identified, clinic-approved source and show when its information was last checked.
+Recording usage moved glove stock from 54 to 26. The background workflow created a 30-unit order, automatically authorized it under the approved policy and paid 1.5 CCUSD to the test supplier. Repeating the payment request transferred nothing more.
+
+Stock stayed at 26 after payment. Recording the separate 30-unit sample delivery brought it to 56; replaying that receipt added no stock. This demonstrates the distinction between paying and receiving, using synthetic inventory and a controlled supplier account.
+
+## Before live purchasing
+
+Real supplier prices, order acceptance and fulfillment need a verified [supplier connection](/docs/supplier-integrations). Real-money operation also needs the [mainnet release gates](/docs/mainnet-readiness). CareCart does not make clinical decisions or substitute for staff checking the goods received.

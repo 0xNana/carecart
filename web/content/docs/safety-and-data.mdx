@@ -1,25 +1,47 @@
 ---
 title: Safety and data
-description: Understand the approval boundary, demo data and current payment evidence.
+description: Purchasing authority, payment evidence, data handling and operational responsibilities.
 ---
 
 CareCart is an inventory and procurement record tool. It does not provide medical advice, recommend treatment or need patient records for stock replenishment.
 
-## Clinic approval stays explicit
+## The clinic grants purchasing authority
 
-Monitoring and purchase preparation can run automatically when configured. An administrator can select an automatic purchasing policy for test payments. Eligible orders proceed within that policy; other orders stay for review. Mainnet and real-money purchasing are not enabled.
+An administrator selects the items, suppliers and spending limits that may proceed automatically. CareCart evaluates each order against that permission. Other orders are held; hard spending caps and a paused vault cannot be bypassed through ordinary approval.
 
-## What the preview uses
+The payment agent holds no purchasing token balance. It has a restricted key for a specified vault method, while separate services prepare orders, authorize eligible operations and observe results. AI-generated proposals cannot change the recipient, token or spending authority at execution.
 
-- Sample inventory and supplier offers are synthetic. No supplier is contacted from the preview.
-- CCUSD is a CareCart test token with no cash value; it is not Circle USDC.
-- Contract payment tests run in local NEAR Sandbox. They are not public testnet supplier payments.
-- A bounded testnet run paid 1.5 CCUSD to an approved test supplier. A duplicate request sent no additional tokens. The supplier is a controlled test account; live distributor integration is not claimed.
+## Controls and their boundaries
+
+| Control | What it does |
+| --- | --- |
+| Approved suppliers and fixed order details | Bind a payment to the reviewed supplier, token, amount and order. |
+| Automatic, hard and daily limits | Restrict spending; a review cannot override a hard limit. |
+| Separate signing roles | Limit what each background signer can request. |
+| Independent payment observation | Require evidence before displaying a confirmed outcome. |
+| Duplicate protection | Prevent a repeated paid order from sending a second transfer. |
+| Separate delivery records | Prevent payment confirmation from creating inventory. |
+
+Administrative authority still matters. The vault's full-access upgrade authority can replace its code, and host operators can alter backend configuration. Those powers need documented ownership and protection before production. Restricted workers do not remove the need to trust and govern administrators.
+
+The working controls and test results are not an independent security certification. The [mainnet gates](/docs/mainnet-readiness) include review of contracts, custody, operations and recovery.
 
 ## Data for a clinic pilot
 
-Start with no patient data. Before a clinic uses real inventory records, agree the data scope, access roles, hosting, backup and restore, retention, support and incident process. Confirm applicable local requirements with the clinic and qualified advisers.
+Start with item names, units, stock movements, approved supplier records and staff access roles. Keep patient records and payment credentials out of inventory notes, uploads and support messages.
 
-## Evidence limits
+Before real records are imported, the clinic and CareCart must agree:
 
-The public browser demo uses synthetic records and makes no payment. The archived reviewed source was rebuilt and matched the deployed vault byte for byte. The [confirmed test payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD) is independently verifiable; CCUSD has no cash value.
+- Who may view, record, approve and administer the clinic's activity.
+- Hosting location, access controls and handling of confidential supplier information.
+- Backup frequency, a demonstrated restore and the fallback procedure during an outage.
+- Retention, export, offboarding and deletion arrangements.
+- Named support and incident responsibilities, including who can pause purchasing.
+
+These are pilot prerequisites, not claims that every control has already been accepted by a customer. Requirements depend on the clinic, product categories and jurisdiction and must be reviewed with the responsible clinic team and qualified advisers.
+
+## Evidence you can inspect
+
+The public browser demo uses synthetic records and makes no payment. A separate [confirmed test payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD) transferred 1.5 CCUSD; the [duplicate request](https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH) transferred nothing further. Neither represents a real distributor sale.
+
+The archived vault source was rebuilt and matched the deployed code byte for byte. Rejection of an unknown supplier, an over-limit order and payments during pause was also verified through genuine local Sandbox execution. Local Sandbox evidence is distinct from public-chain evidence.

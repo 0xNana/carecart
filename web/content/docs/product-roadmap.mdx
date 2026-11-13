@@ -1,26 +1,46 @@
 ---
 title: Product roadmap
-description: The proposed path from clinic workflow discovery to a repeatable inventory pilot.
+description: Milestones from demonstrated automatic purchasing to mainnet, a paying clinic and connected suppliers.
 ---
 
-This roadmap is directional. It has no promised release dates. Priorities will change when clinic teams validate the workflow and the team can support the service safely.
+CareCart's next milestone is a useful service for one paying clinic, supported by verified supplier information and a controlled path to automatic real-money purchasing. We will advance on evidence and agreed release gates rather than publish unconfirmed launch dates.
 
-## 1. Validate the workflow
+## Foundation: demonstrated
 
-Learn how clinic teams count stock, recognize shortages, get supplier information, approve orders and reconcile delivery. Confirm the most costly problem and who can sponsor a pilot before adding features.
+Inventory recording, headless replenishment, a fixed purchase order, automatic authorization and a genuine test-token supplier payment have been demonstrated. Public duplicate protection and separate goods receiving are verified. The archived source matches the deployed vault.
 
-## 2. Prepare a bounded clinic pilot
+This is technical evidence, not a live clinic, distributor partnership or production security certification. See [mainnet readiness](/docs/mainnet-readiness) for the exact boundaries.
 
-Agree a small item set, a clinic owner for inventory accuracy, a purchasing approver and the source and freshness of supplier information. Establish access, backups, support and data-handling expectations before using clinic records.
+## Milestone 1: agree the first paid pilot
 
-## 3. Measure the pilot
+Identify a clinic with a recurring inventory problem, a staff champion and a budget owner. Observe the existing process and agree one storeroom, a bounded item list, baseline measures, service terms and a review date.
 
-Compare stock accuracy, alert usefulness, order-preparation time, stockout events and delivery discrepancies with a baseline agreed by the clinic. Use the result to decide whether to stop, revise or continue.
+**Completion:** a signed pilot scope and the agreed service payment received. The [first-customer plan](/docs/first-paying-client) describes how we intend to reach it; no customer is claimed yet.
 
-## 4. Make onboarding repeatable
+## Milestone 2: operate the inventory pilot reliably
 
-If a clinic confirms value, improve setup, catalog loading, training, backup and support so another clinic can use the workflow without custom engineering.
+Establish access, accurate opening counts, verified supplier offers, training, backup restoration, support and offboarding. Staff use their existing process for real orders and payments while financial activation is closed.
 
-## 5. Expand based on evidence
+**Completion:** the clinic can maintain the records, reconcile deliveries and assess value against the agreed baseline. See the [pilot guide](/docs/clinic-pilot).
 
-Supplier integrations, multi-site support and changes to payment automation require demonstrated demand and separate operational, customer and security review. Clinic approval remains required for each real order and payment in the current workflow.
+## Milestone 3: complete one supplier connection
+
+Work with the clinic's chosen supplier on item mapping, current offers, order acceptance, settlement terms and fulfillment. Start with an agreed manual exchange if an API is unavailable; do not build a generic supplier marketplace before validating one complete workflow.
+
+**Completion:** one accepted real order with a matching invoice and delivery, plus tested duplicate and exception handling. Payment may remain in the clinic's established process until mainnet activation. See [supplier integrations](/docs/supplier-integrations).
+
+## Milestone 4: activate bounded mainnet purchasing
+
+Resolve the production asset and custody model, complete the held-order approval flow, review and reproduce the release, verify signer separation and demonstrate recovery and pause controls. Obtain explicit approval for the first small real payment and reconcile it with the supplier.
+
+**Completion:** all [mainnet release gates](/docs/mainnet-readiness) pass and the clinic approves a limited automatic policy. Mainnet implementation and review can proceed alongside discovery; live activation depends on both operational readiness and supplier acceptance.
+
+## Milestone 5: earn renewal and repeat onboarding
+
+Review pilot results with the clinic, agree continued service and improve setup using actual support and operating costs. Onboard a second clinic through documented configuration and training, rather than custom engineering.
+
+**Completion:** a renewal or continued paid engagement, a repeatable onboarding process and a support model the team can sustain.
+
+## Later expansion
+
+Additional suppliers, more sites and cross-chain or fiat settlement follow demonstrated customer demand and verified integrations. Clinical recommendations and patient-record processing are outside the current product scope. We will publish partner names, customer results and launch dates only when confirmed and permitted.

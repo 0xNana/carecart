@@ -1,0 +1,67 @@
+---
+title: Mainnet readiness
+description: Proven payment capabilities and the release gates before CareCart handles real clinic funds.
+---
+
+CareCart has demonstrated automatic purchasing through a constrained vault on NEAR testnet. The next goal is a small, supervised production release with a clinic and a supplier. Mainnet financial activation remains disabled; a successful demonstration is the foundation for that release, not permission to handle customer funds.
+
+**Readiness reviewed: 13 November 2026.** The status below describes recorded evidence and outstanding work, not a promised launch date.
+
+## What is proven
+
+| Capability | Recorded result |
+| --- | --- |
+| Inventory-driven purchasing | Glove consumption triggered a shortage, purchase order and automatic authorization without approval for each order. |
+| Supplier token payment | A [final public payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD) credited 1.5 CCUSD to the controlled supplier account; historical balances matched. |
+| Duplicate protection | A [public repeat request](https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH) produced no second transfer. |
+| Source verification | A fresh build of the archived reviewed source matched the deployed vault bytes. |
+| Financial defenses | Public payment and duplicate evidence, plus genuine local Sandbox supplier, hard-limit, pause and human-approval checks. |
+| Separate fulfillment | Payment left inventory unchanged; a separate sample goods receipt increased stock once. |
+
+The run used synthetic stock and offers, a controlled supplier and the CCUSD test token. It did not demonstrate live AI inference, a real distributor sale, a bank payout or Circle USDC settlement. The completed one-order permission is disabled.
+
+## Gate 1: approve the production payment design
+
+**Owners: product lead, clinic finance lead and security reviewer.**
+
+Select the initial clinic, geography, supply categories and supplier. Agree who owns funds, who can fund the vault, who may authorize spending, and who handles returns, disputes and refunds. Resolve the relevant commercial and local requirements before accepting funds.
+
+Choose the exact network and asset. Circle currently lists native USDC on NEAR in its [official contract directory](https://developers.circle.com/stablecoins/usdc-contract-addresses). That makes a native-USDC design possible; CareCart still needs to validate and release that integration. A token name or demo balance is not proof of the asset's identity.
+
+**Completion evidence:** approved payment design, supplier acceptance of the settlement method, verified token identity and written operating responsibilities. No customer-facing mainnet deposit instructions are published before this gate is met.
+
+## Gate 2: review and release the financial implementation
+
+**Owners: engineering and an independent security reviewer.**
+
+- Implement explicit mainnet activation through the scoped purchasing path. The current service rejects mainnet financial activation; changing an environment value or copying test accounts is insufficient.
+- Complete and test the human wallet handoff for held orders. Above-limit requests must stay held, and approvals must never override hard or daily caps.
+- Verify the chosen token's metadata, transfers, account registration, fee requirements and failure behavior with the actual contract.
+- Reproduce the release artifact, review the contract and backend authorization boundaries, and independently compare the deployed code with the approved artifact.
+- Approve production limits, allowed suppliers and deposit handling. Publish the chosen limits instead of assuming the demonstration values are commercial settings.
+
+**Completion evidence:** reviewed source and release hash, deployed code match, closed material findings, and successful pre-release payment, rejection, duplicate and reconciliation rehearsals for the chosen configuration. The first real purchase remains subject to Gate 4 approval.
+
+## Gate 3: prove operational control
+
+**Owners: service operator and clinic administrator.**
+
+Protect administrative and upgrade authority separately from restricted payment signers. Document key custody, recovery, rotation and incident ownership. NEAR's [access-key documentation](https://docs.near.org/protocol/accounts-contracts/access-keys) distinguishes method-restricted keys from full-access authority; both must be accounted for in the operating plan.
+
+Verify the deployed login, clinic isolation, policy settings and control-wallet flows in a browser. Demonstrate backup restoration, worker restart, reconciliation after an uncertain submission, monitoring for failures and low gas, and both application and vault pause procedures. Keep signing keys out of shared application environments.
+
+**Completion evidence:** signed operating checklist, successful restore and pause drills, named support coverage, and a tested response to an interrupted payment without blind resubmission.
+
+## Gate 4: complete one supervised real purchase
+
+**Owners: clinic purchasing lead, supplier and release operator.**
+
+After the earlier gates pass, obtain explicit approval for one small live order, its amount, funding source and recipient. Confirm supplier acceptance before payment, verify settlement independently, and reconcile the invoice and physical delivery. Settle any exception through the agreed process.
+
+**Completion evidence:** an accepted supplier order, independently verified payment, delivery record and clinic sign-off. Increase scope only after reviewing that result. This guide does not authorize a mainnet transaction.
+
+## What can proceed in parallel
+
+We can conduct customer discovery, agree a paid inventory pilot and validate supplier catalogs while these financial gates are closed. The clinic can continue placing and paying for real orders through its established process. Automatic real-money purchasing becomes a separate pilot phase after financial activation is approved.
+
+Continue with the [pilot plan](/docs/clinic-pilot), [first paying clinic](/docs/first-paying-client) and [supplier integration stages](/docs/supplier-integrations).

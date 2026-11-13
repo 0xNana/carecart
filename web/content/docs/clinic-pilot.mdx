@@ -1,27 +1,61 @@
 ---
 title: Clinic pilot
-description: What a first CareCart clinic pilot is intended to evaluate.
+description: A bounded rollout with onboarding, success measures and a decision to continue as a paid service.
 ---
 
-CareCart is preparing to validate its inventory and replenishment workflow with a clinic. This page describes a proposed pilot shape; it is not a claim that a clinic has enrolled or that a pilot date has been set.
+The first clinic pilot should prove that staff can maintain useful stock records, act on replenishment signals and reconcile deliveries. It also tests whether CareCart saves enough effort or reduces enough purchasing friction to earn an ongoing paid engagement.
 
-## What a pilot would evaluate
+This is a proposed operating plan. No enrolled clinic, signed pilot or start date is claimed.
 
-- Recording stock receipts, use and adjustments for a clinic-selected set of supplies.
-- Whether low-stock signals are accurate and useful to staff.
-- How much time it takes to prepare a replenishment order.
-- Whether staff can reconcile an order with the physical delivery.
+## Choose a manageable scope
 
-## What would stay under clinic control
+Start with one site, one storeroom and a small set of frequently reordered consumables selected by the clinic. Agree the exact items and units. Begin with categories that the clinic and team can support; medicine-specific controls, cold-chain handling and regulated workflows need separate assessment.
 
-Clinic staff would confirm counts, review supplier information, and approve each real purchase and payment. The initial pilot would not make unattended payments or clinical recommendations.
+Identify an inventory lead, an operational sponsor, a purchasing approver and the person who can authorize payment for the CareCart service. One person may hold several roles, but the responsibilities must be explicit.
 
-## What a clinic would need to agree
+## Before the first live record
 
-- A staff member responsible for inventory records and an operational sponsor.
-- A purchasing approver who can review the proposed workflow.
-- A bounded site and item list, with a documented source for supplier prices and availability.
-- Baseline and success measures agreed before the pilot starts.
-- Data, access, hosting, backup, support and retention terms reviewed before real records are used.
+- Agree the pilot term, service fee or design-partner terms, scope and review date in writing.
+- Review data access, hosting, retention, support and incident responsibilities. Use no patient data.
+- Demonstrate a backup restore and agree how staff keep records during an outage.
+- Count opening stock together and approve the catalog, units and reorder rules.
+- Verify the source and age of supplier offers. Keep sample offers out of live purchasing decisions.
+- Train staff to record usage once, correct a count and receive an order without duplicating a receipt.
+- Agree the baseline, success targets and who will decide whether to continue.
 
-The current website preview is synthetic and does not contact suppliers or place orders. Pilot scope, availability and timing will be published when they are confirmed.
+## A suggested four-week pilot
+
+The schedule is a proposal to adapt with the clinic, not a booked rollout.
+
+| Stage | Work | Review evidence |
+| --- | --- | --- |
+| Preparation | Count stock, set access and train staff; document the existing process. | Agreed opening balances, baseline and operating checklist. |
+| Week 1 | Record daily stock movements and compare sample physical counts. | Missing entries, unit errors and corrections. |
+| Week 2 | Review shortage signals and prepare real replenishment proposals from verified supplier information. | Useful versus dismissed alerts and staff time per order. |
+| Week 3 | Follow orders through the clinic's current purchasing process and record deliveries. | Supplier acceptance, delivery differences and receipt accuracy. |
+| Week 4 | Compare results, review staff feedback and make a commercial decision. | Continue, revise or stop; written terms for continued service. |
+
+## Keep payment activation a separate decision
+
+The initial inventory pilot uses the clinic's existing process to approve, place and pay for real orders. Automatic purchasing can be rehearsed with sample data. Unattended real-money payment is added only after the [mainnet gates](/docs/mainnet-readiness) pass and the clinic grants a specific purchasing policy.
+
+This staged rollout lets the clinic validate daily value while supplier and financial integrations are completed. It does not change CareCart's intended automatic purchasing workflow.
+
+## Measure value before extending the pilot
+
+| Measure | How to compare |
+| --- | --- |
+| Stock accuracy | Compare sampled balances with physical counts and explain differences. |
+| Order preparation effort | Measure staff time for comparable replenishment orders before and during the pilot. |
+| Alert usefulness | Record confirmed, dismissed and missed shortages for the agreed items. |
+| Urgent purchasing and stockouts | Use the clinic's definitions and a baseline period; a short pilot may be insufficient to establish a reduction. |
+| Delivery reconciliation | Track missing quantities, incorrect items and time to resolve discrepancies. |
+| Adoption and support | Check whether staff keep records current and how much assistance they need. |
+
+Set targets with the clinic before collecting pilot results. Do not turn a small sample into a claim about clinical outcomes or guaranteed savings.
+
+## Decide whether to continue
+
+Continue when the sponsor confirms useful results, staff can operate the workflow and a budget owner accepts written service terms. Revise when a specific, fixable issue prevents value. Stop when the workflow is not useful, required controls cannot be supported or the clinic does not wish to continue.
+
+Agree the export and offboarding process at the start, so the clinic retains access to its records whichever decision it makes. The [first-customer plan](/docs/first-paying-client) explains the commercial path.
