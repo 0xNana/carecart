@@ -2,6 +2,10 @@
 
 CareCart helps clinics keep reliable supply records and replenish essential items. Staff record stock received, consumed, dispensed or adjusted. A background monitor detects shortages, compares approved supplier offers and prepares a canonical purchase order. A deterministic financial policy can authorize eligible testnet purchases for separate restricted payment workers.
 
+![CareCart product preview showing a clinic workspace, low-stock glove alert, supplier lead time and purchasing controls.](web/public/screenshots/carecart-product-preview.png)
+
+*Product overview with synthetic clinic data. [Explore CareCart](https://carecart.xyz) · [Read the product guides](https://carecart.xyz/docs) · [View the verified 1.5 CCUSD test payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD).*
+
 CareCart manages inventory and procurement records; it does not make clinical decisions or provide medical advice.
 
 > **Current scope:** A clinic administrator can select suppliers, items and an automatic order limit. Eligible testnet orders can proceed without a separate human signature for each order; other orders remain for review. A bounded synthetic-clinic run completed a genuine 1.5 CCUSD supplier payment on November 13. CCUSD has no cash value. Mainnet, Circle USDC, real clinic deployment and NEAR Intents settlement are outside this release.
@@ -47,6 +51,10 @@ flowchart LR
 ```
 
 The inventory worker is key-free and prepares replenishment work. A separate internal evaluator can issue operation-specific authorizations from a clinic standing policy. Separate restricted payment services consume those authorizations; the safety vault checks the saved order, approved supplier, payment limits and pause state. A recorded transaction submission is not treated as payment success until the configured observer verifies it. Staff record physical delivery separately from payment.
+
+![CareCart stock-receiving workflow with item, quantity, supplier, lot and delivery-reference fields, followed by updated stock levels.](web/public/screenshots/carecart-stock-receiving.png)
+
+*Working inventory screen captured during the local browser walkthrough. Sample stock is updated after receiving goods; this isolated demo does not send payments.*
 
 ## Repository layout
 
