@@ -126,7 +126,7 @@ export function LandingPage() {
         </div>
       </header>
 
-      <main id="main-content" className={styles.main}>
+      <main id="main-content">
         <section className={styles.hero} aria-labelledby="hero-title">
           <div className={styles.heroGrid}>
             <div className={styles.heroCopy}>
@@ -235,7 +235,7 @@ export function LandingPage() {
                       <i />
                     </div>
                     <div className={styles.stockLegend}>
-                      <span><i className={styles.legendCurrent} /> On hand: 12 boxes</span>
+                      <span><i /> On hand: 12 boxes</span>
                       <span><i className={styles.legendThreshold} /> Reorder point: 28</span>
                     </div>
                   </div>
@@ -372,7 +372,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <article className={`${styles.showcase} ${styles.showcaseInventory}`}>
+          <article className={styles.showcase}>
             <div className={styles.showcaseCopy}>
               <span className={styles.showcaseIndex}>01 / SEE WHAT NEEDS ATTENTION</span>
               <h3>Inventory intelligence</h3>
@@ -461,7 +461,7 @@ export function LandingPage() {
             </div>
           </article>
 
-          <article className={`${styles.showcase} ${styles.showcasePayments}`}>
+          <article className={styles.showcase}>
             <div className={styles.showcaseCopy}>
               <span className={styles.showcaseIndex}>03 / PAYMENT REVIEW</span>
               <h3>Payments with clear safeguards</h3>

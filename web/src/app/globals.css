@@ -230,6 +230,8 @@ strong {
   color:var(--muted)
 }
 main {
+  width:100%;
+  min-width:0;
   max-width:1550px;
   margin:auto;
   padding:34px 36px 20px

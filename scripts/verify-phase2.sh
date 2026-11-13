@@ -15,13 +15,20 @@ task_output="$(mktemp -d /tmp/carecart-phase2-verify.XXXXXX)"
 mkdir "$task_output/web" "$task_output/backend"
 git -C "$task_repo" rev-parse HEAD > "$task_output/source-head.txt"
 python3 - "$task_repo" "$task_output" <<'PY'
-import hashlib,json,pathlib,shutil,sys
+import errno,hashlib,json,os,pathlib,shutil,sys
 root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2]);web=root/'web'
 for name in ['src','public','content']:
     if (web/name).exists():shutil.copytree(web/name,out/'web'/name)
 for pattern in ['package*.json','tsconfig.json','next-env.d.ts','next.config.*','eslint.config.*','postcss.config.*','source.config.*']:
     for source in web.glob(pattern):shutil.copy2(source,out/'web'/source.name)
-(out/'web'/'node_modules').symlink_to(web/'node_modules',target_is_directory=True)
+# Turbopack resolves dependencies inside its project root. A symlink back into
+# the checkout escapes that root; a separate directory tree preserves resolution.
+def link_dependency(source,destination):
+    try:os.link(source,destination)
+    except OSError as error:
+        if error.errno!=errno.EXDEV:raise
+        shutil.copy2(source,destination)
+shutil.copytree(web/'node_modules',out/'web'/'node_modules',copy_function=link_dependency,symlinks=True)
 backend=root/'backend'
 for name in ['src','test-support']:
     shutil.copytree(backend/name,out/'backend'/name)
@@ -66,7 +73,7 @@ run_check web-tests "$task_repo/web" --experimental-strip-types --test --test-is
 run_check web-route-types "$task_repo/web" node_modules/next/dist/bin/next typegen
 run_check web-types "$task_repo/web" node_modules/typescript/bin/tsc --noEmit --incremental false
 run_check web-lint "$task_repo/web" node_modules/eslint/bin/eslint.js .
-run_check web-webpack-build "$task_output/web" node_modules/next/dist/bin/next build --webpack
+run_check web-production-build "$task_output/web" node_modules/next/dist/bin/next build
 printf '\nAll checks exited 0. Evidence and isolated production build: %s\n' "$task_output"
 printf 'After stopping previous web/API preview services, keep both services running with:\nbash %q %q\n' "$task_repo/scripts/serve-phase2.sh" "$task_output"
 if [[ "${1:-}" == '--web-preview' ]]; then

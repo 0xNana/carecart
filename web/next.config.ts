@@ -17,7 +17,13 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   turbopack: {
     rules: {
-      "*.css": {
+      // Reclassifying a CSS Module as plain CSS removes its class-name exports.
+      // Only the two Tailwind entry stylesheets need this loader.
+      "globals.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
+      },
+      "docs.css": {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },

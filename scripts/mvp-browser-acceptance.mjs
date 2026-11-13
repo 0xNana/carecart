@@ -52,6 +52,32 @@ try{
  const evaluate=async expression=>{const r=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error('Browser evaluation failed');return r.result.value;};
  await cmd('Page.enable');await cmd('Runtime.enable');await cmd('Log.enable');await cmd('Network.enable');
  for(const c of cookie.split('; ')){const at=c.indexOf('=');await cmd('Network.setCookie',{name:c.slice(0,at),value:c.slice(at+1),url:origin,httpOnly:true,sameSite:'Lax'});}
+ report.publicPages=[];
+ for(const path of ['/', '/docs/mainnet-readiness']){
+  for(const width of [1440,390]){
+   await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});
+   for(const action of ['navigate','reload']){
+    const previousDocument=await evaluate('performance.timeOrigin');
+    if(action==='navigate')await cmd('Page.navigate',{url:origin+path});else await cmd('Page.reload',{ignoreCache:true});
+    await wait(()=>evaluate(`performance.timeOrigin!==${previousDocument}&&location.pathname===${JSON.stringify(path)}&&document.readyState==="complete"&&!!document.querySelector("h1")`),'public page '+path);
+    await evaluate('document.fonts.ready.then(()=>true)');await pause(500);
+    const metrics=await evaluate(`(()=>{const skip=document.querySelector('a[href="#main-content"]');const logo=document.querySelector('a[aria-label="CareCart home"] svg');return {undefinedClasses:[...document.querySelectorAll('[class]')].filter(e=>e.classList.contains('undefined')).length,skipPosition:skip?getComputedStyle(skip).position:null,skipBottom:skip?.getBoundingClientRect().bottom,logoWidth:logo?.getBoundingClientRect().width,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,title:document.querySelector('h1')?.textContent}})()`);
+    report.publicPages.push({path,width,action,...metrics});
+    assert.equal(metrics.undefinedClasses,0,'Missing CSS Module exports on '+path);
+    assert.equal(metrics.overflow,false,'Public page overflow on '+path);
+    if(path==='/'){
+     assert.equal(metrics.skipPosition,'absolute','Skip link lost its stylesheet');
+     assert(metrics.skipBottom<=0,'Skip link should be offscreen until focused');
+     assert(metrics.logoWidth>=16&&metrics.logoWidth<=40,'Brand icon lost its size constraint');
+     await cmd('Page.bringToFront');
+     await evaluate(`document.querySelector('a[href="#main-content"]').focus({preventScroll:true})`);
+     await wait(()=>evaluate(`(()=>{const skip=document.querySelector('a[href="#main-content"]');return skip.matches(':focus')&&skip.getBoundingClientRect().top>=0})()`),'visible keyboard skip link');
+     await evaluate(`document.querySelector('a[href="#main-content"]').blur()`);
+    }
+    writeFileSync(output+'/public-'+(path==='/'?'home':'docs')+'-'+width+'-'+action+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+   }
+  }
+ }
  await cmd('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
  await cmd('Page.navigate',{url:origin+'/operations'});
  await wait(()=>evaluate('document.body.innerText.includes("Save stock update")'),'inventory form');

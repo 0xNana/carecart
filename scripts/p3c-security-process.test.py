@@ -1,7 +1,7 @@
 """Real HTTP/Next/auth/SQLite security regression. Spies prohibit all financial execution.
 
 Usage: python3 scripts/p3c-security-process.test.py /tmp/carecart-phase2-verify.XXXXXX
-The snapshot must be freshly prepared and webpack-built by verify-phase2.sh.
+The snapshot must be freshly prepared and production-built by verify-phase2.sh.
 No operational environment, signing credentials, external RPC or deployment is used.
 """
 import concurrent.futures
@@ -136,7 +136,7 @@ def main():
     check('/api/operations/session',401);check('/api/operations/runs',401,'POST',payload,mutation_headers(s))
    evidence=json.loads(check('/__p3c-evidence',200,target=legacy_port))
    assert evidence=={'adapter':0,'signing':0,'externalSubmission':0,'syntheticDemoUnchanged':True,'operationalCases':1},evidence
-   report={'status':'passed','execution':'real-local-HTTP-production-webpack','publicChainExecution':False,'browserRuntime':False,
+   report={'status':'passed','execution':'real-local-HTTP-production-build','publicChainExecution':False,'browserRuntime':False,
     'snapshot':str(snapshot),'checks':checks,'concurrentRejectedPayments':len(statuses),'concurrentAuthorizedReplays':len(runs),
     'spyEvidence':evidence,'playgroundRetiredWithoutEffects':True,'serverSessionExpiryEnforced':True}
    destination=os.environ.get('CARECART_P3C_EVIDENCE')
