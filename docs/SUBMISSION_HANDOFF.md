@@ -1,11 +1,11 @@
 # NEAR Hackathon submission handoff
 
-**Status:** Local release candidate prepared. The branch is not pushed, no pull request is open, and the repository remains private pending the owner's final security review.
+**Status:** Release branch pushed and pull request opened. PR #3 targets `main`; the repository remains private pending the owner's final security review.
 
 **Branch:** `codex/hackathon-submission-release`
 
 **Base:** `origin/main` at `52060a1`
-**Commits:** `6a76ce3` (submission docs/license), `4b4a1e3` (application and verification), `54fbdd5` (reproducible vault metadata). This handoff is included in the current branch head.
+**Key commits:** `6a76ce3` (submission docs/license), `4b4a1e3` (application and verification), `54fbdd5` (reproducible vault metadata). The latest documentation and demo commits are recorded in the branch history.
 
 ## A. Completed by Codex
 
@@ -59,7 +59,7 @@ The official requirements are in the [NEAR Hackathon rules](https://nearhackatho
 
 ### Pull request and external state
 
-No remote update or PR was created. `gh auth status` reports that the configured GitHub token for `0xNana` is invalid. The last successful GitHub visibility check showed the repository as **PRIVATE**. Existing PRs #1 and #2 were merged before this sprint; this release branch has no remote tracking branch.
+The release branch was pushed. GitHub confirms [PR #3 is open](https://github.com/0xNana/carecart/pull/3), targeting `main`, and the repository is **PRIVATE**. Existing PRs #1 and #2 were merged before this sprint.
 
 ## B. Required from the owner
 
@@ -67,19 +67,9 @@ No remote update or PR was created. `gh auth status` reports that the configured
 
 The branch removes `internal-docs/` from its latest tree, but the files remain reachable in earlier commits. Git commit metadata also contains `hellodaries@gmail.com`. The two committed testnet profiles contain `/home/nana/projects/carecart` database paths; the README explains how to relocate `databasePath`, while `fingerprintDatabasePath` must remain unchanged to preserve the reviewed profile identity. Confirm that these history and configuration details are acceptable to expose before making the repository public. No history rewrite was performed.
 
-### 2. Authenticate, push and open the PR
+### 2. Review and merge the pull request
 
-After reviewing the local branch, authenticate GitHub and run:
-
-```bash
-gh auth login -h github.com
-git push -u origin codex/hackathon-submission-release
-gh pr create --base main --head codex/hackathon-submission-release \
-  --title "CareCart — Hackathon Submission Release" \
-  --body-file docs/PR_DESCRIPTION.md
-```
-
-Review the resulting PR and approve its merge. Codex did not merge it.
+Review [PR #3](https://github.com/0xNana/carecart/pull/3), then approve its merge when ready. Codex did not merge it.
 
 ### 3. Record the 90–150-second demo
 
