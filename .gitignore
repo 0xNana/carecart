@@ -36,3 +36,6 @@ artifacts/
 .DS_Store
 __pycache__/
 *.py[cod]
+
+# Internal planning and implementation notes
+internal-docs/

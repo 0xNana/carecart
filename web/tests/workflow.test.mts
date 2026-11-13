@@ -9,11 +9,11 @@ const fixture = (kind='mocked-rpc',status='Paid',state='SameChainConfirmed') => 
 
 test('mocked confirmation is labeled as mocked execution, never a real USDC settlement',()=>{
  const c=parseWorkflowProjection(fixture()).cases[0];
- assert.match(caseStateLabel(c),/Mocked RPC/); assert.doesNotMatch(caseStateLabel(c),/Verified|USDC settled/);
+ assert.equal(caseStateLabel(c),'Demo payment complete'); assert.doesNotMatch(caseStateLabel(c),/Testnet|Verified|USDC settled/);
 });
 test('saved public RPC evidence remains a recorded observation requiring revalidation',()=>{
  const c=parseWorkflowProjection(fixture('public-rpc')).cases[0];
- assert.match(caseStateLabel(c),/Recorded public RPC/);
+ assert.equal(caseStateLabel(c),'Testnet payment confirmed');
 });
 test('rejects unsupported success, missing evidence and source dispatch relabeled as destination settlement',()=>{
  for(const f of [fixture('local-only'),fixture('mocked-rpc','Dispatching'),fixture('mocked-rpc','Dispatched','DestinationSettled')])
@@ -35,17 +35,19 @@ test('renders persisted case data, mock labels, audit references and disabled fi
  try {
   symlinkSync(resolve('node_modules'),join(folder,'node_modules'),'dir');
   for(const [source,target] of [['src/lib/workflow.ts','workflow.mjs'],['src/components/operations-workspace.tsx','workspace.mjs']]) {
-   const code=ts.transpileModule(readFileSync(source,'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText.replaceAll('./product-copy.ts',pathToFileURL(resolve('src/lib/product-copy.ts')).href).replace("'../lib/workflow'","'./workflow.mjs'").replace('"../lib/workflow"','"./workflow.mjs"').replace('"next/link"','"next/link.js"').replace("'next/link'","'next/link.js'");
+   let code=ts.transpileModule(readFileSync(source,'utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;
+   for(const [from,to] of [['./product-copy.ts',pathToFileURL(resolve('src/lib/product-copy.ts')).href],['../lib/product-copy',pathToFileURL(resolve('src/lib/product-copy.ts')).href],['../lib/workflow','./workflow.mjs'],['next/link','next/link.js']])code=code.replaceAll(`'${from}'`,`'${to}'`).replaceAll(`"${from}"`,`"${to}"`);
    writeFileSync(join(folder,target),code);
   }
   const {OperationsWorkspace}=await import(pathToFileURL(join(folder,'workspace.mjs')).href);
   const snapshot=fixture();snapshot.cases[0].inventory.item.name='<script>unsafe</script>';
-  const html=renderToStaticMarkup(createElement(OperationsWorkspace,{initialProjection:parseWorkflowProjection(snapshot)}));
-  assert.match(html,/case-1/);assert.match(html,/Mocked RPC/);assert.match(html,/Mocked Paid/);
+  const withTimeline={...snapshot,cases:snapshot.cases.map(c=>({...c,timeline:[{eventType:'PoDrafted',previousState:'QuotesAvailable',resultingState:'PoDrafted',actor:'operator:demo',timestamp:'2026-11-03T12:00:00Z',evidenceReference:'b'.repeat(64),operationId:null}]}))};
+  const html=renderToStaticMarkup(createElement(OperationsWorkspace,{initialProjection:parseWorkflowProjection(withTimeline)}));
+  assert.match(html,/case-1/);assert.match(html,/Demo payment complete/);assert.doesNotMatch(html,/Mocked RPC|Mocked Paid/);
   const preparation=renderToStaticMarkup(createElement(OperationsWorkspace,{initialProjection:parseWorkflowProjection(snapshot),source:'authenticated',testnetAssets:true}));
-  assert.match(preparation,/Total CCUSD test token/);assert.doesNotMatch(preparation,/Total USDC|1.500000 USDC/);
-  assert.match(html,/fieldset disabled/);assert.match(html,/bbbbbbbbbbbbbbbbbbbb/);
+  assert.match(preparation,/amounts in demo credits/);assert.doesNotMatch(preparation,/USDC|CCUSD/);
+  assert.match(html,/This saved report is read-only/);assert.doesNotMatch(html,/Confirm payment|Authorize payment/);assert.match(html,/bbbbbbbbbbbbbbbbbbbb/);
   assert.doesNotMatch(html,/<script>unsafe/);assert.match(html,/&lt;script&gt;unsafe/);
-  const empty=renderToStaticMarkup(createElement(OperationsWorkspace));assert.match(empty,/Open a case export/);assert.doesNotMatch(empty,/case-1/);
+  const empty=renderToStaticMarkup(createElement(OperationsWorkspace));assert.match(empty,/Choose a saved order report/);assert.doesNotMatch(empty,/case-1/);
  } finally {rmSync(folder,{recursive:true,force:true});}
 });

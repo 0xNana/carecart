@@ -4,8 +4,8 @@ import {statusLabel,stockActionLabel,unitLabel,actionError,displayTime,testnetTr
 
 test('payment labels preserve pending, ambiguous and independently confirmed distinctions',()=>{
  assert.equal(statusLabel('Submitted'),'Submitted · awaiting verification');
- assert.equal(statusLabel('SourceDispatched'),'Destination verification pending');
- assert.equal(statusLabel('RequiresReconciliation'),'Verification required');
+ assert.equal(statusLabel('SourceDispatched'),'Payment sent · recipient confirmation pending');
+ assert.equal(statusLabel('RequiresReconciliation'),'Check payment status');
  assert.equal(statusLabel('SameChainConfirmed'),'Payment confirmed');
  for(const state of ['Submitted','DispatchInProgress','SourceDispatched','RequiresReconciliation','PoDrafted'])assert.doesNotMatch(statusLabel(state),/Payment confirmed|Delivery received/);
 });
@@ -18,7 +18,7 @@ test('explorer links cannot turn fixture, Sandbox, mainnet or arbitrary evidence
 });
 test('stock and procurement copy does not change underlying identifiers',()=>{
  assert.equal(statusLabel('PoDrafted'),'Order prepared');assert.equal(statusLabel('Dispense'),'Stock dispensed');
- assert.equal(statusLabel('NewAuditEvent'),'New Audit Event');assert.equal(statusLabel('Unobserved'),'Not verified');
+ assert.equal(statusLabel('NewAuditEvent'),'New Audit Event');assert.equal(statusLabel('Unobserved'),'Not checked yet');
 });
 test('forms describe an action to take rather than a completed event, with readable stock units',()=>{
  assert.equal(stockActionLabel('Receive'),'Receive Stock');assert.notEqual(stockActionLabel('Consume'),statusLabel('Consume'));

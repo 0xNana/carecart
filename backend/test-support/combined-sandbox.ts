@@ -28,7 +28,7 @@ async function main(){let input='';for await(const chunk of process.stdin){input
  const profileFile=join(directory,'profile.json');writeFileSync(profileFile,JSON.stringify(p),{mode:0o600});
  let store=new SandboxProcurementStore(p),workflow=new ReplenishmentWorkflow(store);const caseId='sb-combined-case';
  let api:ReturnType<typeof spawn>|undefined;
- const baseEnv={PATH:process.env.PATH??'/usr/bin:/bin',HOME:process.env.HOME??'/home/nana',TSX_DISABLE_CACHE:'1'};
+ const baseEnv={PATH:process.env.PATH??'/usr/bin:/bin',HOME:process.env.HOME??'/tmp',TSX_DISABLE_CACHE:'1'};
  const run=(entry:string,args:string[],env:NodeJS.ProcessEnv,stdin?:string)=>{const result=spawnSync(process.execPath,['--import','tsx',entry,...args],{cwd:join(PROJECT_ROOT,'backend'),env:{...baseEnv,...env},input:stdin,encoding:'utf8',timeout:60000});
   if(result.status!==0)throw new Error('Isolated '+entry+' failed: '+result.stderr.slice(0,800));return JSON.parse(result.stdout.trim().split('\n').at(-1)!);};
  try{

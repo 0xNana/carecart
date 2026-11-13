@@ -34,8 +34,8 @@ test('RENDERED UI / SYNTHETIC: shows worker, inventory, incoming stock and unobs
         data.items[0].movements=[{id:'issued-1',productId:'mn-item-1',kind:'Dispense',quantity:2,baseQuantity:2,unit:'base',source:'manual',timestamp:'2026-11-07T10:00:00Z',actor:'operator:staff',destination:'Treatment room',reference:'ISSUE-1'},
          {id:'receipt-1',productId:'mn-item-1',kind:'Receive',quantity:1,baseQuantity:10,unit:'pack',source:'manual',timestamp:'2026-11-07T09:00:00Z',actor:'operator:staff',supplierId:'mn-supplier-1',batch:'LOT-1',receivedAt:'2026-11-07T08:00:00Z'}];
         const html = renderToStaticMarkup(createElement(InventorySummary, { data }));
-        for(const text of ['Stock dispensed or consumed','destination Treatment room','reference ISSUE-1','supplier mn-supplier-1','batch LOT-1','received 2026-11-07T08:00:00Z'])assert.ok(html.includes(text),text);
-        for (const text of ['Stock balances', 'configured-baseline', '28 / 48', '40 / 48', 'Not verified', 'Authorize order', 'independently of payment', 'No batches recorded.'])
+        for(const text of ['Stock dispensed or consumed','Treatment room','reference ISSUE-1','mn-supplier-1','lot LOT-1','received 11/7/2026'])assert.ok(html.includes(text),text);
+        for (const text of ['Stock levels', 'configured-baseline', '28 / 48', '40 / 48', 'Not checked yet', 'Confirm order', 'independently of payment', 'No lots recorded.'])
             assert.ok(html.includes(text), text);
         assert.doesNotMatch(html, /PRIVATE_KEY|OPERATOR_SECRET|Paid|Settled/);
     }

@@ -29,6 +29,13 @@ for pattern in ['package*.json','tsconfig*.json']:
     for source in backend.glob(pattern):shutil.copy2(source,out/'backend'/source.name)
 (out/'backend'/'node_modules').symlink_to(backend/'node_modules',target_is_directory=True)
 shutil.copytree(root/'profiles',out/'profiles')
+# Profiles carry checkout-specific absolute paths. Rebind only the copied testnet
+# fixture to this isolated snapshot so path guards still exercise the intended
+# testnet-v2 boundary instead of reading state from the developer checkout.
+profile_path=out/'profiles'/'testnet.demo.json'
+profile=json.loads(profile_path.read_text())
+profile['profile']['databasePath']=str(out/'backend'/'data'/'testnet-v2'/'offline-demo'/'state.sqlite')
+profile_path.write_text(json.dumps(profile,indent=2)+'\n')
 assert not (out/'.env').exists() and not (out/'backend'/'.env').exists()
 files={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest()
        for folder in [root/'web'/'src',root/'backend'/'src'] for p in folder.rglob('*') if p.is_file()}
@@ -51,7 +58,7 @@ run_check() {
   if [[ "${task_status[1]}" != 0 ]]; then return "${task_status[1]}"; fi
 }
 if [[ "${1:-}" != '--web-only' && "${1:-}" != '--web-preview' ]]; then
-  run_check backend-tests "$task_output/backend" node_modules/vitest/vitest.mjs run
+  run_check backend-tests "$task_output/backend" node_modules/vitest/vitest.mjs run --maxWorkers=4
   run_check backend-types "$task_output/backend" node_modules/typescript/lib/tsc.js --noEmit
 fi
 task_web_tests=("$task_repo"/web/tests/*.test.mts)

@@ -1,22 +1,28 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#12675c",
+};
+
+const productDescription =
+  "CareCart helps clinics monitor stock, prepare replenishment orders and manage payments with clinic approval and spending safeguards.";
 
 export const metadata: Metadata = {
   title: "CareCart — Healthcare procurement, under control",
-  description:
-    "CareCart connects healthcare inventory, autonomous procurement and policy-controlled supplier payments. Give AI a budget, not your wallet.",
+  description: productDescription,
   openGraph: {
     title: "CareCart — Healthcare procurement, under control",
-    description:
-      "Connect healthcare inventory, autonomous procurement and policy-controlled supplier payments.",
+    description: productDescription,
     type: "website",
     siteName: "CareCart",
   },
   twitter: {
     card: "summary",
     title: "CareCart — Healthcare procurement, under control",
-    description:
-      "Connect healthcare inventory, autonomous procurement and policy-controlled supplier payments.",
+    description: productDescription,
   },
 };
 

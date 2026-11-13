@@ -1,19 +1,25 @@
-# CareCart Web Application (`/app`)
+# CareCart web application
 
-CareCart provides a unified operational workspace at `/app` with Overview, Inventory, Replenishment, Suppliers, Payments, Activity, and Settings views, paired with a persistent **NEAR Testnet** indicator and **Live NEAR AI Cloud (`z-ai/glm-5.3-flash`)** procurement specialist controls.
+This Next.js application contains the public product pages, the authenticated clinic workspace, and the local operations demo. The root [README](../README.md) is the source of truth for product scope, setup, security boundaries, and payment evidence.
 
-## Key Capabilities
+## Local setup
 
-- **Authentication & Clinic Isolation:** Supabase SSR validates user identity, active clinic membership, and server-enforced roles (`Admin`, `InventoryManager`, `ProcurementReviewer`, `Viewer`). Configure the root [`.env`](file:///home/nana/projects/carecart/.env.example) and symlink `web/.env.local -> ../.env`.
-- **Append-Only Inventory Ledger:** Staff receive stock, dispense, record direct consumption, and append reasoned adjustments. A headless background monitor evaluates stock coverage and triggers replenishment cases automatically.
-- **Live NEAR AI Cloud Specialist:** Operators can evaluate any replenishment case with **NEAR AI Cloud (`z-ai/glm-5.3-flash`)** or run the deterministic check directly from the case drawer in `/app`.
-- **Policy-Guarded Testnet Payments:** Canonical purchase orders, NEP-413 wallet ownership verification, and scoped `committer` / `requester` authorizations target `safety-v2.carecart.testnet` (`CCUSD`). Web and API processes never hold signing keys.
-
-## Verification
-
-From the repository root, using Node `24.21.0`:
+From the repository root, install the web dependencies and configure the root environment file as described in the root README:
 
 ```bash
-nvm use
-cd web && npx tsc --noEmit && npm test
+npm ci --prefix web
+cp .env.example .env
+ln -s ../.env web/.env.local
 ```
+
+The `/operations` route supports the isolated synthetic walkthrough without hosted identity credentials. The `/app` clinic workspace uses Supabase authentication and requires the corresponding local environment settings.
+
+## Checks
+
+```bash
+npm test --prefix web
+npm run lint --prefix web
+npm run build --prefix web -- --webpack
+```
+
+Do not put payment signing keys in the shared environment file. See the root README for the supported process-specific configuration and the current clinic approval boundary.
