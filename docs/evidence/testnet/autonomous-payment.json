@@ -91,5 +91,10 @@
   "limitations": [
     "This read-only command does not perform a duplicate request; idempotency evidence is recorded separately.",
     "Physical delivery is a separate inventory event."
-  ]
+  ],
+  "asset": {
+    "symbol": "CCUSD",
+    "decimals": 6
+  },
+  "amountDisplayed": "1.500000 CCUSD"
 }

@@ -42,7 +42,7 @@
     }
   },
   "maximumTotalTestTokenExposure": "3000000",
-  "publicTransactionsSubmitted": 0,
+  "publicTransactionsSubmitted": 3,
   "approvalSource": "Bounded owner consent before execution; deterministic policy issued both role permits without an interactive session",
   "completedAt": "2026-11-13T15:03:37.996Z",
   "headless": true,
@@ -84,5 +84,11 @@
   "limitations": [
     "Synthetic clinic, quotes and physical delivery; CCUSD has no cash value.",
     "One owner-approved test order; no claim of production activation or mainnet settlement."
+  ],
+  "preparationPublicTransactionsSubmitted": 0,
+  "transactionHashes": [
+    "GkenNfSpQq7YeXfUS6fH5rHhEHKo3kkwV3VbAPtwMK9F",
+    "EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD",
+    "CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH"
   ]
 }

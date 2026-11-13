@@ -63,7 +63,10 @@ async function finalize(){
   const client=new SafetyVaultClient(grant.profile),binding={kind:'public-rpc' as const,client,verify:()=>client.verify(),testnet:grant};
   const authority=new TenantTreasuryAuthority(registry,new WalletBindings(registry,process.env.CARECART_PUBLIC_ORIGIN!,walletConfiguration(process.env)),local.workflow,binding,clinic.id,'near-testnet');authority.automatic.completeSprintGrant(c.caseId);
   const authorizations=local.inventory.db.prepare('SELECT role,state,terms_json FROM financial_authorizations WHERE case_id=? ORDER BY created_at').all(c.caseId) as {role:string;state:string;terms_json:string}[];
-  const result={...activation,completedAt:new Date().toISOString(),headless:true,modelInference:false,automaticAuthorization:true,approvalSource:'Bounded owner consent before execution; deterministic policy issued both role permits without an interactive session',
+  const submitted=local.inventory.db.prepare('SELECT evidence FROM backend_operations WHERE operation_key IN (?,?) AND state=?').all('commit_purchase_order:'+c.poId,'request_payment:'+c.poId,'Confirmed') as {evidence:string}[];
+  const duplicate=JSON.parse(readFileSync(join(dir,'duplicate-attempt.json'),'utf8'));
+  const transactionHashes=[...submitted.map(o=>JSON.parse(o.evidence).transactionHash),duplicate.transactionHash];
+  const result={...activation,preparationPublicTransactionsSubmitted:0,publicTransactionsSubmitted:transactionHashes.length,transactionHashes,completedAt:new Date().toISOString(),headless:true,modelInference:false,automaticAuthorization:true,approvalSource:'Bounded owner consent before execution; deterministic policy issued both role permits without an interactive session',
    authorizations:authorizations.map(a=>({role:a.role,state:a.state,automaticPolicyVersion:JSON.parse(a.terms_json).tenantScope.automaticPolicyVersion})),
    inventory:{...activation.inventory,afterConfirmedPayment:before,physicalDelivery:receipt.quantity,afterPhysicalDelivery:after,duplicatePhysicalReceiptAdded:'0'},policyAfterCompletion:authority.automatic.snapshot(),evidenceLevel:'public-testnet-financial-execution-and-local-synthetic-inventory',
    limitations:['Synthetic clinic, quotes and physical delivery; CCUSD has no cash value.','One owner-approved test order; no claim of production activation or mainnet settlement.']};

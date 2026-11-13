@@ -48,6 +48,7 @@ export async function paymentEvidence(activationPath:string,evidencePath:string)
   return {observedAt:new Date().toISOString(),readOnly:true,publicTransactionsSubmitted:0,
    historicalBalances:{beforeBlockHeight:block.header.height-1,afterBlockHeight:block.header.height,supplierBefore,supplierAfter,vaultBefore,vaultAfter,deltaVerified:true},
    paymentTimestamp:new Date(Number(BigInt(block.header.timestamp_nanosec??block.header.timestamp)/1000000n)).toISOString(),
+   asset:{symbol:'CCUSD',decimals:6},amountDisplayed:`${BigInt(order.amount)/1000000n}.${(BigInt(order.amount)%1000000n).toString().padStart(6,'0')} CCUSD`,
    evidenceLevel:'public-testnet-final-receipts',proof,canonicalOrder:order,payment,
    explorer:`https://testnet.nearblocks.io/txns/${hash}`,vaultExplorer:`https://testnet.nearblocks.io/address/${p.vault}`,
    journalLookup:{transactionHash:hash,canonicalHash:digest(order),source:'Published lookup terms; public receipts are verified independently of a private journal'},
