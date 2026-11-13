@@ -5,6 +5,7 @@ import type {OperatorClient,OperatorSession} from '../lib/operator-client';
 import type {StockDashboard,AutonomyConfig} from '../lib/inventory';
 import {actionError,displayTime,statusLabel} from '../lib/product-copy';
 import {InventoryOperations} from './inventory-operations';
+import {ClinicOverview} from './clinic-overview';
 import styles from './application-view.module.css';
 
 type Section='overview'|'inventory'|'activity'|'settings';
@@ -21,8 +22,8 @@ export function InventoryRuntimePanel({client,operator,section,onChanged,onFailu
   {error&&<p className={styles.error} role="alert">{error}</p>}
   {!data&&!error&&<p role="status">Loading stock records…</p>}
   {data&&<>
-   {section==='overview'&&<Overview data={data} session={session}/>}
-   {section==='inventory'&&<div className={styles.caseEvidence}><InventoryOperations publicPayments={publicPayments} client={client} operator={operator} canManageAutonomy={canManageAutonomy} onChanged={onChanged} onFailure={onFailure}/></div>}
+   {section==='overview'&&<><ClinicOverview data={data} canRecord={operator}/><Events data={data} compact/></>}
+   {section==='inventory'&&<div className={styles.caseEvidence}><InventoryOperations layout="workspace" publicPayments={publicPayments} client={client} operator={operator} canManageAutonomy={canManageAutonomy} onChanged={onChanged} onFailure={onFailure}/></div>}
    {section==='activity'&&<Events data={data}/>}
    {section==='settings'&&<RuntimeSettings publicPayments={publicPayments} session={session} key={JSON.stringify(data.config)} data={data} client={client} operator={operator} refresh={refresh}/>}
   </>}
@@ -30,16 +31,6 @@ export function InventoryRuntimePanel({client,operator,section,onChanged,onFailu
 }
 function Monitoring({data}:{data:StockDashboard}){
  return <section className={styles.panel} aria-label="Stock monitoring status"><h2>Stock monitoring</h2><p><strong>{data.config.monitoring?statusLabel(data.workerHealth?.status??'Not observed'):'Off'}</strong> · Last check: {displayTime(data.workerHealth?.lastSuccessfulEvaluation)}</p><details><summary>More about monitoring</summary><p>Last updated: {displayTime(data.workerHealth?.lastSeenAt)} · Stock records read: {displayTime(data.readAt)}</p><p>Automatic checks continue when you leave. Ask your clinic administrator if the last check is out of date.</p></details></section>;
-}
-function Overview({data,session}:{data:StockDashboard;session?:OperatorSession|null}){
- const attention=data.items.filter(i=>i.forecast.shortage||i.freshness?.issues.length);
- const pending=data.caseStates.filter(c=>['PendingApproval','Pending','Unobserved'].includes(c.paymentState));
- return <><section className={styles.metrics} aria-label="Inventory summary">{[
-  ['Supplies tracked',data.trackedSkus],['Low stock',data.lowStock],['Critical shortages',data.criticalStock],['Active requests',data.obligations.filter(o=>!o.closedAt).length],
- ].map(([label,value])=><article className={styles.metric} key={label}><span>{label}</span><strong>{value}</strong></article>)}</section>
- <div className={styles.columns}><section className={styles.panel}><h2>Stock needing attention</h2>{attention.map(i=><p key={i.id}><Link className={styles.inlineLink} href={'/app/inventory#sku-'+i.id}>{i.name}</Link><br/>{i.balance.available} available · reorder at {i.forecast.reorderPoint}{i.freshness?.issues.length?' · Check stock records':''}</p>)}{!attention.length&&<p>No stock alerts. Continue recording receipts and usage to keep balances current.</p>}<Link className={styles.inlineLink} href="/app/inventory">Manage inventory →</Link></section>
- <section className={styles.panel}><h2>Requests and payments</h2><p>{data.caseStates.filter(c=>c.humanInterventions.length).length} requests need review · {pending.length} payments awaiting confirmation</p><p>Purchase planning help: <strong>{session?.providerAvailable?'Available':'Not enabled'}</strong></p><Link className={styles.inlineLink} href="/app/replenishment">Review requests →</Link><p><Link className={styles.inlineLink} href="/app/payments">View payment activity →</Link></p><p>Record supplies in Inventory when they arrive.</p></section></div>
- <Monitoring data={data}/><Events data={data} compact/></>;
 }
 function Events({data,compact=false}:{data:StockDashboard;compact?:boolean}){
  const activity=data.items.flatMap(i=>i.movements.map(m=>({...m,sku:i.sku,name:i.name}))).sort((a,b)=>b.timestamp.localeCompare(a.timestamp)).slice(0,compact?5:30);

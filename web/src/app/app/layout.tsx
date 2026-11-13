@@ -4,6 +4,7 @@ import { ApplicationShell } from '@/components/application-shell';
 import {AuthEntry} from '@/components/auth-entry';
 import {requireApplicationAccess} from '@/lib/application-access';
 import '../operations/workspace.css';
+import '@/components/clinic-workspace.css';
 
 export const instant = false;
 

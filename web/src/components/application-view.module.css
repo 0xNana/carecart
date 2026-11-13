@@ -173,7 +173,7 @@
 
 .panel {
   min-width: 0;
-  padding: 18px;
+  padding: 24px;
 }
 
 .panelHeading {
@@ -186,9 +186,9 @@
 
 .panelHeading h2 {
   color: #24463b;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
 }
 
 .panelEyebrow {
@@ -377,10 +377,10 @@
 
 .tableWrap th,
 .tableWrap td {
-  padding: 10px 11px;
+  padding: 14px 16px;
   border-bottom: 1px solid #e9efeb;
-  color: #566a60;
-  font-size: 12px;
+  color: var(--ink);
+  font-size: 13px;
   vertical-align: top;
 }
 
@@ -636,9 +636,9 @@
 .inventoryRuntime h3 {font-size:16px;margin:20px 0 12px}
 .inventoryRuntime h4 {font-size:14px;margin:16px 0 8px}
 .inventoryRuntime p {font-size:14px;line-height:1.6;margin:8px 0}
-.inventoryRuntime button {font:inherit;padding:8px 12px;min-height:40px;border:1px solid var(--control-border);border-radius:6px;background:#edf6f0;color:var(--ink);cursor:pointer}
+.inventoryRuntime :global(.ops-panel) button {font:inherit;padding:8px 12px;min-height:40px;border:1px solid var(--control-border);border-radius:6px;background:#edf6f0;color:var(--ink);cursor:pointer}
 .inventoryRuntime button:disabled {opacity:.6;cursor:default}
-.inventoryRuntime :is(input,select) {max-width:100%;min-width:0;padding:8px;border:1px solid var(--control-border);border-radius:4px;background:white;font:inherit;color:var(--ink)}
+.inventoryRuntime :global(.ops-panel) :is(input,select) {max-width:100%;min-width:0;padding:8px;border:1px solid var(--control-border);border-radius:4px;background:white;font:inherit;color:var(--ink)}
 .inventoryRuntime :global(.ops-panel) form {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0}
 .inventoryRuntime :global(.ops-panel) form :is(h3,p,button) {grid-column:1/-1}
 .inventoryRuntime :global(.ops-panel) label {display:grid;gap:8px;font-size:14px}
@@ -647,8 +647,8 @@
 .inventoryRuntime :global(.ops-panel) dd {margin:0}
 .inventoryRuntime :global(.ops-panel) :is(ol,ul) {padding-left:24px;font-size:14px}
 .inventoryRuntime :global(.ops-table-scroll) {overflow:auto;max-width:100%;margin:16px 0}
-.inventoryRuntime table {width:100%;min-width:680px;border-collapse:collapse;text-align:left;font-size:14px}
-.inventoryRuntime :is(th,td) {padding:12px;border-bottom:1px solid var(--line)}
+.inventoryRuntime :global(.ops-panel) table {width:100%;min-width:680px;border-collapse:collapse;text-align:left;font-size:14px}
+.inventoryRuntime :global(.ops-panel) :is(th,td) {padding:12px;border-bottom:1px solid var(--line)}
 .inventoryRuntime :is(a,button,input,select,summary,[tabindex]):focus-visible {outline:3px solid var(--teal);outline-offset:3px}
 .inventoryRuntime details {margin:12px 0;font-size:14px}
 .inventoryRuntime summary {cursor:pointer;color:var(--teal)}
@@ -677,3 +677,5 @@
 .financialReview select,.financialReview input:not([type=checkbox]) {max-width:100%;padding:10px;border:1px solid var(--control-border);border-radius:var(--radius-sm);font:inherit}
 .financialReview button {max-width:100%;white-space:normal}
 @media(max-width:560px){.inventoryRuntime :global(.ops-panel) form{padding:14px}.inventoryRuntime :global(.ops-actions) button{flex:1 1 125px}.heading{flex-wrap:wrap}.page .refreshButton{min-height:44px}}
+
+.inventoryRuntime .demoNotice {padding:0;border:0;background:transparent;color:var(--muted);font-size:12px;margin:0}

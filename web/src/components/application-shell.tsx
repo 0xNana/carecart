@@ -7,18 +7,20 @@ import type {ClinicContext} from '@/lib/identity-backend';
 import {ClinicSwitcher} from './clinic-access';
 import {identityMutation} from '@/lib/identity-client';
 import { OperatorClient } from "@/lib/operator-client";
+import {WorkspaceIcon,type WorkspaceIconName} from './workspace-icon';
+import {actionError} from '@/lib/product-copy';
 import styles from "./application-shell.module.css";
 
 type OperatorRole = "operator" | "viewer";
 
 const dashboardNavigation = [
-  { label: "Overview", href: "/app", icon: "⌂" },
-  { label: "Inventory", href: "/app/inventory", icon: "▤" },
-  { label: "Replenishment", href: "/app/replenishment", icon: "↗" },
-  { label: "Suppliers", href: "/app/suppliers", icon: "▧" },
-  { label: "Payments", href: "/app/payments", icon: "↔" },
-  { label: "Activity", href: "/app/activity", icon: "◷" },
-  { label: "Settings", href: "/app/settings", icon: "⚙" },
+  { label: "Overview", href: "/app", icon: "overview" },
+  { label: "Inventory", href: "/app/inventory", icon: "inventory" },
+  { label: "Replenishment", href: "/app/replenishment", icon: "replenishment" },
+  { label: "Suppliers", href: "/app/suppliers", icon: "suppliers" },
+  { label: "Payments", href: "/app/payments", icon: "payments" },
+  { label: "Activity", href: "/app/activity", icon: "activity" },
+  { label: "Settings", href: "/app/settings", icon: "settings" },
 ];
 
 const ApplicationContext = createContext<{ role: OperatorRole; client: OperatorClient;tenant?:{clinic:ClinicContext;clinics:ClinicContext[];email:string} } | null>(null);
@@ -55,11 +57,11 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
     setSigningOut(true);
     setSignOutError("");
     try {
-      if(tenant){await identityMutation('logout');window.location.assign('/login');return;}
+      if(tenant){await identityMutation('logout');router.replace('/login');router.refresh();return;}
       await client.logout();
       router.replace("/operations");
     } catch (cause) {
-      setSignOutError(cause instanceof Error ? cause.message : "SIGN_OUT_FAILED");
+      setSignOutError(actionError(cause,'Could not sign out. Try again.'));
     } finally {
       setSigningOut(false);
     }
@@ -78,21 +80,18 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
                   <path d="M23 4.5v9M18.5 9h9" />
                 </svg>
               </span>
-              <span>CareCart</span><span className={styles.testnetBadge}>Demo</span>
+              <span>CareCart</span>{(!tenant||tenant.clinic.syntheticDemo)&&<span className={styles.testnetBadge}>Sample workspace</span>}
             </Link>
             <div className={styles.workspaceIdentity}>
               <strong>{tenant?.clinic.name??'CareCart workspace'}</strong>
-              <span>{tenant?tenant.clinic.role+' · '+tenant.clinic.country:'CareCart workspace'}</span>
+              <span>{tenant?tenant.clinic.role+' · '+tenant.clinic.country:'Inventory and purchasing'}</span>
             </div>
             <div className={styles.headerActions}>
               {tenant&&<ClinicSwitcher clinics={tenant.clinics} active={tenant.clinic.id}/>}
-              <Link className={styles.attentionLink} href="/app/payments" aria-label="Open payment attention queue">
-                <span aria-hidden="true">◉</span>
-                <span>Needs review</span>
-              </Link>
+              <Link className={styles.attentionLink} href="/docs">Product guide <span aria-hidden="true">↗</span></Link>
               <div className={styles.account}>
-                <span className={styles.accountAvatar} aria-hidden="true">{role === "operator" ? "OP" : "VW"}</span>
-                <span className={styles.accountRole}>{role === "operator" ? "Operator" : "Viewer"}</span>
+                <span className={styles.accountAvatar} aria-hidden="true">{tenant?.email.slice(0,2).toUpperCase()??(role==='operator'?'CC':'VW')}</span>
+                <span className={styles.accountRole}>{tenant?.clinic.role??(role==='operator'?'Clinic staff':'Viewer')}</span>
                 <button type="button" onClick={() => void signOut()} disabled={signingOut}>
                   {signingOut ? "Signing out…" : "Sign out"}
                 </button>
@@ -119,7 +118,7 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
             aria-label="Application navigation"
           >
             <div className={styles.sidebarHeading}>
-              <span>CLINIC OPERATIONS</span>
+              <span>WORKSPACE</span>
             </div>
             <nav aria-label="Application sections">
               {items.map((item) => {
@@ -132,15 +131,15 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
                     aria-current={active ? "page" : undefined}
                     onClick={() => setMenuOpen(false)}
                   >
-                    <span className={styles.sideIcon} aria-hidden="true">{item.icon}</span>
+                    <span className={styles.sideIcon}><WorkspaceIcon name={item.icon as WorkspaceIconName}/></span>
                     <span>{item.label}</span>
                   </Link>
                 );
               })}
             </nav>
             <div className={styles.sidebarFoot}>
-              <span className={styles.footDot} />
-              <div><strong>{tenant?.clinic.name??"CareCart clinic"}</strong><small>Demo workspace</small></div>
+              <span className={styles.footDot} aria-hidden="true"/>
+              <div><strong>{tenant?.clinic.name??"CareCart clinic"}</strong><small>{!tenant||tenant.clinic.syntheticDemo?'Sample inventory':'Clinic workspace'}</small></div>
             </div>
             <div className={styles.mobileAccount}>{tenant&&<ClinicSwitcher clinics={tenant.clinics} active={tenant.clinic.id}/>}<span>Signed in as {tenant?.clinic.role??(role==='operator'?'Staff':'Viewer')}</span><button disabled={signingOut} onClick={()=>void signOut()}>{signingOut?'Signing out…':'Sign out'}</button></div>
             {tenant&&<Link href="/onboarding">Manage clinics</Link>}
@@ -153,6 +152,9 @@ export function ApplicationShell({ role, children,tenant }: { role: OperatorRole
             </main>
           </div>
         </div>
+        <nav className={styles.mobileNavigation} aria-label="Quick navigation">
+          {items.filter(item=>['overview','inventory','replenishment','payments'].includes(item.icon)).map(item=><Link key={item.href} href={item.href} aria-current={pathname===item.href?'page':undefined} onClick={()=>setMenuOpen(false)}><WorkspaceIcon name={item.icon as WorkspaceIconName}/><span>{item.icon==='replenishment'?'Orders':item.label}</span></Link>)}
+        </nav>
       </div>
     </ApplicationContext.Provider>
   );

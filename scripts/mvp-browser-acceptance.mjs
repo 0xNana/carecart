@@ -85,6 +85,43 @@ try{
  const set=async(label,value)=>{await evaluate(`(()=>{const label=Array.from(document.querySelectorAll('label')).find(l=>l.textContent.trim().startsWith(${JSON.stringify(label)}));const input=label?.querySelector('input,select');if(!input)throw Error('Missing input');const proto=input.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));})()`);await pause(80);};
  const click=async text=>{await evaluate(`(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)});if(!b||b.disabled)throw Error('Missing or disabled button');b.click();})()`);await pause(100);};
  async function submit(expected,action){await click('Save stock update');await wait(async()=>{const data=await stock();return data.items[0].balance.onHand===expected;},action);report.actions.push({action,onHand:expected});await wait(()=>evaluate('Array.from(document.querySelectorAll("button")).some(b=>b.textContent.trim()==="Save stock update"&&!b.disabled)'),'mutation completion');await pauseForRecording();}
+ report.appPages=[];
+ for(const path of ['/app','/app/inventory','/app/replenishment','/app/payments']){
+  await cmd('Page.navigate',{url:origin+path});
+  await wait(()=>evaluate(`location.pathname===${JSON.stringify(path)}&&!!document.querySelector('#application-main h1')&&!document.body.innerText.includes('Loading stock records…')&&!document.body.innerText.includes('Loading records…')`),'clinic page '+path);
+  if(path==='/app')await wait(()=>evaluate('!!document.querySelector(".clinic-overview")'),'clinic overview projection');
+  if(path==='/app/inventory')await wait(()=>evaluate('!!document.querySelector(".stock-filters")'),'inventory projection');
+  for(const width of [1440,1024,768,320]){
+   await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});await evaluate('document.fonts.ready.then(()=>true)');await pause(500);
+   const metrics=await evaluate(`(()=>{const nav=document.querySelector('nav[aria-label="Quick navigation"]');return {title:document.querySelector('#application-main h1')?.textContent,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,undefinedClasses:[...document.querySelectorAll('[class]')].filter(e=>e.classList.contains('undefined')).length,mobileNavigation:getComputedStyle(nav).display!=='none'}})()`);
+   report.appPages.push({path,width,...metrics});assert.equal(metrics.overflow,false,'Clinic page overflow '+path+' at '+width);assert.equal(metrics.undefinedClasses,0,'Missing clinic styles '+path);assert.equal(metrics.mobileNavigation,width<=1024);
+   writeFileSync(output+'/clinic-'+(path==='/app'?'overview':path.split('/').at(-1))+'-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+  }
+ }
+ await cmd('Page.bringToFront');
+ await evaluate(`document.querySelector('button[aria-controls="application-navigation"]').click()`);
+ await wait(()=>evaluate(`document.querySelector('button[aria-controls="application-navigation"]').getAttribute('aria-expanded')==='true'`),'mobile navigation opens');
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ await wait(()=>evaluate(`document.querySelector('button[aria-controls="application-navigation"]').getAttribute('aria-expanded')==='false'&&document.activeElement?.getAttribute('aria-controls')==='application-navigation'`),'mobile navigation restores keyboard focus');
+ await cmd('Page.navigate',{url:origin+'/app/inventory#receive'});
+ await wait(()=>evaluate('!!document.querySelector("dialog[open]")'),'receive stock deep link');
+ await cmd('Page.bringToFront');
+ assert(await evaluate('!!document.activeElement?.closest("dialog")'),'Stock editor must take keyboard focus');
+ await set('Quantity','1');await set('Supplier','mn-supplier-1');await set('Lot number','UI-LOT-1');await set('Receipt or invoice number','UI-RECEIPT-1');
+ await cmd('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await pause(500);writeFileSync(output+'/clinic-receive-1440.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await cmd('Emulation.setDeviceMetricsOverride',{width:320,height:1000,deviceScaleFactor:1,mobile:true});await pause(500);
+ writeFileSync(output+'/clinic-receive-320.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await click('Save stock update');await wait(async()=>((await stock()).items[0].balance.onHand===31),'clinic receipt saved');await wait(()=>evaluate('!document.querySelector("dialog[open]")'),'editor closes after saved receipt');
+ await click('Record usage');await wait(()=>evaluate('!!document.querySelector("dialog[open]")'),'usage editor');await set('Quantity','1');await set('Reference (optional)','UI-CONSUME-1');
+ await click('Save stock update');await wait(async()=>((await stock()).items[0].balance.onHand===30),'clinic usage saved');await wait(()=>evaluate('!document.querySelector("dialog[open]")'),'editor closes after saved usage');
+ await click('More actions');await wait(()=>evaluate('!!document.querySelector("dialog[open]")'),'additional stock actions');
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await wait(()=>evaluate('!document.querySelector("dialog[open]")'),'Escape dismisses stock editor');
+ assert.equal((await stock()).items[0].balance.onHand,30,'Dismissing the editor must not mutate stock');
+ report.clinicStockActions={received:1,consumed:1,finalOnHand:30,escapeWithoutMutation:true};
+ // Give the legacy stock acceptance its own real local session/read budget.
+ const renewed=await request('login',{credential:secret});cookie=renewed.r.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');
+ for(const c of cookie.split('; ')){const at=c.indexOf('=');await cmd('Network.setCookie',{name:c.slice(0,at),value:c.slice(at+1),url:origin,httpOnly:true,sameSite:'Lax'});}
+ await cmd('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await cmd('Page.navigate',{url:origin+'/operations'});await wait(()=>evaluate('document.body.innerText.includes("Save stock update")'),'legacy stock form');
  assert.equal((await stock()).items[0].balance.onHand,30);
  await set('What would you like to record?','Receive');await set('Quantity','2');await set('Supplier','mn-supplier-1');await set('Lot number','BROWSER-LOT-1');await set('Date received',new Date().toISOString().slice(0,16));await set('Receipt or invoice number','BROWSER-RECEIPT-1');await submit(32,'Receive Stock');
  await set('What would you like to record?','Dispense');await set('Quantity','8');await set('Department or purpose','Treatment room');await set('Reference (optional)','BROWSER-ISSUE-1');await submit(24,'Dispense Stock');
