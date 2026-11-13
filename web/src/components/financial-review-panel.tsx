@@ -20,6 +20,7 @@ export function FinancialReviewPanel({client,caseId,revision,operator,onRefresh}
  const role=review?.requiredAuthority==='committer'?'committer':review?.requiredAuthority==='requester'?'requester':null;
  const moneyLabel='demo credits';
  const environment=review?.execution==='public-rpc'?'Demo purchase · no real money is involved.':review?.execution==='sandbox-rpc'?'Preview only · no payment will be sent.':review?.execution==='mocked-rpc'?'Simulation only · no payment will be sent.':'Payment actions are unavailable here.';
+ const nativeReceipt=review?.authorizations.flatMap(a=>a.events.map(e=>e.nativePayment)).find(p=>p?.nativeSettlementVerified&&p.network==='testnet'&&p.poId===review.canonical.po_id&&p.token===review.canonical.token&&p.recipient===review.canonical.supplier&&p.amount===review.canonical.amount);
  const confirmLabel=role==='committer'?'Confirm order details':'Confirm payment request';
  return <section className={styles.panel+' '+styles.financialReview} aria-label="Purchase review">
   <h2>Review purchase</h2>
@@ -64,7 +65,7 @@ export function FinancialReviewPanel({client,caseId,revision,operator,onRefresh}
    </article>)}
    <h3>Payment updates</h3>{review.operations.length?<ul>{review.operations.map(o=>{const url=testnetTransactionUrl(review.execution,review.canonical.profile,o.evidence);return <li key={o.operation_key}><strong>{statusLabel(o.state)}</strong>{url&&<p><a className={styles.inlineLink} href={url} target="_blank" rel="noreferrer">View payment record ↗</a></p>}<details><summary>Payment record details</summary><p>{o.operation_key}</p><pre className={styles.evidenceJson}>{o.evidence??'No payment details saved'}</pre></details></li>;})}</ul>:<p>No payment activity yet.</p>}
    <p>Payment is complete once confirmed. Record delivered supplies in Inventory.</p>
-   <details><summary>Supplier payment status</summary><p>{review.settlement?'Receipt details are available in the order history.':'No supplier receipt has been recorded yet.'} Delivery is tracked separately.</p></details>
+   <details><summary>Supplier payment status</summary><p>{nativeReceipt?'Supplier payment confirmed independently.':review.settlement?'Receipt details are available in the order history.':'No supplier receipt has been recorded yet.'} Delivery is tracked separately.</p>{nativeReceipt&&<p><a className={styles.inlineLink} href={`https://testnet.nearblocks.io/txns/${encodeURIComponent(nativeReceipt.transactionHash)}`} target="_blank" rel="noreferrer">View confirmed supplier transfer ↗</a></p>}</details>
    <button className={styles.evidenceButton} disabled={busy} onClick={()=>void refresh()}>Refresh purchase status</button>
   </>}
   <p role="status">{busy?'Saving your update…':message}</p>

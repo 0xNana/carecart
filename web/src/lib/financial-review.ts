@@ -1,5 +1,5 @@
 import {jsonHash} from './v2-wallet.ts';
-export interface FinancialAuthorization {id:string;role:'committer'|'requester';state:string;termsHash:string;expiresAt:string;execution:string;publicSigningEnabled:boolean;error:string|null;events:{state:string;timestamp:string;error:string|null}[]}
+export interface FinancialAuthorization {id:string;role:'committer'|'requester';state:string;termsHash:string;expiresAt:string;execution:string;publicSigningEnabled:boolean;error:string|null;events:{state:string;timestamp:string;error:string|null;nativePayment?:{transactionHash:string;poId:string;token:string;recipient:string;amount:string;network:string;nativeSettlementVerified:boolean}}[]}
 export interface FinancialReview {
  profileFingerprint:string;caseId:string;revision:number;state:string;nextAction:string;canonicalHash:string;
  canonical:{po_id:string;profile:string;supplier:string;token:string;amount:string;invoice_digest:string;destination:'Near'|{Base:unknown}};
