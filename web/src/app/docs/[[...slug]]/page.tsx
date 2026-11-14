@@ -6,9 +6,9 @@ import {
   DocsDescription,
   DocsPage,
   DocsTitle,
-  PageFooter,
-} from "fumadocs-ui/layouts/notebook/page";
+} from "fumadocs-ui/layouts/docs/page";
 import { getMDXComponents } from "@/components/docs/mdx-components";
+import { documentationPublicPath, siteOrigins } from "@/lib/application-routing";
 import { docsSource } from "@/lib/docs-source";
 
 type DocsRouteProps = PageProps<"/docs/[[...slug]]">;
@@ -28,7 +28,7 @@ async function DocumentationPage({ params }: Pick<DocsRouteProps, "params">) {
   const Body = page.data.body;
 
   return (
-    <DocsPage toc={page.data.toc} footer={{ component: <PageFooter /> }}>
+    <DocsPage toc={page.data.toc} tableOfContent={{ style: "clerk" }}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
@@ -63,5 +63,10 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const page = docsSource.getPage(slug);
   if (!page) notFound();
-  return { title: `${page.data.title} | CareCart Docs`, description: page.data.description };
+  const canonical = new URL(documentationPublicPath(page.url, true), siteOrigins()?.docs ?? "https://docs.carecart.xyz").href;
+  return { title: `${page.data.title} | CareCart Docs`, description: page.data.description,
+    alternates: { canonical },
+    openGraph: { title: `${page.data.title} | CareCart Docs`, description: page.data.description, url: canonical, type: "website", siteName: "CareCart Docs" },
+    twitter: { card: "summary", title: `${page.data.title} | CareCart Docs`, description: page.data.description },
+  };
 }

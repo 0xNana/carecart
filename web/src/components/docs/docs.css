@@ -6,7 +6,7 @@
 @source "../../../node_modules/fumadocs-ui/dist/**/*.js";
 
 @theme {
-  --color-fd-background: #f4f6f6;
+  --color-fd-background: #ffffff;
   --color-fd-foreground: #183332;
   --color-fd-muted: #edf2f0;
   --color-fd-muted-foreground: #596d6b;
@@ -26,12 +26,12 @@
 
 .carecart-docs {
   min-height: 100vh;
-  background: var(--canvas);
+  background: #ffffff;
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
-.carecart-docs #nd-notebook-layout {
+.carecart-docs #nd-docs-layout {
   min-height: 100vh;
 }
 
@@ -133,3 +133,34 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+.carecart-docs #nd-sidebar { background: #f8faf9; }
+.carecart-docs #nd-page { padding-bottom: 5rem; }
+.carecart-docs #nd-page .prose [data-card] { border-color: #dce5e3; box-shadow: none; }
+.carecart-docs #nd-page .prose [data-card]:hover { border-color: #8bbab0; background: #f4f8f6; }
+.carecart-docs :focus-visible { outline: 2px solid #12675c; outline-offset: 3px; }
+.carecart-docs .docs-release-note { margin-top: 1.5rem; border-top: 1px solid #dce5e3; padding-top: 1rem; color: #596d6b; font-size: .875rem; }
+
+/* Keep article rhythm and navigation hierarchy independent of workspace resets. */
+.carecart-docs #nd-sidebar p {
+  margin: 1.5rem .5rem .5rem;
+  color: #647770;
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .065em;
+  text-transform: uppercase;
+}
+.carecart-docs #nd-sidebar a[data-active="true"] {
+  background: #e7f2ec;
+  color: #12675c;
+  font-weight: 600;
+}
+.carecart-docs #nd-page .prose > p { margin-block: 1.1rem; }
+.carecart-docs #nd-page .prose > h2 { margin-top: 2.75rem; margin-bottom: 1rem; font-size: 1.4rem; line-height: 1.35; font-weight: 650; }
+.carecart-docs #nd-page .prose > h3 { margin-top: 2rem; margin-bottom: .75rem; font-size: 1.125rem; line-height: 1.4; font-weight: 650; }
+.carecart-docs #nd-page .prose > ul,
+.carecart-docs #nd-page .prose > ol { margin-block: 1rem; padding-left: 1.5rem; }
+.carecart-docs #nd-page .prose li { margin-block: .4rem; }
+.carecart-docs #nd-page .prose table { display: table; width: 100%; font-size: .875rem; line-height: 1.65; }
+.carecart-docs #nd-page .prose th,
+.carecart-docs #nd-page .prose td { padding: .8rem 1rem; text-align: left; font-size: .875rem; }

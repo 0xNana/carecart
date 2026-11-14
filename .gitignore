@@ -42,11 +42,6 @@ __pycache__/
 internal-docs/
 /tasks/
 /demo/
-/docs/*
-!/docs/JUDGE_WALKTHROUGH.md
-!/docs/CARECART_DESIGN_REVIEW.md
-!/docs/evidence/
-!/docs/evidence/**
 
 # Operational databases, activation grants, private backups and journals.
 backend/data/

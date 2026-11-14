@@ -81,7 +81,8 @@ function Brand() {
   );
 }
 
-export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
+export function LandingPage({ appOrigin = "", docsOrigin = "" }: { appOrigin?: string; docsOrigin?: string }) {
+  const docs = (path = "") => docsOrigin ? docsOrigin + path : "/docs" + path;
   const app = appOrigin ? appOrigin + "/" : "/app";
   const [menuOpen, setMenuOpen] = useState(false),
     [step, setStep] = useState(0);
@@ -144,7 +145,7 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
             <a href="#questions" onClick={() => setMenuOpen(false)}>
               FAQ
             </a>
-            <Link href="/docs">Docs</Link>
+            <Link href={docs("")} >Docs</Link>
             <Link className={styles.navApp} href={app}>
               Open app <span aria-hidden="true">↗</span>
             </Link>
@@ -261,7 +262,7 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
                   </div>
                   <h3>{feature.title}</h3>
                   <p>{feature.copy}</p>
-                  <Link href={feature.href} className={styles.textLink}>
+                  <Link href={docs(feature.href.replace(/^\/docs/, ""))} className={styles.textLink}>
                     {feature.link}
                     <span aria-hidden="true">↗</span>
                   </Link>
@@ -342,7 +343,7 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
                 </div>
               </div>
             </div>
-            <Link href="/docs/safety-and-data" className={styles.sectionLink}>
+            <Link href={docs("/safety-and-data")}  className={styles.sectionLink}>
               Read about the spending controls{" "}
               <span aria-hidden="true">↗</span>
             </Link>
@@ -359,7 +360,7 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
                 <br />
                 <span>the start.</span>
               </h2>
-              <Link href="/docs" className={styles.textLink}>
+              <Link href={docs("")}  className={styles.textLink}>
                 Read the product guide <span aria-hidden="true">↗</span>
               </Link>
             </div>
@@ -417,8 +418,8 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
                 <p>
                   Clinic pilots, real supplier integrations and mainnet payments
                   are the next steps. Explore the{" "}
-                  <Link href="/docs/product-roadmap">roadmap</Link> and{" "}
-                  <Link href="/docs/clinic-pilot">pilot plan</Link> for the
+                  <Link href={docs("/product-roadmap")} >roadmap</Link> and{" "}
+                  <Link href={docs("/clinic-pilot")} >pilot plan</Link> for the
                   rollout requirements.
                 </p>
               </details>
@@ -438,7 +439,7 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
               <Link href={app} className={styles.primary}>
                 Open CareCart <span aria-hidden="true">↗</span>
               </Link>
-              <Link href="/docs" className={styles.secondary}>
+              <Link href={docs("")}  className={styles.secondary}>
                 Explore the docs <span aria-hidden="true">↗</span>
               </Link>
             </div>
@@ -459,15 +460,15 @@ export function LandingPage({ appOrigin = "" }: { appOrigin?: string }) {
             <div>
               <span>PRODUCT</span>
               <Link href={app}>Clinic workspace</Link>
-              <Link href="/docs/inventory-guide">Inventory guide</Link>
-              <Link href="/docs/purchasing-and-payments">
+              <Link href={docs("/inventory-guide")} >Inventory guide</Link>
+              <Link href={docs("/purchasing-and-payments")} >
                 Purchasing &amp; payments
               </Link>
             </div>
             <div>
               <span>EXPLORE</span>
-              <Link href="/docs/product-roadmap">Roadmap</Link>
-              <Link href="/docs/clinic-pilot">Clinic pilots</Link>
+              <Link href={docs("/product-roadmap")} >Roadmap</Link>
+              <Link href={docs("/clinic-pilot")} >Clinic pilots</Link>
               <a
                 href="https://github.com/0xNana/carecart"
                 target="_blank"

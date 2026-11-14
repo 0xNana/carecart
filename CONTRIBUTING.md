@@ -4,7 +4,7 @@ Thank you for contributing to CareCart. Contributions can include bug fixes, usa
 
 ## Before you start
 
-Check [existing issues](https://github.com/0xNana/carecart/issues) and the [product roadmap](https://carecart.xyz/docs/product-roadmap) for related work. For a substantial change, open an issue describing the problem and proposed approach before beginning implementation.
+Check [existing issues](https://github.com/0xNana/carecart/issues) and the [product roadmap](https://docs.carecart.xyz/product-roadmap) for related work. For a substantial change, open an issue describing the problem and proposed approach before beginning implementation.
 
 For bug reports, include reproduction steps, expected and actual behavior, and relevant version information. Remove credentials, personal information and clinic records from logs and screenshots.
 
@@ -46,6 +46,14 @@ Use a development Supabase project and configure its callback URLs for the local
 Runtime profiles contain database paths that must match the checkout. Use development profiles and local data for integration work. The automated tests and browser walkthrough create isolated fixtures without hosted credentials.
 
 Keep signing keys separate from the web, API and inventory-worker environment. Never commit `.env` files, private keys, real clinic databases or customer records.
+
+## Product documentation
+
+Public product guides live in the repository-root `docs/` directory as MDX, with navigation in `docs/meta.json`. The same Next.js application serves them at `docs.carecart.xyz`; local development keeps `/docs` URLs. Internal release notes belong in ignored `internal-docs/`.
+
+Use `/docs/page-name` for links between MDX guides. The documentation renderer maps them to clean paths on the docs subdomain and retains the prefix locally. Add a title and description to every page, then run the content, routing and type checks.
+
+For Vercel projects whose Root Directory is `web`, allow source files outside that directory in the build settings so the root MDX collection is included. The Next.js bundler and tracing roots cover the repository; isolated verification snapshots copy the public docs as well. Attach `docs.carecart.xyz` to the same Vercel project without a domain redirect, using Vercel’s specified DNS target.
 
 ## Making changes
 

@@ -1,17 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {applicationPublicPath,applicationInternalPath,siteOrigins,siteRoute} from '../src/lib/application-routing.ts';
+import {applicationPublicPath,applicationInternalPath,siteOrigins,siteRoute,documentationPublicPath} from '../src/lib/application-routing.ts';
 import {identityBackendUrl,safeAuthNext} from '../src/lib/auth-config.ts';
 
 const env={CARECART_PUBLIC_ORIGIN:'https://app.carecart.xyz'};
-const origins={app:'https://app.carecart.xyz',site:'https://carecart.xyz'};
+const origins={app:'https://app.carecart.xyz',site:'https://carecart.xyz',docs:'https://docs.carecart.xyz'};
 test('subdomain routing keeps marketing/docs public and maps clean workspace URLs to protected routes',()=>{
  assert.deepEqual(siteOrigins(env),origins);
  for(const path of ['/','/inventory','/payments','/replenishment']){
   const route=siteRoute(new URL(path,origins.app),origins);
   assert.equal(route.kind,'rewrite');assert.equal(route.path,applicationInternalPath(path));
  }
- assert.equal(siteRoute(new URL('/docs',origins.site),origins).kind,'next');
+ assert.equal(siteRoute(new URL('/docs',origins.site),origins).url,origins.docs+'/');
  assert.equal(siteRoute(new URL('/_next/static/style.css',origins.app),origins).kind,'next');
  assert.equal(siteRoute(new URL('/api/operations/stock',origins.app),origins).kind,'next');
 });
@@ -21,7 +21,7 @@ test('old workspace/auth links redirect to the canonical app host with their que
   assert.equal(route.kind,'redirect');const url=new URL(route.url!);assert.equal(url.origin,origins.app);assert.equal(url.pathname,next);assert.equal(url.searchParams.get('next'),'/app/inventory');
  }
  assert.equal(siteRoute(new URL('/app/payments',origins.app),origins).url,origins.app+'/payments');
- assert.equal(siteRoute(new URL('/docs/how-it-works',origins.app),origins).url,origins.site+'/docs/how-it-works');
+ assert.equal(siteRoute(new URL('/docs/how-it-works',origins.app),origins).url,origins.docs+'/how-it-works');
 });
 test('unknown hosts and unsafe return URLs cannot choose a redirect destination',()=>{
  assert.equal(siteRoute(new URL('https://attacker.example/app'),origins).kind,'next');
@@ -57,6 +57,14 @@ test('proxy rewrites retain the protected layout and strip forged routing header
   assert.equal(response.headers.get('cache-control'),'private, no-store');
   const redirect=await proxy(new NextRequest('https://carecart.xyz/login',{method:'POST',body:'password=fixture'}));
   assert.equal(redirect.status,303);assert.equal(redirect.headers.get('location'),'https://app.carecart.xyz/login');
+  const docs=await proxy(new NextRequest('https://docs.carecart.xyz/inventory-guide',{headers:{'x-carecart-application-path':'/payments'}}));
+  assert.equal(new URL(docs.headers.get('x-middleware-rewrite')!).pathname,'/docs/inventory-guide');
+  assert.equal(docs.headers.get('x-middleware-request-x-carecart-application-path'),null);
+  assert.equal(docs.headers.get('set-cookie'),null);
+  assert.notEqual(docs.headers.get('cache-control'),'private, no-store');
+  const docsSearch=await proxy(new NextRequest('https://docs.carecart.xyz/api/search?query=stock'));
+  assert.equal(new URL(docsSearch.headers.get('x-middleware-rewrite')!).pathname,'/docs-search');
+  assert.equal(new URL(docsSearch.headers.get('x-middleware-rewrite')!).search,'?query=stock');
   const marketing=await proxy(new NextRequest('https://carecart.xyz/',{headers:{'x-carecart-application-path':'/payments'}}));
   assert.equal(marketing.headers.get('x-middleware-request-x-carecart-application-path'),null);
   // Exercise Supabase's refresh callback: response recreation must retain the rewrite.
@@ -67,4 +75,29 @@ test('proxy rewrites retain the protected layout and strip forged routing header
   assert.match(refresh.headers.get('x-middleware-request-cookie')!,/carecart_supabase=fixture-refreshed/);
   assert.match(refresh.headers.get('set-cookie')!,/HttpOnly/);assert.match(refresh.headers.get('set-cookie')!,/Secure/);assert.doesNotMatch(refresh.headers.get('set-cookie')!,/Domain=/i);
  }finally{for(const [key,value] of Object.entries(previous)){if(value===undefined)delete process.env[key];else process.env[key]=value;}rmSync(folder,{recursive:true,force:true});}
+});
+
+
+test('documentation has clean public URLs, permanent legacy targets and its own search endpoint',()=>{
+ for(const origin of [origins.site,origins.app,'https://www.carecart.xyz']){
+  const result=siteRoute(new URL('/docs/inventory-guide?from=home#receiving',origin),origins);
+  assert.equal(result.kind,'redirect');assert.equal(result.url,origins.docs+'/inventory-guide?from=home#receiving');
+ }
+ for(const [path,internal] of [['/','/docs'],['/inventory-guide','/docs/inventory-guide'],['/api/search?query=stock','/docs-search']]){
+  const result=siteRoute(new URL(path,origins.docs),origins);
+  assert.equal(result.kind,'rewrite');assert.equal(result.path,internal);assert.equal(result.surface,'docs');
+ }
+ assert.equal(siteRoute(new URL('/docs/how-it-works',origins.docs),origins).url,origins.docs+'/how-it-works');
+ assert.equal(siteRoute(new URL('/docs-search?query=stock',origins.site),origins).url,origins.docs+'/api/search?query=stock');
+ assert.equal(siteRoute(new URL('/_next/static/test.js',origins.docs),origins).kind,'next');
+ assert.equal(siteRoute(new URL('https://docs.carecart.xyz.attacker.example/inventory-guide'),origins).kind,'next');
+});
+
+
+test('docs links keep local development paths and same-page anchors while cleaning legacy public paths',()=>{
+ assert.equal(documentationPublicPath('/docs/quickstart#stock',true),'/quickstart#stock');
+ assert.equal(documentationPublicPath('/docs',true),'/');
+ assert.equal(documentationPublicPath('/docs?query=stock',true),'/?query=stock');
+ for(const value of ['#stock','https://app.carecart.xyz/','/docs-other','/diagrams/carecart-architecture.svg'])assert.equal(documentationPublicPath(value,true),value);
+ assert.equal(documentationPublicPath('/docs/quickstart',false),'/docs/quickstart');
 });

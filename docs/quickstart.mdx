@@ -1,0 +1,54 @@
+---
+title: Start with a demo clinic
+description: Create a workspace and explore stock, orders and payment controls with sample records.
+---
+
+This guide takes you from sign-in to a clinic workspace you can explore. You need an email address you can verify. You do not need to fund an account or connect a wallet to inspect sample inventory.
+
+## 1. Create your account
+
+Open [the CareCart app](https://app.carecart.xyz) and choose **Create account**. Complete email verification, then sign in. If you already have an account, sign in directly.
+
+**Expected result:** the clinic setup page, or your existing clinic workspace.
+
+## 2. Set up a demo clinic
+
+On **Set up your clinic**, enter a clinic name, two-letter country code, time zone and main storeroom. Select **Add sample stock for a demo**, then choose **Create clinic**.
+
+The account that creates the clinic manages it. Leaving the sample-stock option unchecked starts the clinic without stock; supplier offers remain examples in this release.
+
+**Expected result:** a selected clinic with the sample supplies visible in **Inventory**. Use the clinic selector if your account belongs to more than one clinic.
+
+## 3. Explore your supplies
+
+Open **Inventory**. Search for a supply and compare on-hand, available and incoming quantities. Open a stock action to inspect the fields before saving anything.
+
+For a demo-only receipt, choose **Receive stock**, select an item and review its unit and quantity. Enter the required delivery details and save only if you intend to add that sample movement. Then check the balance and **Activity**.
+
+**Expected result:** a saved receipt appears in the stock history and changes the recorded quantity once. See the [inventory guide](/docs/inventory-guide) for usage, adjustments and delivery checks.
+
+## 4. Follow replenishment
+
+Open **Replenishment** to inspect existing requests. A request ties together the item, quantity, supplier offer, amount and next workflow step.
+
+A new clinic may have no requests. Monitoring and preparation settings control whether shortages become cases and orders; a stocked item does not need an order just to populate the page. Learn the sequence in [How CareCart works](/docs/how-it-works).
+
+## 5. Understand the payment workspace
+
+Open **Payments** to inspect the payment account, funding flow, automatic purchasing and purchase activity where configured. Available funds and reserved balances are separate.
+
+A new clinic is not automatically granted a funded treasury or authority to spend. Payment configuration and wallet verification are separate steps. Read [purchasing and payments](/docs/purchasing-and-payments) before attempting a deposit or enabling a policy.
+
+The demo asset is CCUSD on NEAR testnet, with no cash value. Mainnet funding is not open.
+
+## 6. Find your settings
+
+Open **Settings** for clinic details, monitoring, team access and payment setup. Invite colleagues only with the access needed for their work; see [team and access](/docs/team-and-access).
+
+If a page is unavailable or a record does not look right, use [troubleshooting](/docs/troubleshooting). A failed request does not mean your stock or balance is zero.
+
+## Next steps
+
+- [Inventory guide](/docs/inventory-guide): use the daily stock workflow.
+- [Purchasing and payments](/docs/purchasing-and-payments): understand authority and confirmation.
+- [Clinic pilot](/docs/clinic-pilot): prepare a bounded deployment with real operational responsibilities.

@@ -1,0 +1,23 @@
+{
+  "title": "CareCart documentation",
+  "pages": [
+    "---Start here---",
+    "index",
+    "quickstart",
+    "how-it-works",
+    "---Clinic guides---",
+    "inventory-guide",
+    "purchasing-and-payments",
+    "team-and-access",
+    "troubleshooting",
+    "---Trust and technology---",
+    "safety-and-data",
+    "architecture",
+    "---Pilots and roadmap---",
+    "clinic-pilot",
+    "supplier-integrations",
+    "mainnet-readiness",
+    "first-paying-client",
+    "product-roadmap"
+  ]
+}

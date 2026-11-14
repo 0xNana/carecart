@@ -88,12 +88,12 @@ export function ApplicationShell({
   children,
   tenant,
   cleanPaths = false,
-  siteOrigin = "",
+  docsOrigin = "/docs",
 }: {
   role: OperatorRole;
   children: ReactNode;
   cleanPaths?: boolean;
-  siteOrigin?: string;
+  docsOrigin?: string;
   tenant?: Tenant;
 }) {
   const [client] = useState(
@@ -317,7 +317,7 @@ export function ApplicationShell({
               {navigation(dashboardNavigation)}
             </nav>
             <div className={styles.sidebarFooter}>
-              <Link className={styles.guideLink} href={siteOrigin + "/docs"}>
+              <Link className={styles.guideLink} href={docsOrigin}>
                 <ShellIcon name="guide" />
                 <span>Product guide</span>
                 <span className={styles.externalArrow} aria-hidden="true">

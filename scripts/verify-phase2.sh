@@ -17,7 +17,8 @@ git -C "$task_repo" rev-parse HEAD > "$task_output/source-head.txt"
 python3 - "$task_repo" "$task_output" <<'PY'
 import errno,hashlib,json,os,pathlib,shutil,sys
 root=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2]);web=root/'web'
-for name in ['src','public','content']:
+shutil.copytree(root/'docs',out/'docs')
+for name in ['src','public']:
     if (web/name).exists():shutil.copytree(web/name,out/'web'/name)
 for pattern in ['package*.json','tsconfig.json','next-env.d.ts','next.config.*','eslint.config.*','postcss.config.*','source.config.*']:
     for source in web.glob(pattern):shutil.copy2(source,out/'web'/source.name)
@@ -45,7 +46,7 @@ profile['profile']['databasePath']=str(out/'backend'/'data'/'testnet-v2'/'offlin
 profile_path.write_text(json.dumps(profile,indent=2)+'\n')
 assert not (out/'.env').exists() and not (out/'backend'/'.env').exists()
 files={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest()
-       for folder in [root/'web'/'src',root/'backend'/'src'] for p in folder.rglob('*') if p.is_file()}
+       for folder in [root/'web'/'src',root/'backend'/'src',root/'docs'] for p in folder.rglob('*') if p.is_file()}
 (out/'source-hashes.json').write_text(json.dumps(files,indent=2)+'\n')
 PY
 if [[ "${1:-}" == '--prepare-only' ]]; then

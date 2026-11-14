@@ -4,7 +4,7 @@
 
 CareCart brings medical inventory, replenishment and purchasing into one clinic workspace. Teams record supplies received and used; background services identify shortages, prepare orders and coordinate payments within clinic-approved items, suppliers and spending limits.
 
-[Open app](https://app.carecart.xyz) · [Watch the demo](https://x.com/0xelegant/status/2121579400017695050) · [Product docs](https://carecart.xyz/docs) · [Website](https://carecart.xyz)
+[Open app](https://app.carecart.xyz) · [Watch the demo](https://x.com/0xelegant/status/2121579400017695050) · [Product docs](https://docs.carecart.xyz) · [Website](https://carecart.xyz)
 
 [![CareCart’s current Inventory workspace, showing supply counts, stock actions and navigation.](web/public/screenshots/carecart-workspace.jpg)](https://x.com/0xelegant/status/2121579400017695050)
 
@@ -18,9 +18,9 @@ CareCart brings medical inventory, replenishment and purchasing into one clinic 
 - **Follow payments:** view available and reserved balances, review funding, and track payments through independent confirmation.
 - **Run the clinic workspace:** review activity, manage team access and configure clinic, monitoring and payment settings.
 
-[![CareCart system architecture: clinic app, tenant API, workers, data stores and NEAR payment controls.](assets/architecture/carecart-architecture.png)](assets/architecture/carecart-architecture.svg)
+[![CareCart system architecture: clinic app, tenant API, workers, data stores and NEAR payment controls.](web/public/diagrams/carecart-architecture.png)](web/public/diagrams/carecart-architecture.svg)
 
-[Explore the architecture](ARCHITECTURE.md) · [Open the scalable schematic](assets/architecture/carecart-architecture.svg)
+[Explore the architecture](ARCHITECTURE.md) · [Open the scalable schematic](web/public/diagrams/carecart-architecture.svg)
 
 NEAR’s policy vault enforces supplier checks, spending caps and pause controls. Separate workers commit orders and request permitted payments; an independent observer checks settlement. AI can assist with procurement proposals, while deterministic rules authorize spending. Staff record physical delivery separately from payment.
 
@@ -35,13 +35,13 @@ A recorded automatic-purchasing run demonstrated:
 - A repeated payment request producing **no additional transfer**.
 - A separate goods receipt increasing stock once, independently of payment.
 
-Inspect the [payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD), [duplicate request](https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH) and [recorded evidence](docs/evidence/testnet/headless-sprint.json). The run used deterministic policy and did not include live AI inference. Its completed purchasing permission is disabled.
+Inspect the [payment](https://testnet.nearblocks.io/txns/EsrPBQ9h7AZvASMBLkTDE1TZd1aMwvUF8HtyxfqrmbD), [duplicate request](https://testnet.nearblocks.io/txns/CHQWp7kA7veiBmryrRzBvHHE775n9A6XTdQLuSEACDGH) and [recorded evidence](evidence/testnet/headless-sprint.json). The run used deterministic policy and did not include live AI inference. Its completed purchasing permission is disabled.
 
-The published video tours the current workspace and shows a separate [recorded payment receipt](https://testnet.nearblocks.io/txns/Dfk9PUaGc6Gqc2533esgfB7zcG7kt3kSD5ixYuefQzvK). It shows purchasing controls with automation off, rather than executing a new payment. See the [judge walkthrough](docs/JUDGE_WALKTHROUGH.md) for reproduction steps, source verification and the boundaries of each demonstration.
+The published video tours the current workspace and shows a separate [recorded payment receipt](https://testnet.nearblocks.io/txns/Dfk9PUaGc6Gqc2533esgfB7zcG7kt3kSD5ixYuefQzvK). It shows purchasing controls with automation off, rather than executing a new payment. See the [judge walkthrough](JUDGE_WALKTHROUGH.md) for reproduction steps, source verification and the boundaries of each demonstration.
 
 ## Try CareCart
 
-Open [app.carecart.xyz](https://app.carecart.xyz), sign in and create a clinic workspace. Choose sample data during setup to explore the demonstration inventory. Product guides cover [inventory](https://carecart.xyz/docs/inventory-guide), [purchasing and payments](https://carecart.xyz/docs/purchasing-and-payments), and [safety and data](https://carecart.xyz/docs/safety-and-data).
+Open [app.carecart.xyz](https://app.carecart.xyz), sign in and create a clinic workspace. Choose sample data during setup to explore the demonstration inventory. Product guides cover [inventory](https://docs.carecart.xyz/inventory-guide), [purchasing and payments](https://docs.carecart.xyz/purchasing-and-payments), and [safety and data](https://docs.carecart.xyz/safety-and-data).
 
 Payment activation requires a configured treasury and verified purchasing authority. Mainnet funding is not open.
 
@@ -88,13 +88,13 @@ Replace `SNAPSHOT` with the printed suffix. The walkthrough starts its own servi
 | Directory | Purpose |
 | --- | --- |
 | `web/` | Next.js application, Supabase sign-in and clinic interface. |
-| `web/content/docs/` | Public MDX product documentation. |
+| `docs/` | Public MDX product documentation. |
 | `backend/` | Fastify tenant API, SQLite records, stock monitoring and separate payment services. |
 | `contracts/` | Rust NEAR contracts and local Sandbox tests. |
 | `profiles/` | Runtime configuration examples. |
-| `assets/architecture/` | Editable architecture schematic and rendered preview. |
+| `web/public/diagrams/` | Editable architecture schematic and rendered preview. |
 | `scripts/` | Verification, browser walkthroughs, backups and deployment utilities. |
-| `docs/evidence/` | Recorded testnet receipts, balance checks and source-verification results. |
+| `evidence/` | Recorded testnet receipts, balance checks and source-verification results. |
 
 See the [safety-vault README](contracts/carecart-safety-vault/README.md) for contract details and [EC2 deployment guide](backend/deploy/ec2/README.md) for backend service configuration.
 
@@ -116,7 +116,7 @@ Individual checks and browser validation are documented in [Contributing](CONTRI
 
 ## Roadmap
 
-The next milestones are a [first paying clinic](https://carecart.xyz/docs/first-paying-client), a bounded [inventory pilot](https://carecart.xyz/docs/clinic-pilot), and one verified [supplier integration](https://carecart.xyz/docs/supplier-integrations). Real-money purchasing follows the [mainnet readiness gates](https://carecart.xyz/docs/mainnet-readiness). See the [product roadmap](https://carecart.xyz/docs/product-roadmap) for the sequence and completion criteria.
+The next milestones are a [first paying clinic](https://docs.carecart.xyz/first-paying-client), a bounded [inventory pilot](https://docs.carecart.xyz/clinic-pilot), and one verified [supplier integration](https://docs.carecart.xyz/supplier-integrations). Real-money purchasing follows the [mainnet readiness gates](https://docs.carecart.xyz/mainnet-readiness). See the [product roadmap](https://docs.carecart.xyz/product-roadmap) for the sequence and completion criteria.
 
 ## Hackathon disclosure
 

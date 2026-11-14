@@ -20,6 +20,7 @@ const data: StockDashboard = {
   lowStock: 0,
   criticalStock: 0,
   obligations: [],
+  caseStates: [],
   jobs: [],
   items: [
     {

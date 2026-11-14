@@ -1,0 +1,40 @@
+---
+title: System architecture
+description: How the clinic app, backend, workers, data stores and NEAR payment controls fit together.
+---
+
+CareCart separates stock records, purchasing authority, payment signing and independent verification. The architecture below maps the implemented system; optional services require configuration, and the diagram does not certify live deployment health.
+
+[![CareCart system architecture: application, identity, workers, storage and NEAR settlement.](/diagrams/carecart-architecture.png)](/diagrams/carecart-architecture.svg)
+
+[Open the scalable diagram](/diagrams/carecart-architecture.svg).
+
+## Application and identity
+
+The product website, documentation and clinic app share a Next.js deployment with separate public hosts. Supabase manages sign-in. The tenant API independently verifies identity and clinic membership before routing a request to that clinic’s runtime.
+
+The browser does not select an arbitrary database or grant itself a clinic role. The server binds each request to the verified clinic and required permission.
+
+## Inventory and purchasing
+
+The stock ledger records receipts, usage and adjustments in a separate clinic database. Background monitoring evaluates those records, compares saved offers and prepares a fixed order.
+
+A separate deterministic policy evaluates the current item, supplier, amount, expiry and authority before issuing scoped permissions. Optional AI assistance can interpret needs and propose a next step; it cannot grant spending permission or sign a payment.
+
+## Payment execution
+
+The committer and requester run separately, each with its own restricted role key. One commits the reviewed order; the other requests its permitted payment. The safety vault checks supplier permissions, limits, reservations, available funds and pause status before calling the configured token contract.
+
+A key-free observer checks final chain evidence and reconciles submitted operations. Staff record physical receiving separately: settlement never adds stock automatically.
+
+## Data and operations
+
+SQLite stores clinic membership, policy versions and per-clinic operational records. Supabase supplies identity rather than serving as the inventory database. Backup, restore rehearsals, service monitoring and credential custody remain operational responsibilities.
+
+Administrative and upgrade authority are separate trust assumptions. Restricted payment keys do not remove the need to govern the people who control hosting and contract upgrades.
+
+## Release boundary
+
+The current public payment path uses CCUSD on NEAR testnet, with synthetic offers and a controlled supplier account. Mainnet, live distributor connections and fiat settlement are separate milestones.
+
+Developers can inspect the [component guide and source links](https://github.com/0xNana/carecart/blob/main/ARCHITECTURE.md). Clinics can start with [safety and data](/docs/safety-and-data) and [mainnet readiness](/docs/mainnet-readiness).

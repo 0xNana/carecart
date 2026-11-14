@@ -22,5 +22,5 @@ async function RequestApplicationLayout({children}:{children:ReactNode}){
   const origins=siteOrigins(),host=(await headers()).get('host');
   const cleanPaths=!!origins&&host===new URL(origins.app).host;
   if(!access)return <AuthEntry mode="login" next="/app"/>;
-  return <ApplicationShell key={access.tenant?.clinic.id} cleanPaths={cleanPaths} siteOrigin={origins?.site} {...access}>{children}</ApplicationShell>;
+  return <ApplicationShell key={access.tenant?.clinic.id} cleanPaths={cleanPaths} docsOrigin={origins?.docs} {...access}>{children}</ApplicationShell>;
 }

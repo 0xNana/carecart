@@ -12,11 +12,12 @@ export async function proxy(request:NextRequest){
  const route=siteRoute(publicUrl,siteOrigins());
  // Never forward a submitted password across hosts when following an old form.
  if(route.kind==='redirect')return NextResponse.redirect(route.url!,request.method==='GET'||request.method==='HEAD'?308:303);
- const protectedPath=route.kind==='rewrite'||/^\/(?:app(?:\/|$)|onboarding|login|signup|forgot-password|reset-password|auth\/callback|api\/(?:operations|identity)(?:\/|$))/.test(request.nextUrl.pathname);
+ const applicationRewrite=route.kind==='rewrite'&&route.surface==='app';
+ const protectedPath=applicationRewrite||/^\/(?:app(?:\/|$)|onboarding|login|signup|forgot-password|reset-password|auth\/callback|api\/(?:operations|identity)(?:\/|$))/.test(request.nextUrl.pathname);
  const requestHeaders=new Headers(request.headers);
  requestHeaders.delete('x-carecart-application-path');
- if(route.kind==='rewrite')requestHeaders.set('x-carecart-application-path',request.nextUrl.pathname);
- const respond=()=>route.kind==='rewrite'?NextResponse.rewrite(new URL(route.path!,request.url),{request:{headers:requestHeaders}}):NextResponse.next({request:{headers:requestHeaders}});
+ if(applicationRewrite)requestHeaders.set('x-carecart-application-path',request.nextUrl.pathname);
+ const respond=()=>{if(route.kind!=='rewrite')return NextResponse.next({request:{headers:requestHeaders}});const target=new URL(request.url);target.pathname=route.path!;return NextResponse.rewrite(target,{request:{headers:requestHeaders}});};
  if(!protectedPath||!supabaseMode())return respond();
  let config;try{config=authConfiguration();}catch{return respond();}
  let response=respond();

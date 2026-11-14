@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import type { NextConfig } from "next";
 import { createMDX } from "fumadocs-mdx/next";
 
@@ -15,7 +16,9 @@ const nextConfig: NextConfig = {
   experimental: { useTypeScriptCli: false },
   cacheComponents: true,
   partialPrefetching: true,
+  outputFileTracingRoot: resolve(process.cwd(), ".."),
   turbopack: {
+    root: resolve(process.cwd(), ".."),
     rules: {
       // Reclassifying a CSS Module as plain CSS removes its class-name exports.
       // Only the two Tailwind entry stylesheets need this loader.

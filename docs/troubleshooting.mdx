@@ -1,0 +1,50 @@
+---
+title: Troubleshooting
+description: Resolve common sign-in, inventory, access and payment problems without duplicating records or transfers.
+---
+
+Start by confirming the selected clinic and the action you were trying to complete. A temporary error does not establish a new stock quantity, balance or payment outcome.
+
+## I cannot sign in
+
+Complete email verification before opening the clinic workspace. If a sign-in or reset link is expired, request a new one from the app. Use the latest link and the same browser session where practical.
+
+If sign-in is unavailable for everyone, the service operator needs to inspect identity and origin configuration. Do not share your password, session cookies or reset links in a bug report.
+
+## My clinic has no supplies
+
+Check the clinic selector first. A clinic created without **Add sample stock for a demo** starts without stock. Real opening counts and item setup belong to an agreed pilot; an empty clinic is not evidence that another clinic’s records were deleted.
+
+If the page reports a loading or service error, do not treat the missing display as a zero balance.
+
+## A stock save timed out
+
+Refresh and inspect **Activity** and the item’s history before repeating the action. If the receipt or movement is present, do not record it again. Correct an incorrect quantity through an explained adjustment rather than another unexplained receipt.
+
+Use the clinic’s agreed fallback record during a service interruption, then reconcile it when access returns.
+
+## Replenishment is empty
+
+A new clinic or adequately stocked item may have no request. Confirm stock counts and the clinic’s monitoring and preparation settings. CareCart needs the recorded conditions for a shortage before creating a replenishment case.
+
+A service error and an empty result are different states. If the page cannot load, restore access before making a purchasing decision.
+
+## Automatic purchasing is unavailable
+
+Normal activation requires an eligible treasury configuration, current administrator membership and a verified clinic control wallet. A new account or demo-stock selection does not provision those permissions.
+
+If the response says a route was not found, the running backend may not match the frontend. The operator should run the current tenant API and matching release, then inspect the service logs. Refreshing repeatedly cannot add a missing backend route.
+
+## A payment is pending or uncertain
+
+Check its purchase activity and independent receipt status. Submitted does not mean confirmed. Do not create a replacement payment or blindly retry an uncertain transaction.
+
+A held order needs its stated issue resolved. An expired offer, paused policy or exceeded limit is not a reason to bypass controls. The current public app does not complete the human approval handoff for held payments.
+
+## My invitation is rejected
+
+Verify that your confirmed email matches the invitation, that it has not expired and that the administrator selected the intended clinic and access. Ask for a new invitation when needed; do not use someone else’s account.
+
+## Report an issue
+
+For a reproducible product problem, open a [GitHub issue](https://github.com/0xNana/carecart/issues) with the page, action, expected result and a redacted error message. Include whether you used sample data. Omit patient information, clinic records, passwords, keys, cookies and private wallet proofs.

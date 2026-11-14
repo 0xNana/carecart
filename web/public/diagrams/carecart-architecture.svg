@@ -99,7 +99,7 @@
 <rect x="450" y="245" width="830" height="150" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
 <path d="M451 265V375" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
 <text x="474" y="280" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Next.js application</text>
-<text x="474" y="313" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">carecart.xyz · website + MDX documentation</text>
+<text x="474" y="313" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">carecart.xyz · website · docs.carecart.xyz · documentation</text>
 <text x="474" y="340" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">app.carecart.xyz · clinic UI + server-side API proxy</text>
 <text x="474" y="367" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">HTTP-only session cookies · no payment role keys</text>
 </a>
@@ -174,7 +174,7 @@
 <text x="724" y="1135" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Issues scoped committer / requester permissions</text>
 <text x="724" y="1162" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Key-free; exceptions remain held for review</text>
 </a>
-<a href="https://github.com/0xNana/carecart/blob/main/web/content/docs/product-roadmap.mdx" target="_blank" aria-label="Next milestones source"><title>Next milestones — open implementation</title>
+<a href="https://github.com/0xNana/carecart/blob/main/docs/product-roadmap.mdx" target="_blank" aria-label="Next milestones source"><title>Next milestones — open implementation</title>
 <rect x="1420" y="1040" width="420" height="145" rx="14" fill="#F1F4F2" stroke="#D5DCDA" stroke-width="1.5" stroke-dasharray="8 7"/>
 <path d="M1421 1060V1165" stroke="#8A9790" stroke-width="4" stroke-linecap="round"/>
 <text x="1444" y="1075" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Next milestones</text>
@@ -221,7 +221,7 @@
 <text x="944" y="1762" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Pays the supplier account</text>
 <text x="944" y="1789" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Test asset · no cash value</text>
 </a>
-<a href="https://github.com/0xNana/carecart/blob/main/docs/evidence/testnet/autonomous-payment.json" target="_blank" aria-label="Supplier account source"><title>Supplier account — open implementation</title>
+<a href="https://github.com/0xNana/carecart/blob/main/evidence/testnet/autonomous-payment.json" target="_blank" aria-label="Supplier account source"><title>Supplier account — open implementation</title>
 <rect x="1440" y="1640" width="396" height="170" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
 <path d="M1441 1660V1790" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
 <text x="1464" y="1675" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Supplier account</text>

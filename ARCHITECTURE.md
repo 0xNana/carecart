@@ -2,9 +2,9 @@
 
 CareCart connects clinic stock records, replenishment, purchasing policy and independently verified payments. This schematic maps the implemented application and deployment pattern as reviewed on November 14, 2026. It is not an attestation that every optional service is currently running.
 
-[![CareCart architecture: web application, tenant services, storage, restricted payment workers and NEAR settlement.](assets/architecture/carecart-architecture.png)](assets/architecture/carecart-architecture.svg)
+[![CareCart architecture: web application, tenant services, storage, restricted payment workers and NEAR settlement.](web/public/diagrams/carecart-architecture.png)](web/public/diagrams/carecart-architecture.svg)
 
-[Open the scalable SVG](assets/architecture/carecart-architecture.svg) · [Download the PNG](assets/architecture/carecart-architecture.png)
+[Open the scalable SVG](web/public/diagrams/carecart-architecture.svg) · [Download the PNG](web/public/diagrams/carecart-architecture.png)
 
 Green connections carry application requests or state access. Dashed blue connections show identity checks, optional inference or independent chain reads. Amber connections carry signed contract calls or token movement. Grey dashed components are planned integrations. Components in the SVG link to their implementation.
 
@@ -13,7 +13,7 @@ Green connections carry application requests or state access. Dashed blue connec
 | Boundary | Components and responsibilities | Implementation |
 | --- | --- | --- |
 | Clinic browser | Inventory, replenishment, suppliers, payments, activity and settings. Staff record physical stock movements; administrators configure permissions. | [Clinic routes](web/src/app/app) |
-| Vercel application | `carecart.xyz` serves the website and MDX docs. `app.carecart.xyz` serves the clinic workspace. Next.js rewrites application paths internally and proxies authenticated API calls. | [Host routing](web/src/lib/application-routing.ts), [request proxy](web/src/proxy.ts), [API proxy](web/src/lib/identity-proxy.ts) |
+| Vercel application | `carecart.xyz` serves the website, `docs.carecart.xyz` serves the root MDX collection, and `app.carecart.xyz` serves the clinic workspace. Next.js rewrites application paths internally and proxies authenticated API calls. | [Host routing](web/src/lib/application-routing.ts), [request proxy](web/src/proxy.ts), [API proxy](web/src/lib/identity-proxy.ts) |
 | External identity | Supabase supplies sign-in, verified-email identity and JWT keys. The web server uses HTTP-only cookies; the backend independently verifies the JWT and performs a fresh Auth user lookup. | [Web identity](web/src/lib/identity-backend.ts), [backend identity](backend/src/tenancy/identity.ts) |
 | EC2 API | Caddy terminates HTTPS for `api.carecart.xyz`; Fastify listens on loopback port 3002. The API enforces identity, clinic membership, permissions and request guards. | [Tenant server](backend/src/tenancy/server.ts), [tenant routes](backend/src/tenancy/api.ts) |
 | Clinic runtime | The API opens clinic-specific operations in process. Child applications do not bind public sockets. A server-created, request-scoped capability carries the verified clinic principal. | [Runtime pool](backend/src/tenancy/runtime.ts) |
@@ -42,7 +42,7 @@ The inventory worker, policy authorizer, committer, requester and observer are d
 | Registry SQLite file | Clinics, membership, identity sessions, wallet bindings, treasury configurations, policy versions and related authority records. | Tenant API and scoped workers. |
 | Separate clinic SQLite files | Inventory movements, forecasts, supplier catalog, replenishment cases, financial authorizations, operation journals and audit records. | Clinic runtime and workers operating on that clinic. |
 | NEAR contract state | Order commitments, roles, supplier permissions, vault policy, reservations and payment outcomes. | Restricted contract calls and public RPC reads. |
-| Public receipt evidence | Recorded transaction references, final receipt checks, historical balance deltas and source verification. | Reproducible read-only checks in [docs/evidence](docs/evidence). |
+| Public receipt evidence | Recorded transaction references, final receipt checks, historical balance deltas and source verification. | Reproducible read-only checks in [evidence](evidence). |
 
 [Runtime selection](backend/src/tenancy/runtime.ts) binds a clinic to its configured storage and testnet profile. [Financial authorization](backend/src/operations/financial-authorizations.ts) and [treasury authority](backend/src/tenancy/treasury-authority.ts) bind execution to the clinic, role, policy, exact order and profile. Database and authorization metadata do not replace verification of chain outcomes.
 
@@ -66,7 +66,7 @@ Verification spans several independent layers:
 - Backend and frontend tests, type checks, lint and isolated production builds: [verification script](scripts/verify-phase2.sh).
 - Browser stock workflow and duplicate receiving: [browser acceptance](scripts/mvp-browser-acceptance.mjs).
 - Contract policy and real local receipt execution: [safety-vault tests](contracts/carecart-safety-vault/tests).
-- Public testnet payment, duplicate protection, historical balances and deployed source reproduction: [judge walkthrough](docs/JUDGE_WALKTHROUGH.md).
+- Public testnet payment, duplicate protection, historical balances and deployed source reproduction: [judge walkthrough](JUDGE_WALKTHROUGH.md).
 
 These checks serve different purposes. Local mocks or Sandbox execution are not public-chain evidence; a source diagram is not a live deployment health check.
 
@@ -76,7 +76,7 @@ The active public payment path is native NEAR testnet settlement in six-decimal 
 
 Mainnet activation, production asset selection, real supplier catalogs and order acceptance, bank or fiat settlement, and clinic pilots are separate release milestones. Cross-chain code and experimental adapters in the repository do not establish an activated production cross-chain route. They are not shown as part of the current native payment path.
 
-Follow the [mainnet readiness guide](web/content/docs/mainnet-readiness.mdx), [supplier integration plan](web/content/docs/supplier-integrations.mdx) and [product roadmap](web/content/docs/product-roadmap.mdx) for the release gates.
+Follow the [mainnet readiness guide](docs/mainnet-readiness.mdx), [supplier integration plan](docs/supplier-integrations.mdx) and [product roadmap](docs/product-roadmap.mdx) for the release gates.
 
 ## Maintaining the schematic
 

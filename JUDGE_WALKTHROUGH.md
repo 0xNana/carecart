@@ -8,7 +8,7 @@ CareCart owns the inventory ledger: staff record receipts, dispensing, consumpti
 nvm use
 npm ci --prefix backend
 node --import ./backend/node_modules/tsx/dist/loader.mjs backend/src/ops/testnet-payment-evidence.ts \
-  profiles/testnet.payments.json docs/evidence/testnet/autonomous-payment.json
+  profiles/testnet.payments.json evidence/testnet/autonomous-payment.json
 ```
 
 Expected: `nativeSettlementVerified: true`, `deltaVerified: true`, a final public transaction, and exact historical balance deltas. This fetches fresh public testnet/archival RPC evidence. The checked-in JSON supplies lookup terms, not trusted receipt truth. No clinic database or signer is needed.
@@ -66,7 +66,7 @@ npm test --prefix backend -- src/tenancy/automatic-purchasing.test.ts src/tenanc
 
 Expected: allowed requests pay, an unknown supplier is blocked, hard/daily caps cannot be overridden by admin approval, eligible above-automatic-threshold orders wait for a human, pause prevents dispatch, duplicates cannot pay again, and queued automatic permits fail after revocation/change. The Rust suite includes genuine local Sandbox receipt execution. Backend RPC fixtures are explicitly mocked; do not label them public chain effects. Public supplier success and duplicate idempotency are the two public scenarios executed in this sprint.
 
-The normal public tenant admin-wallet handoff remains disabled; above-threshold app orders are held. Valid human approval is demonstrated in local Sandbox. The one-order owner grant is a disclosed host control-plane authority, not a forged clinic login. The vault full-access upgrade key can replace code; see the public [safety and authority guide](https://carecart.xyz/docs/safety-and-data).
+The normal public tenant admin-wallet handoff remains disabled; above-threshold app orders are held. Valid human approval is demonstrated in local Sandbox. The one-order owner grant is a disclosed host control-plane authority, not a forged clinic login. The vault full-access upgrade key can replace code; see the public [safety and authority guide](https://docs.carecart.xyz/safety-and-data).
 
 ## 6. A 90–150-second presentation
 
