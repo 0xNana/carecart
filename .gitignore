@@ -41,6 +41,7 @@ __pycache__/
 # Internal planning and implementation notes
 internal-docs/
 /tasks/
+/demo/
 /docs/*
 !/docs/JUDGE_WALKTHROUGH.md
 !/docs/CARECART_DESIGN_REVIEW.md

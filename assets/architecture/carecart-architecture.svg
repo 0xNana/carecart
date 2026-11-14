@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920" height="2230" viewBox="0 0 1920 2230" role="img" aria-labelledby="title description">
+<title id="title">CareCart system architecture</title><desc id="description">Source-mapped architecture of the current CareCart application: clinic browser, Vercel Next.js frontend, Supabase authentication, EC2 Caddy and Fastify tenant API, separate registry and clinic SQLite databases, inventory and policy workers, optional NEAR AI Cloud, protected committer and requester processes, independent observer, NEAR testnet safety vault, CCUSD token and controlled supplier account. Wallet funding and contract callbacks are separate from stock receiving. Dashed blue paths are optional inference or read-only verification. Mainnet and live supplier integrations are roadmap items.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#456C62" stroke-width="1.5" stroke-linejoin="round"/></marker>
+<marker id="money" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#B37122" stroke-width="1.5" stroke-linejoin="round"/></marker>
+<marker id="observe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#5579A2" stroke-width="1.5" stroke-linejoin="round"/></marker>
+<marker id="back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#456C62" stroke-width="1.5" stroke-linejoin="round"/></marker>
+</defs><g font-family="Arial, Helvetica, sans-serif">
+<rect x="0" y="0" width="1920" height="2230" rx="0" fill="#F9FBFA" stroke="#F9FBFA" stroke-width="1.5"/>
+<text x="64" y="70" font-size="46" font-weight="700" fill="#173D35" text-anchor="start">CareCart</text>
+<text x="287" y="70" font-size="46" font-weight="400" fill="#173D35" text-anchor="start">System architecture</text>
+<text x="66" y="110" font-size="25" font-weight="400" fill="#506662" text-anchor="start">Clinic operations, purchasing authority and independently verified settlement.</text>
+<text x="1854" y="61" font-size="16" font-weight="700" fill="#2B6A57" text-anchor="end">CURRENT IMPLEMENTATION</text>
+<text x="1854" y="93" font-size="18" font-weight="400" fill="#627871" text-anchor="end">Source review · 14 November 2026</text>
+<rect x="56" y="170" width="1280" height="270" rx="22" fill="#F4F8F6" stroke="#D4E1DC" stroke-width="1.5"/>
+<text x="84" y="208" font-size="19" font-weight="700" fill="#194D43" text-anchor="start">01  WEB &amp; CLINIC EXPERIENCE</text>
+<text x="1308" y="208" font-size="18" font-weight="400" fill="#627871" text-anchor="end">Vercel · HTTPS</text>
+<rect x="56" y="500" width="1280" height="730" rx="22" fill="#F4F8F6" stroke="#D4E1DC" stroke-width="1.5"/>
+<text x="84" y="538" font-size="19" font-weight="700" fill="#194D43" text-anchor="start">02  APPLICATION &amp; DATA</text>
+<text x="1308" y="538" font-size="18" font-weight="400" fill="#627871" text-anchor="end">AWS EC2 · separate processes / shared local storage</text>
+<rect x="56" y="1285" width="1280" height="225" rx="22" fill="#F4F8F6" stroke="#D4E1DC" stroke-width="1.5"/>
+<text x="84" y="1323" font-size="19" font-weight="700" fill="#194D43" text-anchor="start">03  RESTRICTED EXECUTION</text>
+<text x="1308" y="1323" font-size="18" font-weight="400" fill="#627871" text-anchor="end">AWS EC2 · role-specific credentials</text>
+<rect x="56" y="1560" width="1808" height="305" rx="22" fill="#F4F8F6" stroke="#D4E1DC" stroke-width="1.5"/>
+<text x="84" y="1598" font-size="19" font-weight="700" fill="#194D43" text-anchor="start">04  NATIVE TOKEN SETTLEMENT</text>
+<text x="1836" y="1598" font-size="18" font-weight="400" fill="#627871" text-anchor="end">NEAR testnet · CCUSD demonstration asset</text>
+<text x="1420" y="202" font-size="18" font-weight="700" fill="#627871" text-anchor="start">EXTERNAL SERVICES &amp; ACCOUNTS</text>
+<path d="M350 320 H450" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="368.8" y="287" width="62.400000000000006" height="24" rx="4" fill="#F9FBFA"/>
+<text x="400" y="302" font-size="16" font-weight="500" fill="#506662" text-anchor="middle">HTTPS</text>
+<path d="M1280 290 H1420" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="1310.32" y="258" width="79.36" height="24" rx="4" fill="#F9FBFA"/>
+<text x="1350" y="273" font-size="16" font-weight="500" fill="#506662" text-anchor="middle">sign-in</text>
+<path d="M865 395 V555" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="792.89" y="466" width="430.22" height="26" rx="4" fill="#F9FBFA"/>
+<text x="1008" y="483" font-size="18" font-weight="500" fill="#506662" text-anchor="middle">HTTPS · /api/identity/* · /api/operations/*</text>
+<path d="M450 628 H370" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="376.15" y="597" width="67.7" height="23" rx="4" fill="#F9FBFA"/>
+<text x="410" y="611" font-size="15" font-weight="500" fill="#506662" text-anchor="middle">checks</text>
+<path d="M1280 588 H1380 V355 H1420" fill="none" stroke="#5579A2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#observe)" stroke-dasharray="8 7"/>
+<rect x="1280.96" y="452" width="198.08" height="24" rx="4" fill="#F9FBFA"/>
+<text x="1380" y="467" font-size="16" font-weight="500" fill="#5579A2" text-anchor="middle">JWT + live user check</text>
+<path d="M1280 645 H1420" fill="none" stroke="#5579A2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#observe)" stroke-dasharray="8 7"/>
+<rect x="1297.6" y="612" width="104.80000000000001" height="24" rx="4" fill="#F9FBFA"/>
+<text x="1350" y="627" font-size="16" font-weight="500" fill="#5579A2" text-anchor="middle">tool calls</text>
+<path d="M590 700 V745 H340 V790" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="300.385" y="719" width="227.23000000000002" height="25" rx="4" fill="#F9FBFA"/>
+<text x="414" y="735" font-size="17" font-weight="500" fill="#506662" text-anchor="middle">clinic-scoped execution</text>
+<path d="M990 700 V790" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)" marker-start="url(#back)"/>
+<rect x="1007.425" y="735" width="155.15" height="25" rx="4" fill="#F9FBFA"/>
+<text x="1085" y="751" font-size="17" font-weight="500" fill="#506662" text-anchor="middle">registry access</text>
+<path d="M590 866 H700" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)" marker-start="url(#back)"/>
+<rect x="592.6" y="832" width="104.80000000000001" height="24" rx="4" fill="#F9FBFA"/>
+<text x="645" y="847" font-size="16" font-weight="500" fill="#506662" text-anchor="middle">read/write</text>
+<path d="M340 1040 V940" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="263.22" y="978" width="153.56" height="26" rx="4" fill="#F9FBFA"/>
+<text x="340" y="995" font-size="18" font-weight="500" fill="#506662" text-anchor="middle">evaluate stock</text>
+<path d="M990 1040 V940" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)" marker-start="url(#back)"/>
+<rect x="870.29" y="978" width="239.42000000000002" height="26" rx="4" fill="#F9FBFA"/>
+<text x="990" y="995" font-size="18" font-weight="500" fill="#506662" text-anchor="middle">policy + scoped permits</text>
+<path d="M1280 894 H1362 V1259 H440 V1334 H260 V1350" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)" marker-start="url(#back)"/>
+<path d="M850 1259 V1334 H660 V1350 M1362 1259 V1334 H1100 V1350" fill="none" stroke="#456C62" stroke-width="2.6" marker-end="url(#arrow)"/>
+<circle cx="440" cy="1259" r="4" fill="#456C62"/>
+<circle cx="850" cy="1259" r="4" fill="#456C62"/>
+<circle cx="1362" cy="1259" r="4" fill="#456C62"/>
+<rect x="606.27" y="1229" width="487.46000000000004" height="26" rx="4" fill="#F9FBFA"/>
+<text x="850" y="1246" font-size="18" font-weight="500" fill="#506662" text-anchor="middle">Read / update authorizations + submission journal</text>
+<path d="M260 1475 V1550 H450 V1610 H260 V1640" fill="none" stroke="#B37122" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#money)"/>
+<rect x="155.39499999999998" y="1525" width="209.21" height="25" rx="4" fill="#F9FBFA"/>
+<text x="260" y="1541" font-size="17" font-weight="500" fill="#9B621B" text-anchor="middle">commit_purchase_order</text>
+<path d="M660 1475 V1640" fill="none" stroke="#B37122" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#money)"/>
+<rect x="582.425" y="1525" width="155.15" height="25" rx="4" fill="#F9FBFA"/>
+<text x="660" y="1541" font-size="17" font-weight="500" fill="#9B621B" text-anchor="middle">request_payment</text>
+<path d="M1100 1640 V1475" fill="none" stroke="#5579A2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#observe)" stroke-dasharray="8 7"/>
+<rect x="977.375" y="1525" width="245.25" height="25" rx="4" fill="#F9FBFA"/>
+<text x="1100" y="1541" font-size="17" font-weight="500" fill="#5579A2" text-anchor="middle">final receipts + balances</text>
+<path d="M780 1716 H920" fill="none" stroke="#B37122" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#money)"/>
+<rect x="790.445" y="1681" width="119.11" height="25" rx="4" fill="#F9FBFA"/>
+<text x="850" y="1697" font-size="17" font-weight="500" fill="#9B621B" text-anchor="middle">ft_transfer</text>
+<path d="M920 1771 H780" fill="none" stroke="#5579A2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#observe)" stroke-dasharray="8 7"/>
+<rect x="776.4" y="1785" width="147.2" height="24" rx="4" fill="#F9FBFA"/>
+<text x="850" y="1800" font-size="16" font-weight="500" fill="#5579A2" text-anchor="middle">callback result</text>
+<path d="M1300 1716 H1440" fill="none" stroke="#B37122" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#money)"/>
+<rect x="1305.94" y="1681" width="128.12" height="25" rx="4" fill="#F9FBFA"/>
+<text x="1370" y="1697" font-size="17" font-weight="500" fill="#9B621B" text-anchor="middle">token credit</text>
+<path d="M1630 940 V979 H1888 V1620 H1190 V1640" fill="none" stroke="#B37122" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#money)"/>
+<rect x="1576.385" y="958" width="227.23000000000002" height="25" rx="4" fill="#F9FBFA"/>
+<text x="1690" y="974" font-size="17" font-weight="500" fill="#9B621B" text-anchor="middle">wallet-approved funding</text>
+<rect x="1433.315" y="1602" width="353.37" height="25" rx="4" fill="#F9FBFA"/>
+<text x="1610" y="1618" font-size="17" font-weight="500" fill="#9B621B" text-anchor="middle">ft_transfer_call → vault deposit hook</text>
+<a href="https://github.com/0xNana/carecart/blob/main/web/src/app/app/layout.tsx" target="_blank" aria-label="Clinic team source"><title>Clinic team — open implementation</title>
+<rect x="90" y="255" width="260" height="140" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M91 275V375" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="114" y="290" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Clinic team</text>
+<text x="114" y="323" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Inventory staff</text>
+<text x="114" y="350" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Clinic administrators</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/web/src/lib/identity-proxy.ts" target="_blank" aria-label="Next.js application source"><title>Next.js application — open implementation</title>
+<rect x="450" y="245" width="830" height="150" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M451 265V375" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="474" y="280" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Next.js application</text>
+<text x="474" y="313" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">carecart.xyz · website + MDX documentation</text>
+<text x="474" y="340" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">app.carecart.xyz · clinic UI + server-side API proxy</text>
+<text x="474" y="367" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">HTTP-only session cookies · no payment role keys</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/tenancy/identity.ts" target="_blank" aria-label="Supabase Auth source"><title>Supabase Auth — open implementation</title>
+<rect x="1420" y="245" width="420" height="150" rx="14" fill="#FFFFFF" stroke="#CFDAE5" stroke-width="1.5"/>
+<path d="M1421 265V375" stroke="#5579A2" stroke-width="4" stroke-linecap="round"/>
+<text x="1444" y="280" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Supabase Auth</text>
+<text x="1444" y="313" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Sign-in + verified email</text>
+<text x="1444" y="340" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">JWT keys + fresh user lookup</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/tenancy/api.ts" target="_blank" aria-label="Access checks source"><title>Access checks — open implementation</title>
+<rect x="90" y="555" width="280" height="145" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M91 575V680" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="114" y="590" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Access checks</text>
+<text x="114" y="623" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Identity + clinic roles</text>
+<text x="114" y="650" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Origin, CSRF + nonce</text>
+<text x="114" y="677" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Wallet / treasury scope</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/tenancy/server.ts" target="_blank" aria-label="Tenant API source"><title>Tenant API — open implementation</title>
+<rect x="450" y="555" width="830" height="145" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M451 575V680" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="474" y="590" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Tenant API</text>
+<text x="474" y="623" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">api.carecart.xyz · Caddy TLS → 127.0.0.1:3002</text>
+<text x="474" y="650" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Fastify · verified membership + clinic runtime routing</text>
+<text x="474" y="677" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Inventory, orders, funding, policy, activity + team APIs</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/operations/runs.ts" target="_blank" aria-label="NEAR AI Cloud source"><title>NEAR AI Cloud — open implementation</title>
+<rect x="1420" y="555" width="420" height="145" rx="14" fill="#FFFFFF" stroke="#CFDAE5" stroke-width="1.5"/>
+<path d="M1421 575V680" stroke="#5579A2" stroke-width="4" stroke-linecap="round"/>
+<text x="1444" y="590" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">NEAR AI Cloud</text>
+<text x="1444" y="623" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Optional procurement assistance</text>
+<text x="1444" y="650" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Validated tools + bounded runs</text>
+<text x="1444" y="677" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Cannot authorize or sign</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/tenancy/runtime.ts" target="_blank" aria-label="Clinic operations engine source"><title>Clinic operations engine — open implementation</title>
+<rect x="90" y="790" width="500" height="150" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M91 810V920" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="114" y="825" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Clinic operations engine</text>
+<text x="114" y="858" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Per-clinic runtime · in-process libraries</text>
+<text x="114" y="885" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Stock ledger → forecast → order workflow</text>
+<text x="114" y="912" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Saved supplier offers · synthetic today</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/inventory/local.ts" target="_blank" aria-label="SQLite persistence source"><title>SQLite persistence — open implementation</title>
+<rect x="700" y="790" width="580" height="150" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M701 810V920" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="724" y="825" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">SQLite persistence</text>
+<text x="724" y="858" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Registry: sessions, membership, wallets + policies</text>
+<text x="724" y="885" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Per-clinic files: stock, orders + payment journal</text>
+<text x="724" y="912" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Financial permits · audit records · balances</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/web/src/components/payment-account-panel.tsx" target="_blank" aria-label="Clinic wallets source"><title>Clinic wallets — open implementation</title>
+<rect x="1420" y="790" width="420" height="150" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
+<path d="M1421 810V920" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
+<text x="1444" y="825" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Clinic wallets</text>
+<text x="1444" y="858" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Verify control-wallet ownership</text>
+<text x="1444" y="885" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Treasury-approved token deposits</text>
+<text x="1444" y="912" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Funding is separate from spend</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/tenancy/worker.ts" target="_blank" aria-label="Inventory worker source"><title>Inventory worker — open implementation</title>
+<rect x="90" y="1040" width="500" height="145" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M91 1060V1165" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="114" y="1075" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Inventory worker</text>
+<text x="114" y="1108" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Monitors stock and prepares replenishment</text>
+<text x="114" y="1135" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Uses the clinic engine + persisted records</text>
+<text x="114" y="1162" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">No payment signing credentials</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/ops/tenant-financial.ts" target="_blank" aria-label="Automatic-policy authorizer source"><title>Automatic-policy authorizer — open implementation</title>
+<rect x="700" y="1040" width="580" height="145" rx="14" fill="#FFFFFF" stroke="#C9DCD3" stroke-width="1.5"/>
+<path d="M701 1060V1165" stroke="#1E5E4B" stroke-width="4" stroke-linecap="round"/>
+<text x="724" y="1075" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Automatic-policy authorizer</text>
+<text x="724" y="1108" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Checks item, supplier, amount, expiry + policy version</text>
+<text x="724" y="1135" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Issues scoped committer / requester permissions</text>
+<text x="724" y="1162" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Key-free; exceptions remain held for review</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/web/content/docs/product-roadmap.mdx" target="_blank" aria-label="Next milestones source"><title>Next milestones — open implementation</title>
+<rect x="1420" y="1040" width="420" height="145" rx="14" fill="#F1F4F2" stroke="#D5DCDA" stroke-width="1.5" stroke-dasharray="8 7"/>
+<path d="M1421 1060V1165" stroke="#8A9790" stroke-width="4" stroke-linecap="round"/>
+<text x="1444" y="1075" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Next milestones</text>
+<text x="1444" y="1108" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Verified live supplier integrations</text>
+<text x="1444" y="1135" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Mainnet asset + financial release</text>
+<text x="1444" y="1162" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Clinic pilot + fiat arrangements</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/ops/testnet-payment-worker.ts" target="_blank" aria-label="Committer source"><title>Committer — open implementation</title>
+<rect x="90" y="1350" width="340" height="125" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
+<path d="M91 1370V1455" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
+<text x="114" y="1385" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Committer</text>
+<text x="114" y="1418" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">One restricted role key</text>
+<text x="114" y="1445" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Commits the fixed order</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/ops/testnet-payment-worker.ts" target="_blank" aria-label="Requester source"><title>Requester — open implementation</title>
+<rect x="500" y="1350" width="340" height="125" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
+<path d="M501 1370V1455" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
+<text x="524" y="1385" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Requester</text>
+<text x="524" y="1418" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">A separate restricted key</text>
+<text x="524" y="1445" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Requests permitted payment</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/backend/src/ops/testnet-payment-worker.ts" target="_blank" aria-label="Independent observer source"><title>Independent observer — open implementation</title>
+<rect x="910" y="1350" width="370" height="125" rx="14" fill="#FFFFFF" stroke="#CFDAE5" stroke-width="1.5"/>
+<path d="M911 1370V1455" stroke="#5579A2" stroke-width="4" stroke-linecap="round"/>
+<text x="934" y="1385" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Independent observer</text>
+<text x="934" y="1418" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">No signing key · public RPC</text>
+<text x="934" y="1445" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Reconciles submitted outcomes</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/contracts/carecart-safety-vault/src/lib.rs" target="_blank" aria-label="NEAR safety vault source"><title>NEAR safety vault — open implementation</title>
+<rect x="90" y="1640" width="690" height="170" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
+<path d="M91 1660V1790" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
+<text x="114" y="1675" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">NEAR safety vault</text>
+<text x="114" y="1708" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Immutable order commitments · supplier allowlist</text>
+<text x="114" y="1735" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Automatic / hard / daily limits · reservations + pause</text>
+<text x="114" y="1762" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Storage + balance checks · duplicate protection</text>
+<text x="114" y="1789" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Callbacks + treasury recovery; no stock mutation</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/contracts/test-ft/src/lib.rs" target="_blank" aria-label="CCUSD token contract source"><title>CCUSD token contract — open implementation</title>
+<rect x="920" y="1640" width="380" height="170" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
+<path d="M921 1660V1790" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
+<text x="944" y="1675" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">CCUSD token contract</text>
+<text x="944" y="1708" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">NEP-141 · 6 decimals</text>
+<text x="944" y="1735" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Deposit receiver: safety vault</text>
+<text x="944" y="1762" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Pays the supplier account</text>
+<text x="944" y="1789" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Test asset · no cash value</text>
+</a>
+<a href="https://github.com/0xNana/carecart/blob/main/docs/evidence/testnet/autonomous-payment.json" target="_blank" aria-label="Supplier account source"><title>Supplier account — open implementation</title>
+<rect x="1440" y="1640" width="396" height="170" rx="14" fill="#FFFFFF" stroke="#E2D5C0" stroke-width="1.5"/>
+<path d="M1441 1660V1790" stroke="#B37122" stroke-width="4" stroke-linecap="round"/>
+<text x="1464" y="1675" font-size="27" font-weight="650" fill="#173D35" text-anchor="start">Supplier account</text>
+<text x="1464" y="1708" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Receives native test tokens</text>
+<text x="1464" y="1735" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">Controlled demonstration account</text>
+<text x="1464" y="1762" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">No bank payout or physical</text>
+<text x="1464" y="1789" font-size="21" font-weight="400" fill="#536A62" text-anchor="start">delivery implied by settlement</text>
+</a>
+<text x="80" y="1915" font-size="16" font-weight="700" fill="#627871" text-anchor="start">READ THE CONNECTIONS</text>
+<path d="M330 1909 H386" fill="none" stroke="#456C62" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="402" y="1917" font-size="19" font-weight="400" fill="#506662" text-anchor="start">Application / state</text>
+<path d="M645 1909 H701" fill="none" stroke="#5579A2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#observe)" stroke-dasharray="8 7"/>
+<text x="717" y="1917" font-size="19" font-weight="400" fill="#506662" text-anchor="start">Verification / optional AI</text>
+<path d="M1055 1909 H1111" fill="none" stroke="#B37122" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#money)"/>
+<text x="1127" y="1917" font-size="19" font-weight="400" fill="#506662" text-anchor="start">Signed call / funds</text>
+<rect x="1485" y="1897" width="50" height="25" rx="6" fill="#F1F4F2" stroke="#8A9790" stroke-width="1.5" stroke-dasharray="8 7"/>
+<text x="1550" y="1917" font-size="19" font-weight="400" fill="#506662" text-anchor="start">Planned integration</text>
+<text x="64" y="1981" font-size="18" font-weight="700" fill="#194D43" text-anchor="start">STOCK ≠ SETTLEMENT</text>
+<text x="64" y="2016" font-size="20" font-weight="400" fill="#506662" text-anchor="start">Payment never increments inventory.</text>
+<text x="64" y="2044" font-size="20" font-weight="400" fill="#506662" text-anchor="start">Staff record physical goods received.</text>
+<text x="676" y="1981" font-size="18" font-weight="700" fill="#194D43" text-anchor="start">AUTHORITY STAYS SEPARATE</text>
+<text x="676" y="2016" font-size="20" font-weight="400" fill="#506662" text-anchor="start">Role keys stay out of the app and API.</text>
+<text x="676" y="2044" font-size="20" font-weight="400" fill="#506662" text-anchor="start">Admin, guardian and upgrade authority remain separate.</text>
+<text x="1288" y="1981" font-size="18" font-weight="700" fill="#194D43" text-anchor="start">TESTNET RELEASE BOUNDARY</text>
+<text x="1288" y="2016" font-size="20" font-weight="400" fill="#506662" text-anchor="start">Diagram maps code, not deployment health.</text>
+<text x="1288" y="2044" font-size="20" font-weight="400" fill="#506662" text-anchor="start">Mainnet and live suppliers are not activated.</text>
+<rect x="64" y="2080" width="1792" height="90" rx="12" fill="#EDF3EF" stroke="#D4E1DC" stroke-width="1.5"/>
+<text x="88" y="2111" font-size="16" font-weight="700" fill="#194D43" text-anchor="start">OPERATIONS &amp; VERIFICATION</text>
+<text x="88" y="2145" font-size="22" font-weight="400" fill="#506662" text-anchor="start">systemd · health checks · SQLite backups · browser acceptance · NEAR Sandbox · source / code-hash verification</text>
+<text x="64" y="2201" font-size="18" font-weight="400" fill="#627871" text-anchor="start">Source-mapped schematic · See ARCHITECTURE.md for component references, authorization and recovery details.</text>
+</g></svg>
