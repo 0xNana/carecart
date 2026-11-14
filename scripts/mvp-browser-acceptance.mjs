@@ -34,7 +34,7 @@ if(testnetPreparation){const candidate=JSON.parse(readFileSync(root+'/profiles/t
 function launch(args,cwd,extra={},name='process'){const fd=openSync(temp+'/'+name+'.log','w',0o600);const p=spawn(node,args,{cwd,env:{...env,...extra},stdio:['ignore',fd,fd]});closeSync(fd);children.push(p);return p;}
 const api=launch(['--import','tsx','test-support/inventory-runtime-process.ts','api'],snapshot+'/backend',{CARECART_P4A_SPY_FILE:temp+'/api-spies.json'},'api');
 const web=launch(['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port',String(webPort)],snapshot+'/web',{CARECART_OPERATIONS_API_URL:`http://127.0.0.1:${apiPort}`},'web');
-let worker,ws,cookie='';const report={snapshot,output,environment:testnetPreparation?'testnet CCUSD offline preparation; synthetic suppliers; local auth fixture':'isolated local synthetic clinic; local workspace auth fixture',recordingMode:headed?'visible Chromium':'headless Chromium',demoStepPauseMs:demoPauseMs,hostedSupabaseVerified:false,publicChainExecution:false,actions:[],viewports:[],runtimeErrors:[],consoleErrors:[],consoleWarnings:[]};
+let worker,ws,intercept,cookie='';const report={snapshot,output,environment:testnetPreparation?'testnet CCUSD offline preparation; synthetic suppliers; local auth fixture':'isolated local synthetic clinic; local workspace auth fixture',recordingMode:headed?'visible Chromium':'headless Chromium',demoStepPauseMs:demoPauseMs,hostedSupabaseVerified:false,publicChainExecution:false,actions:[],viewports:[],runtimeErrors:[],consoleErrors:[],consoleWarnings:[]};
 async function wait(fn,label,tries=100){for(let i=0;i<tries;i++){try{const result=await fn();if(result)return result;}catch{}await pause(200);}throw Error('Timed out: '+label);}
 // Stay below the real read limit while the application also performs its normal polling.
 let lastRequestAt=0;
@@ -47,9 +47,9 @@ try{
  const chrome=spawn(process.env.CARECART_CHROMIUM_BIN??'/snap/bin/chromium',chromeArgs,{stdio:'ignore'});children.push(chrome);
  const target=await wait(()=>fetch(`http://127.0.0.1:${debugPort}/json/new?about:blank`,{method:'PUT'}).then(r=>r.json()),'Chromium');
  ws=new WebSocket(target.webSocketDebuggerUrl);await new Promise((r,j)=>{ws.onopen=r;ws.onerror=j;});
- let next=0;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(Error(m.error.message)):p.resolve(m.result);}}if(m.method==='Runtime.exceptionThrown')report.runtimeErrors.push(m.params.exceptionDetails.text);if(m.method==='Log.entryAdded'&&m.params.entry.level==='error')report.consoleErrors.push(m.params.entry.text.slice(0,300));if(m.method==='Log.entryAdded'&&m.params.entry.level==='warning')report.consoleWarnings.push(m.params.entry.text.slice(0,300));};
+ let next=0;const pending=new Map();ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(Error(m.error.message)):p.resolve(m.result);}}if(m.method==='Fetch.requestPaused'&&intercept)void intercept(m.params).catch(error=>report.runtimeErrors.push(error.message));if(m.method==='Runtime.exceptionThrown')report.runtimeErrors.push(m.params.exceptionDetails.text);if(m.method==='Log.entryAdded'&&m.params.entry.level==='error')report.consoleErrors.push(m.params.entry.text.slice(0,300));if(m.method==='Log.entryAdded'&&m.params.entry.level==='warning')report.consoleWarnings.push(m.params.entry.text.slice(0,300));};
  const cmd=(method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));});
- const evaluate=async expression=>{const r=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error('Browser evaluation failed');return r.result.value;};
+ const evaluate=async expression=>{const r=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error('Browser evaluation failed: '+(r.exceptionDetails.exception?.description??r.exceptionDetails.text).slice(0,220));return r.result.value;};
  await cmd('Page.enable');await cmd('Runtime.enable');await cmd('Log.enable');await cmd('Network.enable');
  for(const c of cookie.split('; ')){const at=c.indexOf('=');await cmd('Network.setCookie',{name:c.slice(0,at),value:c.slice(at+1),url:origin,httpOnly:true,sameSite:'Lax'});}
  report.publicPages=[];
@@ -82,7 +82,7 @@ try{
  await cmd('Page.navigate',{url:origin+'/operations'});
  await wait(()=>evaluate('document.body.innerText.includes("Save stock update")'),'inventory form');
  await pauseForRecording();
- const set=async(label,value)=>{await evaluate(`(()=>{const label=Array.from(document.querySelectorAll('label')).find(l=>l.textContent.trim().startsWith(${JSON.stringify(label)}));const input=label?.querySelector('input,select');if(!input)throw Error('Missing input');const proto=input.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));})()`);await pause(80);};
+ const set=async(label,value)=>{await evaluate(`(()=>{const label=Array.from(document.querySelectorAll('label')).find(l=>l.textContent.trim().startsWith(${JSON.stringify(label)}));const input=label?.control??label?.querySelector('input,select');if(!input)throw Error('Missing input');const proto=input.tagName==='SELECT'?HTMLSelectElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(input,${JSON.stringify(value)});input.dispatchEvent(new Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));})()`);await pause(80);};
  const click=async text=>{await evaluate(`(()=>{const b=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()===${JSON.stringify(text)});if(!b||b.disabled)throw Error('Missing or disabled button');b.click();})()`);await pause(100);};
  async function submit(expected,action){await click('Save stock update');await wait(async()=>{const data=await stock();return data.items[0].balance.onHand===expected;},action);report.actions.push({action,onHand:expected});await wait(()=>evaluate('Array.from(document.querySelectorAll("button")).some(b=>b.textContent.trim()==="Save stock update"&&!b.disabled)'),'mutation completion');await pauseForRecording();}
  report.appPages=[];
@@ -95,6 +95,7 @@ try{
    await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});await evaluate('document.fonts.ready.then(()=>true)');await pause(500);
    const metrics=await evaluate(`(()=>{const nav=document.querySelector('nav[aria-label="Quick navigation"]');return {title:document.querySelector('#application-main h1')?.textContent,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,undefinedClasses:[...document.querySelectorAll('[class]')].filter(e=>e.classList.contains('undefined')).length,mobileNavigation:getComputedStyle(nav).display!=='none'}})()`);
    report.appPages.push({path,width,...metrics});assert.equal(metrics.overflow,false,'Clinic page overflow '+path+' at '+width);assert.equal(metrics.undefinedClasses,0,'Missing clinic styles '+path);assert.equal(metrics.mobileNavigation,width<=1024);
+   assert.equal(await evaluate(`document.querySelectorAll('nav[aria-label="Application sections"] a[aria-current="page"]').length`),1,'Exactly one active sidebar destination');
    writeFileSync(output+'/clinic-'+(path==='/app'?'overview':path.split('/').at(-1))+'-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
   }
  }
@@ -103,6 +104,43 @@ try{
  await wait(()=>evaluate(`document.querySelector('button[aria-controls="application-navigation"]').getAttribute('aria-expanded')==='true'`),'mobile navigation opens');
  await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
  await wait(()=>evaluate(`document.querySelector('button[aria-controls="application-navigation"]').getAttribute('aria-expanded')==='false'&&document.activeElement?.getAttribute('aria-controls')==='application-navigation'`),'mobile navigation restores keyboard focus');
+ // The drawer contains keyboard focus and leaves the records behind it inert.
+ const toggleSelector='button[aria-controls="application-navigation"]';
+ await evaluate(`document.querySelector('${toggleSelector}').click()`);
+ await wait(()=>evaluate(`document.querySelector('#application-navigation').contains(document.activeElement)&&!!document.querySelector('main').closest('[inert]')&&document.body.style.overflow==='hidden'`),'drawer takes focus and isolates background');
+ const drawerNodes=`Array.from(document.querySelector('#application-navigation').querySelectorAll('a[href],button:not(:disabled),select,summary')).filter(e=>e.checkVisibility())`;
+ await evaluate(`(${drawerNodes}).at(-1).focus()`);
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+ await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+ assert.equal(await evaluate(`document.activeElement===(${drawerNodes})[0]`),true,'Drawer Tab wraps to first control');
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:8});
+ await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9,modifiers:8});
+ assert.equal(await evaluate(`document.activeElement===(${drawerNodes}).at(-1)`),true,'Drawer Shift+Tab wraps to last control');
+ await evaluate(`document.querySelector('summary[aria-label="Account options"]').click()`);
+ assert.equal(await evaluate(`document.querySelector('summary[aria-label="Account options"]').parentElement.open`),true);
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ assert.equal(await evaluate(`!document.querySelector('summary[aria-label="Account options"]').parentElement.open&&document.querySelector('${toggleSelector}').getAttribute('aria-expanded')==='true'&&document.activeElement.matches('summary')`),true,'Escape closes account before the containing drawer');
+ for(const width of [320,390,768]){
+  await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});await pause(150);
+  assert.equal(await evaluate(`document.documentElement.scrollWidth>document.documentElement.clientWidth+1`),false,'Drawer overflow at '+width);
+  assert.equal(await evaluate(`Array.from(document.querySelectorAll('nav[aria-label="Application sections"] a')).every(e=>e.getBoundingClientRect().width>=220&&e.getBoundingClientRect().height<=48)`),true,'Drawer destinations stay full width and single line at '+width);
+  writeFileSync(output+'/shell-drawer-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ }
+ await evaluate(`document.querySelector('button[aria-label="Close navigation backdrop"]').click()`);
+ await wait(()=>evaluate(`document.querySelector('${toggleSelector}').getAttribute('aria-expanded')==='false'&&!document.querySelector('main').closest('[inert]')&&document.body.style.overflow!=='hidden'&&document.activeElement.matches('${toggleSelector}')`),'backdrop restores navigation focus and scroll');
+ await evaluate(`document.querySelector('${toggleSelector}').click()`);
+ await cmd('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
+ await wait(()=>evaluate(`document.querySelector('${toggleSelector}').getAttribute('aria-expanded')==='false'&&!document.querySelector('main').closest('[inert]')`),'desktop resize releases mobile drawer');
+ await evaluate(`document.querySelector('summary[aria-label="Account options"]').click()`);
+ writeFileSync(output+'/shell-account-1440.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ assert.equal(await evaluate(`!document.querySelector('summary[aria-label="Account options"]').parentElement.open&&document.activeElement.matches('summary')`),true,'Desktop account Escape returns focus');
+ await evaluate(`document.querySelector('summary[aria-label="Account options"]').click();document.querySelector('main').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}))`);
+ assert.equal(await evaluate(`document.querySelector('summary[aria-label="Account options"]').parentElement.open`),false,'Click away closes account');
+ report.shellNavigation={activeDestinationUnique:true,drawerFocusContained:true,backgroundInert:true,escapeClosesTopLayer:true,backdropRestoresFocus:true,resizeRestoresContent:true,accountKeyboardAndClickAway:true};
+
  await cmd('Page.navigate',{url:origin+'/app/inventory#receive'});
  await wait(()=>evaluate('!!document.querySelector("dialog[open]")'),'receive stock deep link');
  await cmd('Page.bringToFront');
@@ -148,12 +186,76 @@ try{
  const detailLogin=await request('login',{credential:secret});cookie=detailLogin.r.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');for(const c of cookie.split('; ')){const at=c.indexOf('=');await cmd('Network.setCookie',{name:c.slice(0,at),value:c.slice(at+1),url:origin,httpOnly:true,sameSite:'Lax'});}
  report.orderReviews=[];
  for(const path of ['/app/replenishment','/app/payments']){
-  await cmd('Page.navigate',{url:origin+path});await wait(()=>evaluate('Array.from(document.querySelectorAll("button")).some(b=>b.textContent.trim()==="Review Order")'),'saved order in '+path);await click('Review Order');
-  await wait(()=>evaluate(`!!document.querySelector('[aria-label="Replenishment details"]')`),'persisted replenishment detail');
+  const paymentPage=path.endsWith('/payments');
+  await cmd('Page.navigate',{url:origin+path});await wait(()=>evaluate(`Array.from(document.querySelectorAll('button')).some(b=>b.textContent.trim().startsWith(${JSON.stringify(paymentPage?'View payment':'Review Order')}))`),'saved order in '+path);
+  await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith(${JSON.stringify(paymentPage?'View payment':'Review Order')})).click()`);
   await wait(()=>evaluate(`!!document.querySelector('[aria-label="Purchase review"]')&&!document.body.innerText.includes("Loading purchase details…")`),'payment review result');
+  if(paymentPage){
+   assert.equal(await evaluate(`!!document.querySelector('dialog[open]')&&!!document.activeElement?.closest('dialog')`),true,'Payment detail opens as a focused dialog');
+   assert.equal(await evaluate(`document.querySelector('dialog').innerText.includes('Purchase planning help')`),false,'Payment details prioritize finance');
+   await evaluate(`Array.from(document.querySelectorAll('dialog summary')).find(e=>e.textContent==='Order and delivery').click()`);
+  }
+  await wait(()=>evaluate(`!!document.querySelector('[aria-label="Replenishment details"]')`),'persisted replenishment detail');
   for(const width of [1440,768,390]){await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});await evaluate(`document.querySelector('[aria-label="Replenishment details"]').scrollIntoView({block:"start"})`);await pause(300);const result=await evaluate(`({overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,hasSupplierComparison:document.body.innerText.includes("Supplier comparison"),falseConfirmation:document.querySelector('[aria-label="Purchase review"]').innerText.includes("Supplier transfer independently confirmed"),orderLabelHeight:[...document.querySelectorAll('[aria-label="Replenishment details"] dt')].find(e=>e.textContent==="Purchase order")?.getBoundingClientRect().height})`);assert.equal(result.overflow,false);assert.equal(result.hasSupplierComparison,true);assert.equal(result.falseConfirmation,false);assert(result.orderLabelHeight<=24,'Purchase order label must stay readable');report.orderReviews.push({path,width,...result});writeFileSync(output+'/order-'+path.split('/').at(-1)+'-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));await evaluate(`document.querySelector('[aria-label="Purchase review"]').scrollIntoView({block:"start"})`);await pause(200);writeFileSync(output+'/payment-review-'+path.split('/').at(-1)+'-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));}
-  await click('Close order review');assert.equal(await evaluate('document.activeElement.textContent.trim()'),'Review Order');
+  if(paymentPage){
+   await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+   await wait(()=>evaluate(`!document.querySelector('dialog[open]')&&document.activeElement.textContent.trim().startsWith('View payment')`),'Payment dialog Escape restores focus');
+   await click('Receipts');assert.equal(await evaluate(`document.body.innerText.includes('No matching purchases')`),true);await click('Clear filters');
+   await set('Search payments','unmatched-search');assert.equal(await evaluate(`document.body.innerText.includes('No matching purchases')`),true);await click('Clear filters');
+   report.paymentActivity={filters:true,search:true,dialogEscapeAndFocus:true};
+  }else{await click('Close order review');assert.equal(await evaluate('document.activeElement.textContent.trim()'),'Review Order');}
  }
+ // Browser-only read fixtures exercise the connected-account UI. No wallet is
+ // connected, no policy is written and no public-chain request is permitted.
+ const fixtureSession={...(await request('session')).data,deployment:'public-testnet',clinicId:'ui-fixture-clinic',clinicRole:'Clinic Admin',permissions:['finance','admin','inventory','procurement']};
+ const fundingFixture={profileFingerprint:fixtureSession.profileFingerprint,network:'testnet',asset:{symbol:'CCUSD',decimals:6},accounts:{treasury:'funding.ui-fixture.testnet',vault:'vault.ui-fixture.testnet',token:'token.ui-fixture.testnet'},balances:{treasuryToken:'30000000',vaultToken:'12000000',treasuryNearYocto:'2000000000000000000000000',vaultNearYocto:'1000000000000000000000000',accounted:'12000000',spendable:'10000000',reservedPayment:'2000000',reservedWithdrawal:'0'},policy:{paused:false,acceptedDepositCeiling:'25000000'},observedAt:new Date().toISOString()};
+ let fundingMode='valid';
+ intercept=async params=>{
+  const path=new URL(params.request.url).pathname;let body;
+  if(params.request.method!=='GET')throw Error('Connected UI fixture attempted a mutation');
+  if(path==='/api/operations/session')body=fixtureSession;
+  else if(path==='/api/operations/funding')body=fundingMode==='valid'?fundingFixture:{...fundingFixture,profileFingerprint:'invalid'};
+  else if(path==='/api/operations/automatic-purchasing')body={version:0,enabled:false,policy:null};
+  else if(path.endsWith('/wallet-bindings'))body={bindings:[{id:'ui-fixture-binding',accountId:'control.ui-fixture.testnet',status:'Verified'}]};
+  else if(path.endsWith('/treasuries'))body={configurations:[{environment:'near-testnet',status:'Active',controller:'control.ui-fixture.testnet'}]};
+  if(body!==undefined)await cmd('Fetch.fulfillRequest',{requestId:params.requestId,responseCode:200,responseHeaders:[{name:'content-type',value:'application/json'},{name:'cache-control',value:'no-store'}],body:Buffer.from(JSON.stringify(body)).toString('base64')});
+  else await cmd('Fetch.continueRequest',{requestId:params.requestId});
+ };
+ await cmd('Fetch.enable',{patterns:[{urlPattern:origin+'/api/*',requestStage:'Request'}]});
+ await cmd('Page.navigate',{url:origin+'/app/payments'});
+ await wait(()=>evaluate(`document.body.innerText.includes('10.00')&&Array.from(document.querySelectorAll('button')).some(b=>b.textContent.trim().startsWith('Add funds')&&!b.disabled)`),'Connected balance fixture');
+ assert.equal(await evaluate(`document.querySelector('#automatic-purchasing-title').closest('details').open`),false,'Purchasing rules start collapsed');
+ assert.equal(await evaluate(`document.querySelector('dialog[open]')`),null,'Funding form starts closed');
+ report.connectedPaymentsViews=[];
+ for(const width of [1440,1024,768,390,320]){
+  await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});await evaluate('window.scrollTo({top:0,behavior:"instant"})');await pause(200);
+  const overflow=await evaluate(`document.documentElement.scrollWidth>document.documentElement.clientWidth+1`);assert.equal(overflow,false,'Connected payments overflow at '+width);report.connectedPaymentsViews.push({width,overflow});writeFileSync(output+'/payments-connected-fixture-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ }
+ await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith('Add funds')).click()`);
+ await wait(()=>evaluate(`!!document.querySelector('dialog[open] input')`),'Deposit amount dialog');
+ await set('Amount','0');assert.equal(await evaluate(`Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent==='Review deposit').disabled`),true,'Zero deposit blocked');
+ await set('Amount','14');assert.equal(await evaluate(`Array.from(document.querySelectorAll('dialog[open] button')).find(b=>b.textContent==='Review deposit').disabled`),true,'Account deposit limit enforced');
+ await set('Amount','1.25');await click('Review deposit');
+ assert.equal(await evaluate(`document.querySelector('dialog[open]').innerText.includes('1.25 CCUSD')&&Array.from(document.querySelectorAll('dialog[open] button')).some(b=>b.textContent==='Continue to wallet')`),true,'Exact amount and wallet step reviewed');
+ await evaluate(`Array.from(document.querySelectorAll('dialog[open] button')).at(-1).focus()`);await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});assert.equal(await evaluate(`!!document.activeElement?.closest('dialog[open]')`),true,'Deposit focus stays inside dialog');
+ for(const width of [1440,390,320]){await cmd('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<500});await pause(150);assert.equal(await evaluate(`document.querySelector('dialog[open]').scrollWidth>document.querySelector('dialog[open]').clientWidth+1`),false,'Deposit modal overflow');writeFileSync(output+'/deposit-review-fixture-'+width+'.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));}
+ await cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+ await wait(()=>evaluate(`!document.querySelector('dialog[open]')&&document.activeElement.textContent.trim().startsWith('View deposit')`),'Deposit Escape returns focus');
+ await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith('View deposit')).click()`);
+ assert.equal(await evaluate(`document.querySelector('dialog[open]').innerText.includes('1.25 CCUSD')`),true,'Closing retains reviewed deposit');await click('Edit amount');await click('Max');
+ assert.equal(await evaluate(`document.querySelector('dialog[open] input').value`),'13','Max amount respects treasury and ceiling');
+ await evaluate(`document.querySelector('button[aria-label="Close deposit"]').click()`);
+ await evaluate(`document.querySelector('#automatic-purchasing-title').closest('summary').click()`);
+ await wait(()=>evaluate(`!!document.querySelector('fieldset input')`),'Purchasing options');
+ assert.equal(await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent==='Enable purchasing').disabled`),true,'Purchasing consent and selections required');
+ writeFileSync(output+'/purchasing-rules-fixture-320.png',Buffer.from((await cmd('Page.captureScreenshot',{format:'png'})).data,'base64'));
+ fundingMode='invalid';await cmd('Page.navigate',{url:origin+'/app/payments'});
+ await wait(()=>evaluate(`document.body.innerText.includes('Balance unavailable')`),'Invalid funding response shows recovery');
+ assert.equal(await evaluate(`document.querySelector('[aria-label="Payment account balances"]')`),null,'Unavailable balance is not shown as zero');
+ assert.equal(await evaluate(`Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim().startsWith('Add funds')).disabled`),true,'Funding unavailable without verified snapshot');
+ fundingMode='valid';await click('Refresh balances');await wait(()=>evaluate(`!!document.querySelector('[aria-label="Payment account balances"]')`),'Funding refresh recovers');
+ await cmd('Page.navigate',{url:'about:blank'});await cmd('Fetch.disable');intercept=null;
+ report.depositFlow={source:'browser-only funding UI fixture',noWalletConnection:true,noFinancialMutations:true,zeroAndOverLimitBlocked:true,reviewedAmountPreserved:true,maxRespectsLimits:true,escapeAndFocus:true,unavailableBalanceAndRecovery:true};
  report.spies=['api','worker','worker-restart'].map(n=>JSON.parse(readFileSync(temp+'/'+n+'-spies.json','utf8')));for(const spy of report.spies)assert(Object.values(spy).every(n=>n===0));assert.equal(report.runtimeErrors.length,0);assert.equal(report.consoleErrors.length,0);assert(report.consoleWarnings.every(w=>w.includes('was preloaded using link preload but not used')),'Unexpected browser warning');report.status='passed';
 }catch(error){report.status='failed';report.error=error.message;process.exitCode=1;}
 finally{if(ws?.readyState===WebSocket.OPEN){ws.send(JSON.stringify({id:99999,method:'Browser.close'}));await pause(500);}ws?.close();try{for(const p of [...children].reverse()){try{await stop(p);}catch(error){throw Error('Cannot stop owned child '+p.spawnargs[1]+': '+error.message);}}rmSync(snapshot+(testnetPreparation?'/backend/data/testnet-v2/':'/backend/data/local-v2/local-operations/')+workspace,{recursive:true,force:true});rmSync(temp,{recursive:true,force:true});}catch(error){report.status='failed';report.cleanupError=error.message;process.exitCode=1;}finally{writeFileSync(output+'/browser-report.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));}}

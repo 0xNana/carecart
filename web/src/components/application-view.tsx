@@ -6,11 +6,9 @@ import type { AgentRun, OperatorSession, SupplierCatalog } from "@/lib/operator-
 import { caseStateLabel, terminalStates, usdc, type WorkspaceCase } from "@/lib/workflow";
 import { applicationErrorText as errorText, loadApplicationData } from "@/lib/application-data";
 import { useApplication } from "./application-shell";
-import {ClinicAccess} from './clinic-access';
 import {InventoryRuntimePanel} from './inventory-runtime-panel';
 import {ApplicationCase} from './application-case';
-import {AutomaticPurchasingPanel} from './automatic-purchasing-panel';
-import {PaymentAccountPanel} from './payment-account-panel';
+import {PaymentsWorkspace} from './payments-workspace';
 import {statusLabel as stateText,actionError} from '@/lib/product-copy';
 import styles from "./application-view.module.css";
 
@@ -122,7 +120,16 @@ export function ApplicationView({ section }: { section: Section }) {
 
   const inventoryFailure=useCallback((cause:unknown)=>{const message=errorText(cause);if(message.startsWith('Your session has expired'))setError(message);},[]);
   const title = headings[section];
-  if(session?.inventoryRuntime&&(['overview','inventory','activity','settings'] as string[]).includes(section))return <><InventoryRuntimePanel publicPayments={session.deployment==='public-testnet'} session={session} client={client} operator={role==='operator'&&(!tenant||tenant.clinic.permissions.includes(section==='settings'?'admin':'inventory'))} canManageAutonomy={!tenant||tenant.clinic.permissions.includes('admin')} section={section as 'overview'|'inventory'|'activity'|'settings'} onChanged={refresh} onFailure={inventoryFailure}/>{section==='settings'&&tenant&&<ClinicAccess clinic={tenant.clinic}/>}</>;
+  if(session&&(section==='settings'||(session.inventoryRuntime&&(['overview','inventory','activity'] as string[]).includes(section))))return <><InventoryRuntimePanel clinic={tenant?.clinic} publicPayments={session.deployment==='public-testnet'} session={session} client={client} operator={role==='operator'&&(!tenant||tenant.clinic.permissions.includes(section==='settings'?'admin':'inventory'))} canManageAutonomy={!tenant||tenant.clinic.permissions.includes('admin')} section={section as 'overview'|'inventory'|'activity'|'settings'} onChanged={refresh} onFailure={inventoryFailure}/></>;
+
+  if(section==='payments') return <PaymentsWorkspace client={client} session={session} cases={cases} loading={loading} refreshing={refreshing} error={error}
+    canFund={role==='operator'&&(tenant?tenant.clinic.permissions.includes('finance'):session?.permissions?.includes('finance')===true)}
+    canManage={session?.clinicRole==='Clinic Admin'} onRefresh={refresh}
+    pageNavigation={caseCount>20?<nav aria-label="Case pages" className={styles.panel}>
+      <button disabled={refreshing||offset===0} onClick={()=>{setLoading(true);setOffset(Math.max(0,offset-20));}}>Previous page</button>
+      <span> Page {Math.floor(offset/20)+1} </span>
+      <button disabled={refreshing||nextOffset===null} onClick={()=>{if(nextOffset!==null){setLoading(true);setOffset(nextOffset);}}}>Next page</button>
+    </nav>:null}/>;
 
   return (
     <div className={styles.page}>
@@ -138,11 +145,6 @@ export function ApplicationView({ section }: { section: Section }) {
       </header>
 
       {section==='suppliers'&&<p className={styles.demoNotice}>Sample suppliers and offers for comparison.</p>}
-      {section==='payments'&&session?.deployment==='testnet-preparation'&&<p className={styles.demoNotice}>Demo amounts only · no real money is involved.</p>}
-
-      {section==='payments'&&session?.deployment==='public-testnet'&&<AutomaticPurchasingPanel client={client} canManage={session.clinicRole==='Clinic Admin'} />}
-      {section==='payments'&&session?.deployment==='public-testnet'&&<PaymentAccountPanel client={client} canFund={role==='operator'&&(tenant?tenant.clinic.permissions.includes('finance'):session.permissions?.includes('finance')===true)} />}
-
       {error && <p className={styles.error} role="alert">{actionError(new Error(error),"Records could not be loaded. Refresh to try again.")}</p>}
       {loading && <p className={styles.loading} role="status" aria-busy="true">Loading records…</p>}
       {!loading&&!error&&caseReadAt&&<p className={styles.dataFootnote}>Updated {formatTime(caseReadAt)}.</p>}
@@ -261,25 +263,6 @@ export function ApplicationView({ section }: { section: Section }) {
         </section>
       )}
 
-      {!loading && !error && section === "payments" && (
-        <section className={styles.panel}>
-          <PanelHeading eyebrow="PAYMENT HISTORY" title="Recent payment activity" />
-          <p className={styles.panelLead}>Open an order to review its status and any action needed.</p>
-          {cases.some((entry) => entry.selection || entry.vault || entry.settlement) ? <div className={styles.tableWrap} tabIndex={0} aria-label="Payment activity">
-            <table><thead><tr><th>Purchase order</th><th>Amount</th><th>Payment status</th><th>Supplier receipt</th><th>Order status</th></tr></thead>
-              <tbody>{cases.filter((entry) => entry.selection || entry.vault || entry.settlement).map((entry) => <tr key={entry.caseId}>
-                <td><strong>{entry.item?.name??entry.itemId}</strong><small>{entry.poId??"Order being prepared"}</small><button className={styles.evidenceButton} onClick={e=>{caseTrigger.current=e.currentTarget;setSelectedCase(entry.caseId);}}>Review Order</button></td>
-                <td>{entry.selection ? `${usdc(entry.selection.amount)} ${moneyLabel}` : "Not estimated"}</td>
-                <td>{entry.vault ? stateText(entry.vault.status) : "Not checked yet"}</td>
-                <td>{entry.settlement ? stateText(entry.settlement.state) : "Not received"}</td>
-                <td>{caseStateLabel(entry)}</td>
-              </tr>)}</tbody>
-            </table>
-          </div> : <EmptyState error={error} empty="No payments recorded yet. Prepared orders appear here for review." />}
-          <p className={styles.dataFootnote}>A payment is complete once its receipt is confirmed. Record delivered supplies in Inventory.</p>
-        </section>
-      )}
-
       {!loading && !error && section === "activity" && (
         <section className={styles.panel}>
           <PanelHeading eyebrow="ACTIVITY" title="Order updates" />
@@ -308,25 +291,7 @@ export function ApplicationView({ section }: { section: Section }) {
        <span> Cases {offset+1}–{offset+cases.length} of {caseCount} </span>
        <button disabled={refreshing||nextOffset===null} onClick={()=>{if(nextOffset!==null){setLoading(true);setSelectedCase(null);setOffset(nextOffset);}}}>Next cases</button>
       </nav>}
-      {!loading && !error && section === "settings" && (
-        <div className={styles.settingsGrid}>
-          <section className={styles.panel}>
-            <PanelHeading eyebrow="YOUR CLINIC" title="Access and services" />
-            <dl className={styles.facts}><dt>Your role</dt><dd>{tenant?.clinic.role??(role==='operator'?'Staff':'Viewer')}</dd>
-              <dt>Stock updates</dt><dd>{session?.inventoryRuntime ? "Available" : "Not set up"}</dd>
-              <dt>Purchase planning help</dt><dd>{session?.providerAvailable ? "Available" : "Not enabled"}</dd>
-              <dt>Payment balance</dt><dd>{session?.deployment==='public-testnet'?'Demo funds only':session?.deployment==='testnet-preparation'?'Demo orders only':'Unavailable'}</dd></dl>
-          </section>
-          <section className={styles.panel}>
-            <PanelHeading eyebrow="PAYMENTS" title="Payment review" />
-            <p className={styles.panelLead}>Every purchase is checked against clinic limits. Purchases that need approval stay on hold until a clinic approver reviews them.</p>
-            <Link className={styles.inlineLink} href="/app/payments">View payment activity →</Link>
-            <details><summary>Advanced account details</summary><dl className={styles.facts}><dt>Session expires</dt><dd>{session ? formatTime(session.expiresAt) : "Unavailable"}</dd>
-              <dt>Profile reference</dt><dd><code>{session?.profileFingerprint ?? "Unavailable"}</code></dd>
-              <dt>Wallet setup</dt><dd>{session?.walletMode === "local-sandbox" ? "Local preview wallet" : session?.walletMode === "isolated-mock" ? "Simulation only" : "Not enabled"}</dd></dl></details>
-          </section>
-        </div>
-      )}
+
     </div>
   );
 }

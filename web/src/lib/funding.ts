@@ -32,3 +32,9 @@ export function nearAmount(yocto:string):string {
  const amount=BigInt(yocto),scaled=(amount+BigInt('50000000000000000000'))/BigInt('100000000000000000000');
  return `${(scaled/BigInt(10_000)).toString()}.${(scaled%BigInt(10_000)).toString().padStart(4,'0')}`;
 }
+
+/** Show cents for ordinary amounts without rounding away smaller token units. */
+export function exactTokenAmount(atomicAmount:string):string {
+ const amount=BigInt(atomicAmount),whole=amount/BigInt(1_000_000),fraction=(amount%BigInt(1_000_000)).toString().padStart(6,'0').replace(/0+$/,'').padEnd(2,'0');
+ return `${whole}.${fraction}`;
+}

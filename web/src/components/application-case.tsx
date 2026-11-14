@@ -8,8 +8,9 @@ import {useApplication} from './application-shell';
 import type {AgentRun,OperatorClient,OperatorSession} from '../lib/operator-client';
 import {actionError,displayTime,statusLabel} from '../lib/product-copy';
 import styles from './application-view.module.css';
+import caseStyles from './application-case.module.css';
 
-export function ApplicationCase({caseId,onClose}:{caseId:string;onClose:()=>void}) {
+export function ApplicationCase({caseId,onClose,view="order"}:{caseId:string;onClose:()=>void;view?:"order"|"payment"}) {
  const {client}=useApplication();const heading=useRef<HTMLHeadingElement>(null);useEffect(()=>heading.current?.focus(),[]);
  const [detail,setDetail]=useState<Awaited<ReturnType<OperatorClient['detail']>>|null>(null);
  const [session,setSession]=useState<OperatorSession|null>(null);
@@ -41,10 +42,11 @@ export function ApplicationCase({caseId,onClose}:{caseId:string;onClose:()=>void
  }
  const activeRun=latestRun??detail?.runs[0]??null;
  return <section className={`${styles.caseEvidence} ops`} aria-label={`Order review for ${caseId}`}>
-  <div className="ops-panel"><h2 ref={heading} tabIndex={-1}>Order review</h2><details><summary>Request reference</summary><p>{caseId}</p></details><button onClick={onClose}>Close order review</button></div>
+  <div className={caseStyles.header}><div><h2 ref={heading} tabIndex={-1}>{view==='payment'?'Payment details':'Order review'}</h2><details><summary>Request reference</summary><p>{caseId}</p></details></div><button type="button" onClick={onClose} aria-label={view==='payment'?'Close payment details':'Close order review'}>{view==='payment'?'×':'Close order review'}</button></div>
   {error&&<p role="alert">{actionError(new Error(error),"Order details are unavailable. Refresh before retrying any payment action.")}</p>}
   {!detail&&!error&&<p role="status">Loading order details…</p>}
   {detail&&session&&<>
+  {view==='order'&&<>
   {detail.projection.cases.find(c=>c.caseId===caseId)&&<OrderRecord record={detail.projection.cases.find(c=>c.caseId===caseId)!}/>}
   <section className={styles.panel} aria-label="Purchase planning help">
     <h3>Purchase planning help</h3>
@@ -60,10 +62,12 @@ export function ApplicationCase({caseId,onClose}:{caseId:string;onClose:()=>void
      <details><summary>Check timing</summary><p>Started {displayTime(activeRun.startedAt)} · Duration {activeRun.durationMs} ms</p></details>
     </details>}
    </section>
+  </>}
    <FinancialReviewPanel client={client} caseId={caseId} revision={detail.revision} operator={session.role==='operator'&&(!session.permissions||session.permissions.includes('finance'))} onRefresh={refresh}/>
-   <details><summary>More order details</summary><OperationsWorkspace publicPayments={session.deployment==='public-testnet'} testnetAssets={session.deployment==='testnet-preparation'} key={detail.revision} initialProjection={detail.projection} source="authenticated"/></details>
-   <V2WalletReview client={client} session={session} caseId={caseId} revision={detail.revision}
-    paymentState={detail.projection.cases[0].paymentState} reviews={detail.walletReviews} onRefresh={refresh}/>
+   {view==='payment'&&<details><summary>Order and delivery</summary>{detail.projection.cases.find(c=>c.caseId===caseId)&&<OrderRecord record={detail.projection.cases.find(c=>c.caseId===caseId)!}/>}</details>}
+   {view==='order'&&<details><summary>More order details</summary><OperationsWorkspace publicPayments={session.deployment==='public-testnet'} testnetAssets={session.deployment==='testnet-preparation'} key={detail.revision} initialProjection={detail.projection} source="authenticated"/></details>}
+   {(view==='order'||session.walletMode==='isolated-mock'||detail.walletReviews.length>0)&&<V2WalletReview client={client} session={session} caseId={caseId} revision={detail.revision}
+    paymentState={detail.projection.cases[0].paymentState} reviews={detail.walletReviews} onRefresh={refresh}/>}
   </>}
  </section>;
 }

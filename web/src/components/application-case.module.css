@@ -1,0 +1,60 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+}
+.header > div {
+  flex: 1;
+  min-width: 0;
+}
+.header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 550;
+  letter-spacing: -0.4px;
+}
+.header details {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.header summary {
+  min-height: 32px;
+  padding: 4px 0;
+  font-size: 11px;
+}
+.header p {
+  overflow-wrap: anywhere;
+}
+.header > button {
+  min-width: 44px;
+  min-height: 44px;
+  flex: none;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: white;
+  color: var(--teal);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.header > button[aria-label="Close payment details"] {
+  font-size: 22px;
+  padding: 4px;
+}
+@media (max-width: 520px) {
+  .header {
+    padding: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .header h2 {
+    font-size: 18px;
+  }
+}
