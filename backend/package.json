@@ -6,10 +6,12 @@
   "keywords": [],
   "type": "commonjs",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/tenancy/server.ts",
+    "start": "tsx src/tenancy/server.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev:prototype": "tsx watch src/server.ts",
+    "start:prototype": "tsx src/server.ts"
   },
   "devDependencies": {
     "@types/better-sqlite3": "9.6.0",
