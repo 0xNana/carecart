@@ -4,13 +4,13 @@
 .heading p:not(.eyebrow) {max-width:650px;margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.6}
 .eyebrow {margin:0 0 7px;color:var(--teal);font-size:11px;font-weight:800;letter-spacing:1.05px}
 .badge {flex:none;padding:7px 10px;border-radius:999px;background:#e8f4ed;color:#285d43;font-size:10px;font-weight:800;letter-spacing:.7px}
-.balanceCard {display:grid;gap:6px;margin:24px 0 14px;padding:22px 24px;border-radius:12px;background:linear-gradient(120deg,#0b4e45,#15796a);color:#fff}
+.balanceCard {display:grid;gap:6px;margin:24px 0 14px;padding:22px 24px;border-radius:var(--radius);background:var(--teal);color:#fff}
 .balanceCard>span:first-child {font-size:13px;opacity:.88}
 .balanceCard>strong {font-size:clamp(34px,6vw,46px);font-weight:700;letter-spacing:-1.5px;line-height:1.15}
 .balanceCard strong small {font-size:15px;letter-spacing:.2px}
 .balanceCaption {font-size:12px;opacity:.8}
 .metrics {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px}
-.metrics>div {display:grid;align-content:start;gap:7px;min-width:0;padding:14px;border:1px solid #e3ebe6;border-radius:10px;background:#fbfdfb}
+.metrics>div {display:grid;align-content:start;gap:7px;min-width:0;padding:14px;border:1px solid #e3ebe6;border-radius:var(--radius);background:#fbfdfb}
 .metrics>div>span {color:#587064;font-size:12px;font-weight:650}
 .metrics>div>strong {overflow-wrap:anywhere;color:var(--ink);font-size:clamp(17px,2.2vw,21px);font-weight:700}
 .metrics>div>strong small {font-size:11px;font-weight:700}
@@ -20,7 +20,7 @@
 .detailRow p {margin:12px 0 0;overflow-wrap:anywhere}
 .detailRow code {overflow-wrap:anywhere;color:#2a473a;font-family:ui-monospace,SFMono-Regular,monospace}
 .detailRow strong {color:#27473a;white-space:nowrap}
-.depositFlow {max-width:680px;margin-top:24px;padding:clamp(16px,3vw,24px);border:1px solid #dce8e0;border-radius:12px;background:#f7fbf8}
+.depositFlow {max-width:680px;margin-top:24px;padding:clamp(16px,3vw,24px);border:1px solid #dce8e0;border-radius:var(--radius);background:#f7fbf8}
 .depositFlow h3 {margin:0;color:var(--ink);font-size:19px}
 .depositFlow>p {margin:8px 0 14px;color:#566d61;font-size:13px;line-height:1.6}
 .depositFlow form {display:grid;gap:10px}

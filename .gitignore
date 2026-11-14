@@ -43,6 +43,7 @@ internal-docs/
 /tasks/
 /docs/*
 !/docs/JUDGE_WALKTHROUGH.md
+!/docs/CARECART_DESIGN_REVIEW.md
 !/docs/evidence/
 !/docs/evidence/**
 

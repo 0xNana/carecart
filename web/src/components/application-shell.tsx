@@ -82,8 +82,9 @@ export function ApplicationShell({ role, children,tenant,cleanPaths=false,siteOr
                   <path d="M23 4.5v9M18.5 9h9" />
                 </svg>
               </span>
-              <span>CareCart</span>{(!tenant||tenant.clinic.syntheticDemo)&&<span className={styles.testnetBadge}>Sample workspace</span>}
+              <span>CareCart</span>
             </Link>
+            <span className={styles.environment}>{cleanPaths?'NEAR Testnet':'Local demo'}</span>
             <div className={styles.workspaceIdentity}>
               <strong>{tenant?.clinic.name??'CareCart workspace'}</strong>
               <span>{tenant?tenant.clinic.role+' · '+tenant.clinic.country:'Inventory and purchasing'}</span>

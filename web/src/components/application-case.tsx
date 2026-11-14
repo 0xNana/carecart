@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
+import {OrderRecord} from './order-record';
 import {OperationsWorkspace} from './operations-workspace';
 import {FinancialReviewPanel} from './financial-review-panel';
 import {V2WalletReview} from './v2-wallet-review';
@@ -44,6 +45,7 @@ export function ApplicationCase({caseId,onClose}:{caseId:string;onClose:()=>void
   {error&&<p role="alert">{actionError(new Error(error),"Order details are unavailable. Refresh before retrying any payment action.")}</p>}
   {!detail&&!error&&<p role="status">Loading order details…</p>}
   {detail&&session&&<>
+  {detail.projection.cases.find(c=>c.caseId===caseId)&&<OrderRecord record={detail.projection.cases.find(c=>c.caseId===caseId)!}/>}
   <section className={styles.panel} aria-label="Purchase planning help">
     <h3>Purchase planning help</h3>
     <p>Review stock, compare supplier offers and see the next step. This check will not place an order or send a payment.</p>

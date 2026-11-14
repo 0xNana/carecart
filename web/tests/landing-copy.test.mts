@@ -2,14 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-test('product copy distinguishes automatic stock planning from clinic-approved payments',()=>{
- const landing=readFileSync('src/components/landing-page.tsx','utf8');
- const layout=readFileSync('src/app/layout.tsx','utf8');
- assert.match(landing,/Automatic stock monitoring and purchase planning/);
- assert.match(landing,/Clinic approval before every supplier payment/);
- assert.match(landing,/Each purchase needs clinic authorization/);
- assert.match(landing,/A clinic approver authorizes each purchase/);
- assert.match(layout,/manage payments with clinic approval and spending safeguards/);
- assert.doesNotMatch(landing,/Give AI a budget|Autonomous healthcare procurement|Autonomous replenishment/);
- assert.doesNotMatch(layout,/Give AI a budget|autonomous procurement/);
+test('landing describes budgeted autonomy accurately and uses actual product screenshots',()=>{
+ const landing=readFileSync('src/components/landing-page.tsx','utf8').replace(/\s+/g,' ');
+ assert.match(landing,/Your medical supplies shouldn&apos;t run out before you notice\./);
+ assert.match(landing,/Give AI a budget, not your wallet\./);
+ assert.match(landing,/CCUSD/);assert.match(landing,/no cash value/);assert.match(landing,/Circle USDC/);
+ assert.match(landing,/\/screenshots\/carecart-product-preview\.png/);
+ assert.match(landing,/Eligible orders can proceed automatically/);
+ assert.doesNotMatch(landing,/Clinic approval before every|Each purchase needs clinic authorization|A clinic approver authorizes each purchase|paymentMock|inventoryMock|poPrepared/);
 });

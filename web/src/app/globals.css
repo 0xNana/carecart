@@ -1,20 +1,20 @@
 @import "tailwindcss";
+@font-face {font-family:Inter;src:url('/fonts/InterVariable.woff2') format('woff2');font-style:normal;font-weight:100 900;font-display:swap}
 :root {
-  --canvas:#f4f6f6;
-  --surface:#fff;
-  --ink:#183332;
-  --muted:#596d6b;
-  --line:#dce5e3;
-  --teal:#12675c;
-  --teal-dark:#0b4e45;
-  --soft:#eaf4f0;
-  --amber:#8b4f10;
-  --amber-soft:#fff3dc;
-  --danger:#9d2f28;
-  --control-border:#78948b;
-  --radius-sm:6px;
-  --radius:10px
+ --font-sans:Inter,Arial,Helvetica,sans-serif;
+ --font-xs:.75rem;--font-sm:.8125rem;--font-body:.875rem;--font-lg:1.125rem;--font-title:1.75rem;
+ --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+ --canvas:#F7F8F4;--surface:#fff;--surface-subtle:#f3f5f1;
+ --ink:#202e2d;--muted:#596562;--text-subtle:#6a7571;
+ --line:#dfe4de;--control-border:#899b92;
+ --teal:#103D3B;--teal-dark:#0b2e2c;--mint:#8EDCC0;--soft:#eaf3ee;
+ --amber:#805017;--amber-soft:#fff4df;--amber-accent:#E9AE55;
+ --danger:#a1332c;--danger-soft:#fff1ef;
+ --radius-sm:4px;--radius:6px;--radius-lg:8px;
+ --shadow-popover:0 8px 24px #103d3b14;--shadow-dialog:-8px 0 32px #103d3b14;
+ --focus-ring:3px solid #226f65;
 }
+
 * {
   box-sizing:border-box
 }
@@ -31,7 +31,7 @@ body {
   margin:0;
   background:var(--canvas);
   color:var(--ink);
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:var(--font-sans);
   font-size:14px;
   line-height:1.5
 }
@@ -51,7 +51,7 @@ button:disabled {
   opacity:.6
 }
 button:focus-visible,a:focus-visible,summary:focus-visible,[tabindex]:focus-visible {
-  outline:3px solid #167e72;
+  outline:var(--focus-ring);
   outline-offset:4px
 }
 h1,h2,h3,h4,p {
@@ -1166,3 +1166,7 @@ pre {
   .preview-fields { grid-template-columns: minmax(0, 1fr); }
   .preview-content { padding: 0 16px 16px; }
 }
+
+input,select,textarea {font:inherit} input:focus-visible,select:focus-visible,textarea:focus-visible {outline:var(--focus-ring);outline-offset:2px}
+table,.numeric {font-variant-numeric:tabular-nums} th[scope=col] {text-align:left}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

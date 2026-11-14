@@ -4,11 +4,11 @@ import "./globals.css";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#12675c",
+  themeColor: "#103D3B",
 };
 
 const productDescription =
-  "CareCart helps clinics monitor stock, prepare replenishment orders and manage payments with clinic approval and spending safeguards.";
+  "CareCart helps clinics record stock, replenish supplies and coordinate policy-controlled payments.";
 
 export const metadata: Metadata = {
   title: "CareCart — Healthcare procurement, under control",

@@ -104,7 +104,7 @@ export function ApplicationView({ section }: { section: Section }) {
   const activeCases = cases.filter((entry) => !terminalStates.has(entry.state));
   const attentionCases = cases.filter((entry) => entry.humanInterventions.length > 0);
   const lowStock = inventory.filter((entry) => entry.onHand <= entry.reorderPoint);
-  const moneyLabel='demo credits';
+  const moneyLabel=session?.deployment==='public-testnet'||session?.deployment==='testnet-preparation'?'CCUSD':'demo credits';
   const suppliers = new Map<string, Supplier>();
   for (const entry of cases) for (const quote of entry.quotes) {
     const supplier = suppliers.get(quote.supplierId) ?? {

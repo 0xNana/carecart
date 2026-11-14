@@ -1,4 +1,5 @@
 'use client';
+import {confirmedSupplierPayment,paymentStage} from '../lib/payment-presentation';
 import {identityRequest} from '../lib/identity-client';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import type {OperatorClient} from '../lib/operator-client';
@@ -18,17 +19,20 @@ export function FinancialReviewPanel({client,caseId,revision,operator,onRefresh}
  const [wallets,setWallets]=useState<{id:string;accountId:string}[]>([]),[walletBindingId,setWalletBindingId]=useState('');
  useEffect(()=>{let active=true;if(review?.execution==='public-rpc')void client.session().then(s=>{if(!s.clinicId)throw new Error('Clinic required');return identityRequest('clinics/'+s.clinicId+'/wallet-bindings');}).then(d=>{if(active){const current=(d.bindings as {id:string;accountId:string;status:string}[]).filter(b=>b.status==='Verified'&&b.accountId===review.controller);setWallets(current);setWalletBindingId(current.length===1?current[0].id:'');}}).catch(()=>{if(active){setWallets([]);setWalletBindingId('');}});return()=>{active=false;};},[client,review?.execution,review?.controller]);
  const role=review?.requiredAuthority==='committer'?'committer':review?.requiredAuthority==='requester'?'requester':null;
- const moneyLabel='demo credits';
+ const moneyLabel=review?.quote.asset==='CCUSD'?'CCUSD':'demo credits';
  const environment=review?.execution==='public-rpc'?'Demo purchase · no real money is involved.':review?.execution==='sandbox-rpc'?'Preview only · no payment will be sent.':review?.execution==='mocked-rpc'?'Simulation only · no payment will be sent.':'Payment actions are unavailable here.';
- const nativeReceipt=review?.authorizations.flatMap(a=>a.events.map(e=>e.nativePayment)).find(p=>p?.nativeSettlementVerified&&p.network==='testnet'&&p.poId===review.canonical.po_id&&p.token===review.canonical.token&&p.recipient===review.canonical.supplier&&p.amount===review.canonical.amount);
+ const nativeReceipt=review?confirmedSupplierPayment(review):undefined;
+ const stage=review?paymentStage(review):null;
+ const transactionUrl=nativeReceipt?'https://testnet.nearblocks.io/txns/'+nativeReceipt.transactionHash:review?.operations.map(o=>testnetTransactionUrl(review.execution,review.canonical.profile,o.evidence)).filter(Boolean).at(-1);
  const confirmLabel=role==='committer'?'Confirm order details':'Confirm payment request';
  return <section className={styles.panel+' '+styles.financialReview} aria-label="Purchase review">
-  <h2>Review purchase</h2>
+  <header className={styles.paymentHeading}><div><p className={styles.eyebrow}>PAYMENT REVIEW</p><h2>Review purchase</h2></div>{stage&&<span className={styles.paymentStage} data-state={stage}>{stage}</span>}</header>
   {review&&<p><strong>{environment}</strong></p>}
   <p>Check the supplier, amount and delivery details before confirming this step.</p>
   {error&&<p className={styles.error} role="alert">{actionError(new Error(error),'Purchase details are unavailable. Refresh before taking action.')}</p>}
   {!review&&!error&&<p role="status">Loading purchase details…</p>}
   {review&&<>
+   <div className={styles.paymentAmount}><strong>{usdc(review.canonical.amount)} <span>{moneyLabel}</span></strong><p>{review.execution==='public-rpc'?'NEAR Testnet · demonstration token with no cash value':review.execution==='sandbox-rpc'?'Local Sandbox · no real-money payment':review.execution==='mocked-rpc'?'Simulation · no real-money payment':'Execution disabled'}</p></div>
    <dl className={styles.facts}>
     <dt>Order reference</dt><dd>{review.canonical.po_id}</dd>
     <dt>Supplier</dt><dd>{review.quote.supplierId.replace(/^Synthetic Demo Supplier /i,'Supplier ')}</dd>
@@ -37,6 +41,10 @@ export function FinancialReviewPanel({client,caseId,revision,operator,onRefresh}
     <dt>Offer expires</dt><dd>{displayTime(review.quote.expiresAt)} · {review.quoteExpired?'Expired':'Available'}</dd>
     <dt>Next step</dt><dd>{statusLabel(review.nextAction)}</dd>
     <dt>Payment status</dt><dd>{statusLabel(review.approvalStatus)} · {statusLabel(review.state)}</dd>
+    <dt>Network</dt><dd>{review.canonical.profile==='testnet'?'NEAR Testnet':'Local demo · financial execution disabled'}</dd>
+    <dt>Policy outcome</dt><dd>{review.policy.blocks.length?'Blocked: '+review.policy.blocks.map(statusLabel).join(', '):review.policy.observed?'Within current limits':'Limits not independently checked'}</dd>
+    <dt>Verified payment</dt><dd>{nativeReceipt?'Supplier transfer independently confirmed':'No independently confirmed supplier transfer'}</dd>
+    <dt>Transaction</dt><dd>{transactionUrl?<><a className={styles.inlineLink} href={transactionUrl} target="_blank" rel="noreferrer">{transactionUrl.split('/').at(-1)} ↗</a><small>{nativeReceipt?'Verified supplier payment':'Latest operation · payment confirmation pending'}</small></>:'No public transaction recorded'}</dd>
     <dt>Approval</dt><dd>{review.policy.humanRequired||review.approvalStatus==='PendingApproval'?'Clinic approval required':'Within set limits; confirmation required'}</dd>
    </dl>
    <details><summary>Payment limits</summary><ul>{Object.entries(review.policy.limits).map(([key,value])=><li key={key}>{({auto_per_po_limit:'Automatic payment limit',hard_payout_limit:'Maximum payment',daily_dispatch_limit:'Daily payment limit',accepted_deposit_ceiling:'Maximum balance'} as Record<string,string>)[key]??key}: {usdc(value)} {moneyLabel}</li>)}</ul></details>
