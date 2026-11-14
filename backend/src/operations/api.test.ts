@@ -53,3 +53,13 @@ it('rejects live profile activation and signing credentials in the separate serv
  const fake={procurement:{profile:{...local.store.profile,vault:'operational.near'}}};
  expect(()=>createOperationsApp({workflow:fake as never,origin:'http://localhost:3000',operatorCredential:'operator-'.repeat(5)})).toThrow(/local-synthetic/);
 });
+it('registers read-only payment routes behind authentication and reports unavailable configuration without a missing-route 404',async()=>{
+ const {app,login}=await fixture();
+ const routes=[['funding','FUNDING_UNAVAILABLE'],['automatic-purchasing','AUTOMATIC_POLICY_UNAVAILABLE']] as const;
+ for(const [path] of routes)expect((await app.inject('/api/operations/'+path)).statusCode).toBe(401);
+ const s=await login();
+ for(const [path,code] of routes){
+  const response=await app.inject({url:'/api/operations/'+path,headers:{cookie:s.cookie,origin:'http://localhost:3000'}});
+  expect(response.statusCode).toBe(503);expect(response.json()).toMatchObject({error:{code}});
+ }
+});
